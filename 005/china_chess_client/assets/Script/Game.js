@@ -1,0 +1,336 @@
+import globalData from "./data/globalData.js"
+import chessLogic from "./data/chessLogic.js"
+import playLogic from "./data/playLogic.js"
+
+cc.Class({
+    extends: cc.Component,
+
+    properties: {
+        btnRestart:{
+            default: null,
+            type: cc.Button
+        },
+        panel_over:cc.Node,
+        
+        overLabel:{
+          default:null,
+          type:cc.Label
+        },
+    
+        chessPrefab:{//棋子的预制资源
+            default:null,
+            type:cc.Prefab
+        },
+
+        lab_room:cc.Label,
+        btn_ready:cc.Node,
+        btn_score:cc.Node,
+        btn_quit:cc.Node,
+        lab_player1:cc.Label,
+        lab_player2:cc.Label,
+        dialog_retrack:cc.Node,
+
+        avator_target:cc.Node,
+        avator_my:cc.Node,
+        game_start:cc.Node,
+        img_jiangjun:cc.Node,
+        lab_tips:cc.Label,
+        tips:cc.Node,
+    },
+    //退出游戏
+    onBtnQuit(){
+        window.close();
+        cc.director.end();
+    },
+    onBtnReady(){
+        globalData.socketMgr.prepare()
+    },
+    onBtnScore(){
+        this.panel_over.active = true;
+    },
+    onBtnCurScore(){
+        this._cur_score_idx = globalData.gameMgr.score_list.length -1;
+        this.renderScorePanel()
+    },
+    onBtnLastScore(){
+        this._cur_score_idx = Math.max(0,this._cur_score_idx-1);
+        this.renderScorePanel()
+    },
+    onBtnCloseScore(){
+        this.panel_over.active = false;
+    },
+    onBtnRetrack(){
+
+        if(playLogic.isPlay){
+            if(globalData.gameMgr.play_mode == 1) { //人人
+                if(!this.retrack_lock){
+                    if(playLogic.pace.length == 0) { //游戏还没走步
+                        this.showTips("请走步");
+                    }else{
+                        console.log(globalData.gameMgr.playerData.self.retrack_num)
+                        if (globalData.gameMgr.playerData.turn != globalData.gameMgr.playerData.self.posId
+                            && globalData.gameMgr.playerData.self.retrack_num > 0) {
+                            this.retrack_lock = true;
+                            globalData.socketMgr.retrackChess();
+                            globalData.gameMgr.playerData.self.retrack_num--;
+                            this.showTips("请求悔棋中,剩余" + globalData.gameMgr.playerData.self.retrack_num + "次");
+                        }
+                    }
+                }else{
+                    this.showTips("本回合已使用过悔棋，请走步");
+                }
+            }else{ //人机
+                playLogic.regret();
+            }
+        }else{
+            this.showTips("游戏还没开始")
+        }
+    },
+    onBtnAgreeRetrack(){
+        globalData.socketMgr.retrackRsp(1)
+        this.dialog_retrack.active = false;
+    },
+    onBtnNotAgreeRetrack(){
+        globalData.socketMgr.retrackRsp(0)
+        this.dialog_retrack.active = false;
+    },
+    onBtnCloseRetrack(){
+        this.dialog_retrack.active = false;
+    },
+    onLoad: function () {
+
+        this.game_start.active = false;
+        this.panel_over.active = false;
+        this.btn_quit.active = false;
+        this.btn_score.active = false;
+        this.dialog_retrack.active = false;
+        var that = this;
+
+        chessLogic.init();
+        playLogic.init(3);
+        //监听点击
+        var children = this.node.getChildByName('grid').getChildren();
+        for (let i = 0; i < children.length; i++) {
+            children[i].getComponent(cc.Button).node.on('click',function(btn){
+
+                var pos = btn.node.position;
+                var x = (pos.x - 30) / 60;
+                var y = (522 - (pos.y - 29)) / 58;
+                //人机
+                if(globalData.gameMgr.play_mode == 0) {
+                    playLogic.clickCanvas(x,y);
+                }else{ //人人
+                    //悔棋中
+                    if(that.retrack_lock) return;
+
+                    if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
+
+                        var key = playLogic.getClickMan(x,y);
+                        if(key == false){
+                            globalData.socketMgr.playChess(x,y);
+                        }else{
+                            if((chessLogic.mans[key].my === 1 && globalData.gameMgr.playerData.self.posId == 0) ||
+                                (chessLogic.mans[key].my === -1 && globalData.gameMgr.playerData.self.posId == 1) ||
+                                (playLogic.nowManKey)){
+                                globalData.socketMgr.playChess(x,y);
+                            }
+                        }
+                    }
+                }
+            })
+        }
+
+
+        globalData.eventlister.on("GAME_START",function(){
+            that.gameStart()
+        });
+        globalData.eventlister.on("GAME_OVER",function(data){
+            that.gameOver(data)
+        });
+        globalData.eventlister.on("MESSAGE",function(msg){
+            that.showTips(msg)
+        });
+        globalData.eventlister.on("SHOW_JIANGJUN",function(){
+            that.showJiangjun();
+        })
+        globalData.eventlister.on("RETRACK_CHESS_REQ",function(){
+            that.retrack_lock = true;
+            that.dialog_retrack.active = true;
+        });
+        //刷新对手
+        globalData.eventlister.on("SIT_CHANGE",function(data){
+            that.render();
+        })
+        globalData.eventlister.on('PREPARE_SUCCESS',function(prepare_uid){
+            //准备成功
+            that.btn_ready.active = false;
+
+            if(globalData.gameMgr.play_mode == 0){ //人机
+                //
+            }else{ //人人
+                if(globalData.gameMgr.playerData.self.uid == prepare_uid){
+                    globalData.gameMgr.playerData.self.state = 2;
+                }else if(globalData.gameMgr.playerData.target &&
+                    globalData.gameMgr.playerData.target.uid == prepare_uid){
+                    globalData.gameMgr.playerData.target.state = 2;
+                }
+                that.render();
+            }
+        });
+        globalData.eventlister.on('PLAY_CHESS_SUCCESS',function(data){
+            playLogic.clickCanvas(data.x,data.y);
+
+        })
+        globalData.eventlister.on('CHECK_END',function(){
+            var winer = playLogic.AICheckRedEnd();
+            if(winer !== -1){
+                playLogic.isPlay = false;
+                globalData.eventlister.fire('GAME_OVER',{score:100,winer:winer});
+            }
+
+            var winer = playLogic.AICheckBlackEnd();
+            if(winer !== -1){
+                playLogic.isPlay = false;
+                globalData.eventlister.fire('GAME_OVER',{score:100,winer:winer});
+            }
+        })
+        globalData.eventlister.on("RETRACK_CHESS_RSP_SUCCESS",function(data){
+            that.retrack_lock = false;
+            //同意
+            if(data.agree){
+                playLogic.regret();
+                playLogic.nowManKey = false;
+                globalData.gameMgr.playerData.turn = data.turn;
+                globalData.eventlister.fire("CHANGE_TURN")
+            }
+        });
+        globalData.eventlister.on('CHANGE_TURN',function(){
+            that.retrack_lock = false;
+            that.render();
+        })
+        this.render();
+    },
+
+    render(){
+
+        this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
+            globalData.gameMgr.playerData.self.state < 2 ;
+        this.btn_quit.active = false;
+        this.avator_my.active = true;
+        this.avator_target.active = true;
+
+        if(globalData.gameMgr.play_mode == 0){//人机对战
+            this.avator_target.active = true;
+            if(globalData.gameMgr.playerData.self.posId == 0){
+                globalData.gameMgr.playerData.pc.posId = 1;
+            }else{
+                globalData.gameMgr.playerData.pc.posId = 0;
+            }
+            this.avator_my.getComponent("Avator").setData(globalData.gameMgr.playerData.self,"self");
+            this.avator_target.getComponent("Avator").setData(globalData.gameMgr.playerData.pc,"pc");
+        }else{
+
+            if(globalData.gameMgr.playerData.self.posId == 0){
+                this.avator_target.active = globalData.gameMgr.playerData.target != null;
+                this.avator_my.getComponent("Avator").setData(globalData.gameMgr.playerData.self,'self');
+                this.avator_target.getComponent("Avator").setData(globalData.gameMgr.playerData.target,'target');
+            }else{
+                this.avator_my.active = globalData.gameMgr.playerData.target != null;
+                this.avator_my.getComponent("Avator").setData(globalData.gameMgr.playerData.target,'target');
+                this.avator_target.getComponent("Avator").setData(globalData.gameMgr.playerData.self,'self');
+            }
+        }
+        this.lab_room.string = "版本:v0.0.1 房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+    },
+    gameStart:function(){
+
+        var that = this;
+        this.game_start.active = true;
+        this.retrack_lock = true;
+
+        this.scheduleOnce(function () {
+            that.game_start.active = false;
+        },1)
+
+        playLogic.isPlay=true ;
+        chessLogic.reset();
+        playLogic.reset();
+        this.render();
+        this.panel_over.active = false;
+    },
+    gameOver:function(data){
+
+        globalData.gameMgr.roomState.state = 2; //结束
+        globalData.gameMgr.score_list.push(data);
+
+        globalData.gameMgr.playerData.self.score = parseInt(globalData.gameMgr.playerData.self.score);
+        if(globalData.gameMgr.play_mode == 0){ //人机
+            globalData.gameMgr.playerData.target = globalData.gameMgr.playerData.pc;
+        }
+
+        globalData.gameMgr.playerData.target.score = parseInt(globalData.gameMgr.playerData.target.score);
+        data.score = parseInt(data.score);
+        if(data.winer == globalData.gameMgr.playerData.self.posId){
+            globalData.gameMgr.playerData.self.score += data.score;
+            globalData.gameMgr.playerData.target.score -= data.score;
+        }else{
+            globalData.gameMgr.playerData.self.score -= data.score;
+            globalData.gameMgr.playerData.target.score += data.score;
+        }
+
+        this._cur_score_idx = globalData.gameMgr.score_list.length -1;
+        this.renderScorePanel()
+        this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+
+        globalData.gameMgr.playerData.self.state = 1;
+        if(globalData.gameMgr.playerData.target){
+            globalData.gameMgr.playerData.target.state = 1;
+        }
+        // this.select_icon.active = false;
+        this.touchChess = null;
+        this.render()
+        this.btn_quit.active = globalData.gameMgr.play_index >= globalData.gameMgr.play_count;
+
+        globalData.socketMgr.reqGameOver();
+    },
+    renderScorePanel(){
+
+        this.panel_over.active = true;
+        var data = globalData.gameMgr.score_list[this._cur_score_idx];
+        console.log(data);
+        if(data.winer == globalData.gameMgr.playerData.self.posId){
+            this.overLabel.string = "恭喜，你赢了！";
+        }else{
+            this.overLabel.string = "你输了，加油~";
+        }
+
+        var append1;
+        var append2;
+        if(data.winer == globalData.gameMgr.playerData.self.posId){
+            append1 = "+" + data.score;
+            append2 = "-" + data.score;
+        }else{
+            append1 = "-" + data.score;
+            append2 = "+" + data.score;
+        }
+        this.lab_player1.string = globalData.gameMgr.playerData.self.name +" "+append1;
+        this.lab_player2.string = globalData.gameMgr.playerData.target.name +" "+append2;
+    },
+    showTips:function(msg){
+
+        this.tips.active = true;
+        this.lab_tips.string = msg;
+        this.scheduleOnce(function () {
+            this.tips.active = false;
+        },1);
+    },
+    showJiangjun:function(){
+
+        cc.playEffect('jiangjun',false,1);
+
+        this.img_jiangjun.active = true;
+        this.scheduleOnce(function () {
+            this.img_jiangjun.active = false;
+        },1);
+    }
+});
