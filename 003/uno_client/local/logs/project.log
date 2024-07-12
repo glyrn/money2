@@ -1,0 +1,62 @@
+2023-12-05T03:01:10.649Z - normal: Load ~/.CocosCreator/settings.json
+2023-12-05T03:01:10.652Z - normal: checking language setting...
+2023-12-05T03:01:10.652Z - normal: Language: zh
+2023-12-05T03:01:12.302Z - success: protocol editor-framework registered
+2023-12-05T03:01:12.302Z - success: protocol app registered
+2023-12-05T03:01:12.302Z - success: protocol theme registered
+2023-12-05T03:01:12.302Z - success: protocol packages registered
+2023-12-05T03:01:12.302Z - success: protocol unpack registerred
+2023-12-05T03:01:12.302Z - success: protocol disable-commonjs registerred
+2023-12-05T03:01:12.554Z - normal: connected!
+2023-12-05T03:01:12.556Z - normal: Check project D:\workspace\gamelist\002\ddz_game\ddz_client
+2023-12-05T03:01:12.560Z - normal: Initializing project D:\workspace\gamelist\002\ddz_game\ddz_client
+2023-12-05T03:01:12.574Z - normal: Initializing Cocos2d
+2023-12-05T03:01:14.916Z - normal: Initializing Asset Database
+2023-12-05T03:01:14.955Z - success: protocol uuid registerred
+2023-12-05T03:01:14.955Z - success: protocol db registerred
+2023-12-05T03:01:14.955Z - success: protocol thumbnail registerred
+2023-12-05T03:01:14.955Z - normal: Loading editor/builtin packages
+2023-12-05T03:01:15.084Z - success: assets loaded
+2023-12-05T03:01:15.086Z - success: builder loaded
+2023-12-05T03:01:15.089Z - success: cocos-analytics loaded
+2023-12-05T03:01:15.095Z - success: console loaded
+2023-12-05T03:01:15.120Z - success: fb-instant-games loaded
+2023-12-05T03:01:15.123Z - success: google-instant-games loaded
+2023-12-05T03:01:15.127Z - success: hierarchy loaded
+2023-12-05T03:01:15.130Z - success: inspector loaded
+2023-12-05T03:01:15.131Z - success: keystore loaded
+2023-12-05T03:01:15.135Z - success: node-library loaded
+2023-12-05T03:01:15.137Z - success: package-asset loaded
+2023-12-05T03:01:15.137Z - success: preferences loaded
+2023-12-05T03:01:15.139Z - success: project-exporter loaded
+2023-12-05T03:01:15.153Z - success: project-importer loaded
+2023-12-05T03:01:15.156Z - success: project-settings loaded
+2023-12-05T03:01:15.158Z - success: ui-kit loaded
+2023-12-05T03:01:15.162Z - success: scene loaded
+2023-12-05T03:01:15.162Z - success: sprite-editor loaded
+2023-12-05T03:01:15.165Z - success: store loaded
+2023-12-05T03:01:15.167Z - success: timeline loaded
+2023-12-05T03:01:15.167Z - normal: Loading builtin packages
+2023-12-05T03:01:15.189Z - success: asset-db-debugger loaded
+2023-12-05T03:01:15.204Z - success: code-editor loaded
+2023-12-05T03:01:15.209Z - success: color-picker loaded
+2023-12-05T03:01:15.302Z - success: fb-audience-network loaded
+2023-12-05T03:01:15.322Z - success: fb-live-stream loaded
+2023-12-05T03:01:15.346Z - success: google-play-instant loaded
+2023-12-05T03:01:15.352Z - success: jsb-adapter loaded
+2023-12-05T03:01:15.374Z - success: oppo-runtime loaded
+2023-12-05T03:01:15.390Z - success: package-manager loaded
+2023-12-05T03:01:15.589Z - success: qqplay-adapter loaded
+2023-12-05T03:01:15.606Z - success: runtime-dev-tools loaded
+2023-12-05T03:01:15.633Z - success: sdkbox loaded
+2023-12-05T03:01:15.662Z - success: tester loaded
+2023-12-05T03:01:15.678Z - success: ui-grid loaded
+2023-12-05T03:01:15.693Z - success: ui-kit-preview-extra loaded
+2023-12-05T03:01:15.708Z - success: ui-kit-preview loaded
+2023-12-05T03:01:15.723Z - success: ui-tree loaded
+2023-12-05T03:01:15.745Z - success: vivo-runtime loaded
+2023-12-05T03:01:15.751Z - success: weapp-adapter loaded
+2023-12-05T03:01:16.819Z - normal: Loading packages
+2023-12-05T03:01:16.874Z - normal: Watching packages
+2023-12-05T03:01:17.566Z - normal: Run Application
+2023-12-05T03:01:24.603Z - success: preview server running at http://localhost:7457

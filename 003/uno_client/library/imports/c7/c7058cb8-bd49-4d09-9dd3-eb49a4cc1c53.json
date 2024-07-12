@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "deck",
+    "texture": "2400f6d2-6b0d-4f6b-a544-b12e0b90deba",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      155,
+      181
+    ],
+    "offset": [
+      -0.5,
+      0
+    ],
+    "originalSize": [
+      156,
+      181
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}
