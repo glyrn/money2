@@ -16,7 +16,8 @@ const socketMgr = function(){
         var opts = {
             'reconnection':false,
             'force new connection': true,
-            'transports':['websocket', 'polling']
+            'transports':['websocket', 'polling'],
+            'path':'/hlddz_socket.io',
         }
         console.log(defines.serverUrl)
         _socket = window.io.connect('ws://'+defines.serverUrl,opts);

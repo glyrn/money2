@@ -1,5 +1,3 @@
-import globalData from "./globalData";
-
 const socketMgr = function(){
     var that = {}
 
@@ -18,7 +16,8 @@ const socketMgr = function(){
         var opts = {
             'reconnection': false,
             'force new connection': true,
-            'transports': ['websocket', 'polling']
+            'transports': ['websocket', 'polling'],
+            'path':'/zgxq_socket.io',
         }
         console.log(defines.serverUrl)
 

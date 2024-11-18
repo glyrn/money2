@@ -3,9 +3,8 @@ const request = require('request')
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
-    io = require('socket.io')(http);
+    io = require('socket.io')(http,{path:'/uno_socket.io'});
 app.use(express.static(`${__dirname}/../uno_client`));
-app.use(express.static(`${__dirname}/../uno_client/avator`));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
