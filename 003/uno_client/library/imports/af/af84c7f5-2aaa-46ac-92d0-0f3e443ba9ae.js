@@ -27,6 +27,38 @@ var socketMgr = function socketMgr() {
       'transports': ['websocket', 'polling']
     };
     console.log(defines.serverUrl);
+
+    //         //创建一个webSocket实例，执行后，客户端就会与服务端连接
+    //         var ws = new WebSocket("ws://120.24.93.10:10180");
+    //
+    // //当WebSocket创建成功时，触发onopen事件
+    //         ws.onopen = function(){
+    //             console.log("open");
+    //             // 复杂的数据结构，在通过连接发送之前，必须进行序列化。
+    //             const json = JSON.stringify({
+    //                 "event": "data-test",
+    //                 "data": 1
+    //             });
+    //             ws.send(json); //将消息发送到服务端
+    //         }
+    //
+    // //当客户端收到服务端发来的消息时，触发onmessage事件
+    //         ws.onmessage = function(e){
+    //             //e.data 的数据格式也是字符串，手动解析这些数据才能得到其他格式的数据。
+    //             const _data = JSON.parse(e.data);
+    //             console.log(e.data,_data);
+    //         }
+    //
+    // //当客户端收到服务端发送的关闭连接请求时，触发onclose事件
+    //         ws.onclose = function(e){
+    //             console.log("close");
+    //         }
+    //
+    // //如果出现连接、处理、接收、发送数据失败的时候触发onerror事件
+    //         ws.onerror = function(e){
+    //             console.log(e);
+    //         }
+
     _socket = window.io.connect('ws://' + defines.serverUrl, opts);
     _socket.on('ping', function (data) {
       //心跳

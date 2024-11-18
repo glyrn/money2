@@ -1,7 +1,6 @@
 {
-  "ver": "2.3.7",
+  "ver": "2.3.4",
   "uuid": "761eecb0-86a2-44e4-ac30-ef3b89d073fe",
-  "importer": "texture",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -13,9 +12,8 @@
   "platformSettings": {},
   "subMetas": {
     "yuanbaoIcon": {
-      "ver": "1.0.6",
+      "ver": "1.0.4",
       "uuid": "516d489a-5df8-470b-8247-1190e2105677",
-      "importer": "sprite-frame",
       "rawTextureUuid": "761eecb0-86a2-44e4-ac30-ef3b89d073fe",
       "trimType": "auto",
       "trimThreshold": 1,

@@ -1,7 +1,6 @@
 {
-  "ver": "2.3.7",
+  "ver": "2.3.4",
   "uuid": "00ef5be5-063a-4b93-8a39-f0b6e6c13225",
-  "importer": "texture",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -13,9 +12,8 @@
   "platformSettings": {},
   "subMetas": {
     "img_gantanhao": {
-      "ver": "1.0.6",
+      "ver": "1.0.4",
       "uuid": "a8a3424b-7080-4326-b441-d27661fab1b0",
-      "importer": "sprite-frame",
       "rawTextureUuid": "00ef5be5-063a-4b93-8a39-f0b6e6c13225",
       "trimType": "auto",
       "trimThreshold": 1,

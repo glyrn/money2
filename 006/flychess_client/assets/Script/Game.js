@@ -88,7 +88,7 @@ cc.Class({
         this.reset()
         this.map.makeBomb(data.bomb_idxs)
         this.onShowTips("游戏开始 第"+globalData.gameMgr.play_index+"局");
-        this._cur_dice_idx = data.posId;
+        // this._cur_dice_idx = data.posId;
         this.dice.active = globalData.gameMgr.posId == data.posId;
         if(this.dice.active){
             this.dice.getComponent(cc.Button).interactable = true;

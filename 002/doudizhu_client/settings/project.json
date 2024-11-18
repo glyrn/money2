@@ -36,7 +36,7 @@
     "default",
     "New Group 3"
   ],
-  "last-module-event-record-time": 1716864182169,
+  "last-module-event-record-time": 1731573030547,
   "simulator-orientation": false,
   "simulator-resolution": {
     "height": 640,
@@ -44,8 +44,5 @@
   },
   "start-scene": "current",
   "use-customize-simulator": true,
-  "use-project-simulator-setting": false,
-  "migrate-history": [
-    "cloud-function"
-  ]
+  "use-project-simulator-setting": false
 }

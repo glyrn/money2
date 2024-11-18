@@ -1,7 +1,6 @@
 {
-  "ver": "2.3.7",
+  "ver": "2.3.4",
   "uuid": "485317ee-0afa-49f3-ab28-43b0a53e05bd",
-  "importer": "texture",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -13,9 +12,8 @@
   "platformSettings": {},
   "subMetas": {
     "ChessBoard": {
-      "ver": "1.0.6",
+      "ver": "1.0.4",
       "uuid": "0395277f-419e-4f42-95a2-88ac48dcc843",
-      "importer": "sprite-frame",
       "rawTextureUuid": "485317ee-0afa-49f3-ab28-43b0a53e05bd",
       "trimType": "auto",
       "trimThreshold": 1,

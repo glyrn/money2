@@ -13,13 +13,13 @@
         "type": "dock-h",
         "children": [
           {
-            "width": 204,
-            "height": 793.8333740234375,
+            "width": 221,
+            "height": 796.3333740234375,
             "type": "dock-v",
             "children": [
               {
-                "width": 204,
-                "height": 365.97918701171875,
+                "width": 221,
+                "height": 367.0833435058594,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -27,8 +27,8 @@
                 ]
               },
               {
-                "width": 204,
-                "height": 424.85418701171875,
+                "width": 221,
+                "height": 426.25,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -38,18 +38,18 @@
             ]
           },
           {
-            "width": 873.65625,
-            "height": 793.8333740234375,
+            "width": 855.9896240234375,
+            "height": 796.3333740234375,
             "type": "dock-v",
             "children": [
               {
-                "width": 873.65625,
-                "height": 522.96875,
+                "width": 855.9896240234375,
+                "height": 524.5416870117188,
                 "type": "dock-h",
                 "children": [
                   {
-                    "width": 606.65625,
-                    "height": 522.96875,
+                    "width": 588.9791870117188,
+                    "height": 524.5416870117188,
                     "type": "panel",
                     "active": 0,
                     "children": [
@@ -58,7 +58,7 @@
                   },
                   {
                     "width": 264,
-                    "height": 522.96875,
+                    "height": 524.5416870117188,
                     "type": "panel",
                     "active": 0,
                     "children": [
@@ -68,10 +68,10 @@
                 ]
               },
               {
-                "width": 873.65625,
-                "height": 267.8645935058594,
+                "width": 855.9896240234375,
+                "height": 268.79168701171875,
                 "type": "panel",
-                "active": 1,
+                "active": 0,
                 "children": [
                   "console",
                   "timeline"
@@ -80,8 +80,8 @@
             ]
           },
           {
-            "width": 342.34375,
-            "height": 793.8333740234375,
+            "width": 343,
+            "height": 796.3333740234375,
             "type": "panel",
             "active": 0,
             "children": [
@@ -99,7 +99,8 @@
         "timeline",
         "inspector"
       ]
-    }
+    },
+    " common-asset-worker-worker": {}
   },
   "panels": {
     "sprite-editor": {

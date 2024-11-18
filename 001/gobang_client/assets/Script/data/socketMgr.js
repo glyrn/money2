@@ -16,11 +16,13 @@ const socketMgr = function(){
         var opts = {
             'reconnection': false,
             'force new connection': true,
-            'transports': ['websocket', 'polling']
+            'transports': ['websocket', 'polling'],
+            'path':'/wzg_socket.io',
         }
+
         console.log(defines.serverUrl)
 
-        _socket = window.io.connect('ws://' + defines.serverUrl, opts);
+        _socket = window.io.connect('ws://'+defines.serverUrl, opts);
         _socket.on('ping', function (data) {
             //心跳
             _socket.emit('pong', {beat: 1});

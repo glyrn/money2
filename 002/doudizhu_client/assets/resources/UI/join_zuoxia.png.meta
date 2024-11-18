@@ -1,7 +1,6 @@
 {
-  "ver": "2.3.7",
+  "ver": "2.3.4",
   "uuid": "366615ea-a8c2-4714-8495-6528829fef8c",
-  "importer": "texture",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -13,9 +12,8 @@
   "platformSettings": {},
   "subMetas": {
     "join_zuoxia": {
-      "ver": "1.0.6",
+      "ver": "1.0.4",
       "uuid": "baf323a9-843d-438f-9c58-f9168fa3f989",
-      "importer": "sprite-frame",
       "rawTextureUuid": "366615ea-a8c2-4714-8495-6528829fef8c",
       "trimType": "auto",
       "trimThreshold": 1,

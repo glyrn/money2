@@ -1,7 +1,6 @@
 {
-  "ver": "2.3.7",
+  "ver": "2.3.4",
   "uuid": "9023830e-856c-4dcc-8ec9-bdffb129e539",
-  "importer": "texture",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -13,9 +12,8 @@
   "platformSettings": {},
   "subMetas": {
     "male_landlord_left": {
-      "ver": "1.0.6",
+      "ver": "1.0.4",
       "uuid": "1de14bca-84be-4172-bec3-37f7ea85d047",
-      "importer": "sprite-frame",
       "rawTextureUuid": "9023830e-856c-4dcc-8ec9-bdffb129e539",
       "trimType": "auto",
       "trimThreshold": 1,

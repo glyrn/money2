@@ -1,7 +1,6 @@
 {
-  "ver": "2.3.7",
+  "ver": "2.3.4",
   "uuid": "0e05af8f-40cf-4fb2-9ec5-a553fde15a0a",
-  "importer": "texture",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -13,9 +12,8 @@
   "platformSettings": {},
   "subMetas": {
     "shiwan": {
-      "ver": "1.0.6",
+      "ver": "1.0.4",
       "uuid": "5ad12db5-0763-45c2-bef3-f9fbbeb8085e",
-      "importer": "sprite-frame",
       "rawTextureUuid": "0e05af8f-40cf-4fb2-9ec5-a553fde15a0a",
       "trimType": "auto",
       "trimThreshold": 1,

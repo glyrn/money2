@@ -36,7 +36,7 @@ cc.Class({
       if (window.defines.serverUrl == 'localhost:8005') {
         avatorUrl = this._avatorUrl;
       } else {
-        avatorUrl = 'http://42.51.40.147:8005/avator/' + data.uid + '.jpg';
+        avatorUrl = 'http://42.51.37.98:8005/avator/' + data.uid + '.jpg';
       }
       cc.loader.load(avatorUrl, function (err, img) {
         if (!err) {

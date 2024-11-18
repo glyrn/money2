@@ -2,7 +2,7 @@
   "android-instant": {
     "REMOTE_SERVER_ROOT": "",
     "host": "",
-    "packageName": "",
+    "packageName": "org.cocos2d.gobang_client",
     "pathPattern": "",
     "recordPath": "",
     "scheme": "https",
@@ -47,5 +47,15 @@
     "subContext": ""
   },
   "xxteaKey": "857f396f-0960-4e",
-  "zipCompressJs": true
+  "zipCompressJs": true,
+  "android": {
+    "packageName": "org.cocos2d.gobang_client"
+  },
+  "ios": {
+    "packageName": "org.cocos2d.gobang_client"
+  },
+  "mac": {
+    "packageName": "org.cocos2d.gobang_client"
+  },
+  "win32": {}
 }

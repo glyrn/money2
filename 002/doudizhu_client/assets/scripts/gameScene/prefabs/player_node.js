@@ -250,7 +250,7 @@ cc.Class({
             if(window.defines.serverUrl == 'localhost:8001'){
                 avatorUrl = this._avatarUrl;
             }else{
-                avatorUrl = 'http://42.51.40.147:8001/avator/'+playerData.uid+'.jpg'
+                avatorUrl = 'http://42.51.37.98:8001/avator/'+playerData.uid+'.jpg'
             }
             cc.loader.load(avatorUrl, function(err,img){
                 if(!err){
