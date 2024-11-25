@@ -55,12 +55,12 @@ cc.Class({
         }else {
             if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
                 var that = this;
-                var avatorUrl;
-                if (window.defines.serverUrl == 'localhost:8002') {
-                    avatorUrl = this._avatorUrl;
-                } else {
-                    avatorUrl = 'http://42.51.37.98:8002/avator/' + data.uid + '.jpg'
-                }
+                // var avatorUrl;
+                // if (window.defines.serverUrl == 'localhost:8002') {
+                //     avatorUrl = this._avatorUrl;
+                // } else {
+                //     avatorUrl = 'http://42.51.37.98:8002/avator/' + data.uid + '.jpg'
+                // }
                 cc.loader.load(avatorUrl, function (err, img) {
                     if (!err) {
                         that._avatorUrl = data.avatorUrl;
