@@ -61,7 +61,7 @@ cc.Class({
                 // } else {
                 //     avatorUrl = 'http://42.51.37.98:8002/avator/' + data.uid + '.jpg'
                 // }
-                cc.loader.load(avatorUrl, function (err, img) {
+                cc.loader.load(data.avatorUrl, function (err, img) {
                     if (!err) {
                         that._avatorUrl = data.avatorUrl;
                         that.img_avatar.spriteFrame = new cc.SpriteFrame(img);
