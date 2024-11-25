@@ -394,8 +394,8 @@ const proto = {
       })
     });
 
-    http.listen(8003, function(){
-      console.log('listening on :8003');
+    http.listen(9006, function(){
+      console.log('listening on :9006');
     });
   }
 

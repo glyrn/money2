@@ -2,7 +2,7 @@
   "actualPlatform": "web-mobile",
   "apiLevel": "",
   "appABIs": [],
-  "buildPath": "./build",
+  "buildPath": "E:\\yckj\\lianjin-build\\uno",
   "debug": false,
   "embedWebDebugger": true,
   "keystoreAlias": "",

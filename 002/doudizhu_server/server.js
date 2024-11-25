@@ -678,5 +678,5 @@ const proto = {
   }
 }
 Object.assign(GameServer.prototype, proto);
-const gameServer = new GameServer(8001);
+const gameServer = new GameServer(9001);
 gameServer.init();
