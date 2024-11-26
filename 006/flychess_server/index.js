@@ -245,19 +245,19 @@ const proto = {
                 self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
               }
 
-              try {
-                var path = `${__dirname}/../flychess_client/avator/${obj.uid}.jpg`;
-                if(!fs.existsSync(path)){
-                  //下载头像
-                  request(obj.avatorUrl).pipe(fs.createWriteStream(path)).on('close',next);
-                }else{
+              // try {
+              //   var path = `${__dirname}/../flychess_client/avator/${obj.uid}.jpg`;
+              //   if(!fs.existsSync(path)){
+              //     //下载头像
+              //     request(obj.avatorUrl).pipe(fs.createWriteStream(path)).on('close',next);
+              //   }else{
                   next();
-                }
-              }catch (e){
-                console.log('下载头像失败：'+obj.avatorUrl);
-                console.log(e.message)
-                next();
-              }
+              //   }
+              // }catch (e){
+              //   console.log('下载头像失败：'+obj.avatorUrl);
+              //   console.log(e.message)
+              //   next();
+              // }
 
             }else{
               socket.emit("MESSAGE",'房间已满员');

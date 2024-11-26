@@ -447,8 +447,8 @@ cc.Class({
 
             if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
 
-                var avatorUrl = 'http://'+window.defines.serverUrl+'/avator/'+ data.uid + '.jpg';
-                cc.loader.load(avatorUrl, function (err, img) {
+                // var avatorUrl = 'http://'+window.defines.serverUrl+'/avator/'+ data.uid + '.jpg';
+                cc.loader.load(data.avatorUrl, function (err, img) {
                     if (!err) {
                         that._avatorUrl = data.avatorUrl;
                         that.img_avatar.spriteFrame = new cc.SpriteFrame(img);
