@@ -33,13 +33,13 @@ cc.Class({
 
             if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
                 var that = this;
-                var avatorUrl;
-                if (window.defines.serverUrl == 'localhost:8004') {
-                    avatorUrl = this._avatorUrl;
-                } else {
-                    avatorUrl = 'http://42.51.37.98:8004/avator/' + data.uid + '.jpg'
-                }
-                cc.loader.load(avatorUrl, function (err, img) {
+                // var avatorUrl;
+                // if (window.defines.serverUrl == 'localhost:8004') {
+                //     avatorUrl = this._avatorUrl;
+                // } else {
+                //     avatorUrl = 'http://42.51.37.98:8004/avator/' + data.uid + '.jpg'
+                // }
+                cc.loader.load(data.avatorUrl, function (err, img) {
                     if (!err) {
                         that._avatorUrl = data.avatorUrl;
                         that.img_avatar.spriteFrame = new cc.SpriteFrame(img);
