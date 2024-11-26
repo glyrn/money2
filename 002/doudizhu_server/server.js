@@ -304,19 +304,19 @@ const proto = {
           }
 
 
-          try {
+          // try {
             //下载头像
-            var path = `${__dirname}/../doudizhu_client/avator/${data.uid}.jpg`;
-            if(!fs.existsSync(path)){
-              request(data.avatarUrl).pipe(fs.createWriteStream(path)).on('close',next);
-            }else{
+            // var path = `${__dirname}/../doudizhu_client/avator/${data.uid}.jpg`;
+            // if(!fs.existsSync(path)){
+            //   request(data.avatarUrl).pipe(fs.createWriteStream(path)).on('close',next);
+            // }else{
               next();
-            }
-          }catch (e){
-            console.log('下载头像失败：'+data.avatarUrl);
-            console.log(e.message)
-            next();
-          }
+            // }
+          // }catch (e){
+          //   console.log('下载头像失败：'+data.avatarUrl);
+          //   console.log(e.message)
+          //   next();
+          // }
 
         } else {
           socket.emit('LOGIN_FAIL', { msg: '该用户名已存在' });

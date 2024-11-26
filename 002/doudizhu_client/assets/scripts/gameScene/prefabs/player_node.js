@@ -246,13 +246,13 @@ cc.Class({
         if(this._avatarUrl != playerData.avatarUrl && playerData.avatarUrl != null && playerData.avatarUrl != '')
         {
             var that = this;
-            var avatorUrl;
-            if(window.defines.serverUrl == 'localhost:8001'){
-                avatorUrl = this._avatarUrl;
-            }else{
-                avatorUrl = 'http://42.51.37.98:8001/avator/'+playerData.uid+'.jpg'
-            }
-            cc.loader.load(avatorUrl, function(err,img){
+            // var avatorUrl;
+            // if(window.defines.serverUrl == 'localhost:8001'){
+            //     avatorUrl = this._avatarUrl;
+            // }else{
+            //     avatorUrl = 'http://42.51.37.98:8001/avator/'+playerData.uid+'.jpg'
+            // }
+            cc.loader.load(playerData.avatarUrl, function(err,img){
                 if(!err){
                     that._avatarUrl = playerData.avatarUrl;
                     that.img_avatar.spriteFrame = new cc.SpriteFrame(img);
