@@ -3,7 +3,7 @@ const request = require('request')
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
-    io = require('socket.io')(http,{path:'/wzg_socket.io'});
+    io = require('socket.io')(http,{path:'/wzq_socket.io'});
 app.use(express.static(`${__dirname}/../gobang_client`));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
@@ -502,8 +502,8 @@ const proto = {
 
     });
 
-    http.listen(9002, function(){
-      console.log('listening on :9002');
+    http.listen(9001, function(){
+      console.log('listening on :9001');
     });
   }
 
