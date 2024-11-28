@@ -63,7 +63,7 @@ cc.Class({
                 globalData.gameMgr.posState.self.uid = that._uid;
                 //请求登录
                 this.img_loading.active = true;
-                globalData.socketMgr.login(that._uid,that._name,that._avatarUrl,that._score,function(){
+                globalData.socketMgr.login(that._uid,that._name,decodeURIComponent(that._avatarUrl),that._score,function(){
                     globalData.socketMgr.sitdown(that._room,parseInt(that._score),that._base_score,that._play_count,that._play_mode);
                 });
             }

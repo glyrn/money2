@@ -38,7 +38,7 @@ cc.Class({
             }
             cc.args = field;
 
-            globalData.socketMgr.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'] ,cc.args['room'],
+            globalData.socketMgr.login(cc.args['uid'],cc.args['name'],decodeURIComponent(cc.args['avatorUrl']),cc.args['score'] ,cc.args['room'],
                 cc.args['play_mode'],cc.args['play_count'],function(){
                 cc.director.loadScene("Game");
             });
