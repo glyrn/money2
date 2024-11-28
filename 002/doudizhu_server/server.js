@@ -3,7 +3,7 @@ const request = require('request')
 const express = require('express'),
   app = express(),
   http = require('http').Server(app),
-  io = require('socket.io')(http,{path:'/hlddz_socket.io'});
+  io = require('socket.io')(http,{path:"/hlddz_socket.io"});
 app.use(express.static(`${__dirname}/../doudizhu_client`));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
@@ -153,6 +153,19 @@ const proto = {
     }
     const position = this.getPosition(desk, posId);
     return position && position.state === 0;
+  },
+  getEmptyPos(deskName){
+    const desk = this.getDeskByName(deskName);
+    if (!desk) {
+      return false;
+    }
+    for (let j = 0; j < 3; j++) {
+      var position = desk.positions[j];
+      if(position && position.state === 0){
+        return position.posId;
+      }
+    }
+    return false;
   },
   updatePosStatus(deskId, posId, state, userName,avatarUrl,score,uid) {
     const desk = this.getDesk(deskId);
@@ -323,51 +336,27 @@ const proto = {
         }
       });
 
-      //快速加入
-      socket.on('QUICK_JOIN', () => {
-        var ret = [];
-        this.desks.forEach(desk => {
-          let n = 0;
-          let item = {
-            deskId: desk.deskId,
-            positions: []
-          };
-          const positions = desk.positions;
-          positions.forEach(pos => {
-            if (pos.state > 0) {
-              n++;
-            } else {
-              item.positions.push(pos.posId)
-            }
-          });
-          if (n <= 2) {
-            ret.push(item);
-          }
-        });
-        ret = ret.sort((a, b) => {
-          return a.positions.length - b.positions.length;
-        });
-        const matched = ret.length ? ret[0] : false;
-        const data = matched ? { deskId: matched.deskId, posId: matched.positions[0], success: true } : { success: false }
-        socket.emit('QUICK_JOIN', data)
-
-      });
-
       socket.on('SITDOWN', data => {
         const client = this.getClient(socket);
         if (!client) {
           return;
         }
-        //检查该座位是否是空闲状态
-        if (this.isEmptyPos(data.deskName, data.posId)) {
-          let desk = this.getDeskByName(data.deskName);
-          if(!desk){
-            //房间已满
-            socket.emit('SITDOWN_ERROR', { msg: '房间已满' });
-            //坐下失败 强制退出
-            this.removeClient(socket);
-          }else { //成功坐下
+        //找到桌子
+        let desk = this.getDeskByName(data.deskName);
+        if(!desk) {
+          //房间已满
+          socket.emit('SITDOWN_ERROR', { msg: '找不到可用的房间' });
+          //坐下失败 强制退出
+          this.removeClient(socket);
+          return;
+        }
 
+        //检查该座位是否是空闲状态
+          var newPosId = this.getEmptyPos(data.deskName);
+        console.log("newPosId:",data.deskName,newPosId);
+          if (newPosId !== false)
+          {
+            //成功坐下
             if(data.play_mode != undefined && data.play_mode != null){
               desk.islaizi = data.play_mode;
             }
@@ -380,21 +369,21 @@ const proto = {
             let play_count = desk.play_count;
             let play_index = desk.play_index;
 
-            console.log('有客户端进入房间，桌号：%s %s，座位：%s，时间： %s ，玩法：%s，总局数：%s，第%s局 ', desk.deskId,desk.name, data.posId, time(),islaizi,play_count,play_index);
+            console.log('有客户端进入房间，桌号：%s %s，座位：%s，时间： %s ，玩法：%s，总局数：%s，第%s局 ', desk.deskId,desk.name, newPosId, time(),islaizi,play_count,play_index);
             //更新座位状态为占用
-            this.updatePosStatus(desk.deskId, data.posId, 1, this.getUserName(socket), this.getAvatarUrl(socket),this.getScore(socket),this.getUid(socket));
+            this.updatePosStatus(desk.deskId, newPosId, 1, this.getUserName(socket), this.getAvatarUrl(socket),this.getScore(socket),this.getUid(socket));
             //绑定客户端桌号，座位号
-            this.updateClientState(socket, desk.deskId, data.posId);
+            this.updateClientState(socket, desk.deskId, newPosId);
             //获取除当前房间其它座位信息
-            let posInfos = this.getOtherPosInfo(desk.deskId, data.posId);
+            let posInfos = this.getOtherPosInfo(desk.deskId, newPosId);
             //通知该客户端坐下成功 并发送当前房间的信息给该客户端
-            socket.emit('SITDOWN_SUCCESS', {posId:data.posId,deskId:desk.deskId,deskName:desk.name, posInfos, islaizi,base_score,play_count,play_index});
+            socket.emit('SITDOWN_SUCCESS', {posId:newPosId,deskId:desk.deskId,deskName:desk.name, posInfos, islaizi,base_score,play_count,play_index});
             //通知在大厅游览的所有客户端当前坐位已被占用
-            this.broadCastHouse('STATUS_CHANGE', {deskId:desk.deskId, posId:data.posId, state: 1});
+            this.broadCastHouse('STATUS_CHANGE', {deskId:desk.deskId, posId:newPosId, state: 1});
 
             //通知在房间里的其它客户端，更新座位息
             this.broadCastRoom("POS_STATUS_CHANGE", desk.deskId, {
-              posId:data.posId,
+              posId:newPosId,
               state: 1,
               userName: this.getUserName(socket),
               avatarUrl: this.getAvatarUrl(socket),
@@ -403,18 +392,17 @@ const proto = {
             }, socket);
 
             //推送一条无关紧要的消息
-            socket.emit('USER_MESSAGE', {type: 'SYS', posId:data.posId, msg: '欢迎您加入本房间，祝您游戏愉快！', id: guid(), time: time()});
+            socket.emit('USER_MESSAGE', {type: 'SYS', posId:newPosId, msg: '欢迎您加入本房间，祝您游戏愉快！', id: guid(), time: time()});
             this.broadCastRoom('USER_MESSAGE', desk.deskId, {
               type: 'SYS',
-              posId:data.posId,
+              posId:newPosId,
               msg: `玩家[${this.getUserName(socket)}]进入房间`,
               id: guid(),
               time: time()
             }, socket);
-          }
         } else {
           //通知该客户端此座位被人占用
-          socket.emit('SITDOWN_ERROR', { msg: '该位置已有人' });
+          socket.emit('SITDOWN_ERROR', { msg: '房间已满员' });
           //坐下失败 强制退出
           this.removeClient(socket);
           //由于当前位置被占用可能是由于该客户端数据不同步造成，所以再次向该客户端推送一次所有桌数据

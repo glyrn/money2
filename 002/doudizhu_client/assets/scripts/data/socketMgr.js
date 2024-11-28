@@ -20,7 +20,7 @@ const socketMgr = function(){
             'path':'/hlddz_socket.io',
         }
         console.log(defines.serverUrl)
-        _socket = window.io.connect('wss://'+defines.serverUrl,opts);
+        _socket = window.io.connect('ws://'+defines.serverUrl,opts);
         _socket.on('ping',function(data){
             //心跳
             _socket.emit('pong', {beat: 1});
@@ -47,14 +47,6 @@ const socketMgr = function(){
             console.log("LOGIN_FAIL:"+data.msg);
             _eventMgr.fire('LOGIN_FAIL',data.msg)
         });
-
-        // _socket.on("QUICK_JOIN",function(data){
-        //     if(data.success){
-        //         _socket.emit('SITDOWN', { deskId: data.deskId, posId: data.posId })
-        //     }else{
-        //         console.log("快速加入失败");
-        //     }
-        // });
 
         _socket.on("SITDOWN_SUCCESS",function(data) {
             _gameMgr.where = 2;
@@ -306,8 +298,8 @@ const socketMgr = function(){
         _cbLogin = cbFunc;
     }
 
-    that.sitdown = function(deskName,posId,score,base_score,play_count,play_mode){
-        _socket.emit('SITDOWN', { deskName: deskName, posId: posId,base_score:base_score,play_count:play_count,play_mode:play_mode });
+    that.sitdown = function(deskName,score,base_score,play_count,play_mode){
+        _socket.emit('SITDOWN', { deskName: deskName, base_score:base_score,play_count:play_count,play_mode:play_mode });
     }
     that.call_score = function(score){
         _socket.emit('CALL_SCORE', { score: score });
