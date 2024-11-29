@@ -177,7 +177,7 @@
       "array": [
         0,
         0,
-        472.8498704663035,
+        471.9838450625191,
         0,
         0,
         0,
@@ -438,7 +438,7 @@
       "height": 720
     },
     "_fitWidth": true,
-    "_fitHeight": false,
+    "_fitHeight": true,
     "_id": "7a7t29dQ5C24znEkDlFh4x"
   },
   {
@@ -449,16 +449,12 @@
       "__id__": 2
     },
     "_enabled": true,
-    "input_name": null,
-    "input_room": null,
-    "input_pos": null,
     "lab_tips": {
       "__id__": 6
     },
     "img_loading": {
       "__id__": 7
     },
-    "btn_login": null,
     "_id": "4eHBTtC69KtIKDTJf4XvDD"
   },
   {
