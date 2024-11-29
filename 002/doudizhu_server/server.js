@@ -3,6 +3,7 @@ const request = require('request')
 const express = require('express'),
   app = express(),
   http = require('http').Server(app),
+    // io = require('socket.io')(http);
   io = require('socket.io')(http,{path:"/hlddz_socket.io"});
 app.use(express.static(`${__dirname}/../doudizhu_client`));
 // 设置跨域头部
@@ -666,5 +667,5 @@ const proto = {
   }
 }
 Object.assign(GameServer.prototype, proto);
-const gameServer = new GameServer(9001);
+const gameServer = new GameServer(9002);
 gameServer.init();
