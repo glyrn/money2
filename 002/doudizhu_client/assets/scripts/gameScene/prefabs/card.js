@@ -79,7 +79,7 @@ cc.Class({
                     this.card.selected = this.selected;
                     this.node.position = this.card.selected ? cc.v2(this.base_pos.x, this.base_pos.y + 40) : this.base_pos;
                     if (this.card.selected) {
-                        cc.playEffect("sound/select_card.mp3", false, 1);
+                        cc.playEffect("sound/select_card.wav", false, 1);
                     }
                 }
             }
@@ -92,14 +92,18 @@ cc.Class({
 
         this.node.position =  this.card.selected ? cc.v2(this.base_pos.x,this.base_pos.y+40) : this.base_pos;
         if(this.card.selected){
-            cc.playEffect("sound/select_card.mp3",false,1);
+            cc.playEffect("sound/select_card.wav",false,1);
         }
     },
 
     render(flag,card,isPass){
+
+        if(this.cards_sprite_atlas == null) return;
+
         this.flag = flag;
         this.card = card;
         this.base_pos = this.node.position;
+
         this.node.getComponent(cc.Sprite).spriteFrame = this.cards_sprite_atlas.getSpriteFrame('card_'+card_map[card.value+'-'+card.type])
         this.laizi_flag.active = false;
 

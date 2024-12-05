@@ -20,7 +20,7 @@ const socketMgr = function(){
             'path':'/hlddz_socket.io',
         }
         console.log(defines.serverUrl)
-        _socket = window.io.connect('wss://'+defines.serverUrl,opts);
+        _socket = window.io.connect('ws://'+defines.serverUrl,opts);
         _socket.on('ping',function(data){
             //心跳
             _socket.emit('pong', {beat: 1});
@@ -189,6 +189,7 @@ const socketMgr = function(){
             var direct = _gameMgr.getDirectionByPosId(data.ctxData.posId);
             _gameMgr.posState[direct].ctxCards = data.ctxData.cards;
             _gameMgr.posState[direct].isPass = data.isPass;
+
             if (!data.isPass) {
                 _gameMgr.roomState.ctxCard.len = data.ctxData.len;
                 _gameMgr.roomState.ctxCard.key = data.ctxData.key;
