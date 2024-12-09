@@ -59,5 +59,7 @@ cc.Class({
 
             this.type = 0;
         }
+
+        this.node.removeAllChildren()
     }
 })
