@@ -1,0 +1,67 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "dice_anim",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.8666666666666667,
+  "sample": 60,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "580e084c-2df2-4b92-885c-3ed8de2ff23c"
+            }
+          },
+          {
+            "frame": 0.15,
+            "value": {
+              "__uuid__": "d8499258-7c1c-4385-b181-ba8f2c49c530"
+            }
+          },
+          {
+            "frame": 0.2833333333333333,
+            "value": {
+              "__uuid__": "8869d370-db9d-4155-b057-47b746f50492"
+            }
+          },
+          {
+            "frame": 0.48333333333333334,
+            "value": {
+              "__uuid__": "237877eb-c1f0-4294-81dc-6dd337b0363e"
+            }
+          },
+          {
+            "frame": 0.6666666666666666,
+            "value": {
+              "__uuid__": "bc0fa3c1-4bc0-428d-bb98-4a0d3533d39b"
+            }
+          },
+          {
+            "frame": 0.85,
+            "value": {
+              "__uuid__": "6f4c847a-7ce9-4d05-ae01-9dbbc5c94e58"
+            }
+          }
+        ]
+      }
+    },
+    "props": {
+      "angle": [
+        {
+          "frame": 0,
+          "value": 0
+        },
+        {
+          "frame": 0.85,
+          "value": 1080
+        }
+      ]
+    }
+  },
+  "events": []
+}
