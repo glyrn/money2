@@ -12,12 +12,6 @@ cc.Class({
         this.lab_tips.node.active = false;
         cc.debug.setDisplayStats(false);
 
-
-        globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:"01UxEr13yWMxMyywHYZDVs"},function(isOk,data){
-            if(isOk){
-                console.log(data.data)
-            }
-        })
         globalData.socketMgr.initSocket();
     },
     update(){
