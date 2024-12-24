@@ -11,6 +11,13 @@ cc.Class({
     onLoad () {
         this.lab_tips.node.active = false;
         cc.debug.setDisplayStats(false);
+
+
+        globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:"01UxEr13yWMxMyywHYZDVs"},function(isOk,data){
+            if(isOk){
+                console.log(data.data)
+            }
+        })
         globalData.socketMgr.initSocket();
     },
     update(){
@@ -38,9 +45,13 @@ cc.Class({
             }
             cc.args = field;
 
-            globalData.socketMgr.login(cc.args['uid'],cc.args['name'],decodeURIComponent(cc.args['avatorUrl']),cc.args['score'] ,cc.args['room'],
-                cc.args['play_mode'],cc.args['play_count'],function(){
-                cc.director.loadScene("Game");
+            globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:"01UxEr13yWMxMyywHYZDVs"},function(isOk,data){
+                if(isOk){
+                    globalData.socketMgr.login(data.data.userId,data.data.nickname,data.data.avatar,cc.args['score'] ,cc.args['room'],
+                        cc.args['play_mode'],cc.args['play_count'],function(){
+                            cc.director.loadScene("Game");
+                        });
+                }
             });
         }
     },

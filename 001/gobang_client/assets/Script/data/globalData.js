@@ -2,10 +2,12 @@
 import gameMgr from "./gameMgr.js"
 import socketMgr from "./socketMgr.js"
 import eventlister from "./event_lister.js"
+import utils from "./utils.js"
 
 require('./audioMgr')
 
 const globalData = {} || globalData;
+globalData.utils = utils();
 globalData.gameMgr = gameMgr()
 globalData.eventlister = eventlister({})
 globalData.socketMgr = socketMgr()
