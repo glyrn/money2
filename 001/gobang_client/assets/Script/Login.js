@@ -45,7 +45,7 @@ cc.Class({
             }
             cc.args = field;
 
-            globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:"01UxEr13yWMxMyywHYZDVs"},function(isOk,data){
+            globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data){
                 if(isOk){
                     globalData.socketMgr.login(data.data.userId,data.data.nickname,data.data.avatar,cc.args['score'] ,cc.args['room'],
                         cc.args['play_mode'],cc.args['play_count'],function(){
