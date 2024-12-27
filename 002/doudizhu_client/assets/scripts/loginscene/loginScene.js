@@ -12,7 +12,6 @@ cc.Class({
 
         globalData.socketMgr.initSocket()
 
-        this.img_loading.active = false;
         this.lab_tips.node.active = false;
 
         globalData.eventlister.on("SITDOWN_SUCCESS",function(){
@@ -41,32 +40,34 @@ cc.Class({
                 var obj = params[paramsKey].split('=');
                 field[obj[0]] = obj[1];
             }
-            if(params.length >= 3){
+            cc.args = field;
+            globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                if (isOk) {
 
-                this._uid = field['uid'];
-                this._name = field['name'];
-                this._room = field['room'];
-                this._avatarUrl = field['avatorUrl'];
-                this._base_score = field['base_score'];
-                this._score = field['score'];
-                if(typeof this._score =='undefined'){
-                    this._score = 0;
+                    this._uid = data.data.userId;
+                    this._name = data.data.nickname;
+                    this._room = field['room'];
+                    this._avatarUrl = data.data.avatar;
+                    this._base_score = field['base_score'];
+                    this._score = field['score'];
+                    if (typeof this._score == 'undefined') {
+                        this._score = 0;
+                    }
+                    this._play_count = field['play_count'];
+                    this._play_mode = field['play_mode'];
+
+                    var that = this;
+                    //设置自己名字
+                    globalData.gameMgr.posState.self.name = that._name;
+                    globalData.gameMgr.posState.self.avatarUrl = that._avatarUrl;
+                    globalData.gameMgr.posState.self.score = that._score;
+                    globalData.gameMgr.posState.self.uid = that._uid;
+                    //请求登录
+                    globalData.socketMgr.login(that._uid, that._name, decodeURIComponent(that._avatarUrl), that._score, function () {
+                        globalData.socketMgr.sitdown(that._room, parseInt(that._score), that._base_score, that._play_count, that._play_mode);
+                    });
                 }
-                this._play_count = field['play_count'];
-                this._play_mode = field['play_mode'];
-
-                var that = this;
-                //设置自己名字
-                globalData.gameMgr.posState.self.name = that._name;
-                globalData.gameMgr.posState.self.avatarUrl = that._avatarUrl;
-                globalData.gameMgr.posState.self.score = that._score;
-                globalData.gameMgr.posState.self.uid = that._uid;
-                //请求登录
-                this.img_loading.active = true;
-                globalData.socketMgr.login(that._uid,that._name,decodeURIComponent(that._avatarUrl),that._score,function(){
-                    globalData.socketMgr.sitdown(that._room,parseInt(that._score),that._base_score,that._play_count,that._play_mode);
-                });
-            }
+            });
         }
     },
     update(){
