@@ -81,13 +81,13 @@
   ],
   "shaders": [
     {
-      "hash": 2579669062,
+      "hash": 1939772759,
       "glsl3": {
-        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nattribute vec3 a_position;\nvoid main () {\n  gl_Position = cc_matViewProj * cc_matWorld * vec4(a_position, 1);\n  gl_Position.z -= 0.0001;\n}",
+        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  highp   vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n  mediump vec4 cc_nativeSize;\n  highp   mat4 cc_matView;\n  mediump mat4 cc_matViewInv;\n  mediump mat4 cc_matProj;\n  mediump mat4 cc_matProjInv;\n  mediump mat4 cc_matViewProj;\n  mediump mat4 cc_matViewProjInv;\n  mediump vec4 cc_cameraPos;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nattribute vec3 a_position;\nvoid main () {\n  gl_Position = cc_matViewProj * cc_matWorld * vec4(a_position, 1);\n  gl_Position.z -= 0.0001;\n}",
         "frag": "\nprecision highp float;\nvec4 CCFragOutput (vec4 color) {\n  #if OUTPUT_TO_GAMMA\n    color.rgb = sqrt(color.rgb);\n  #endif\n\treturn color;\n}\nuniform DIFFUSE_COLOR {\n  vec4 diffuseColor;\n};\nvec4 front() {\n  return CCFragOutput(diffuseColor);\n}\nout vec4 cc_FragColor;\nvoid main() { cc_FragColor = front(); }"
       },
       "glsl1": {
-        "vert": "\nprecision highp float;\nuniform mat4 cc_matViewProj;\nuniform mat4 cc_matWorld;\nattribute vec3 a_position;\nvoid main () {\n  gl_Position = cc_matViewProj * cc_matWorld * vec4(a_position, 1);\n  gl_Position.z -= 0.0001;\n}",
+        "vert": "\nprecision highp float;\nuniform mediump mat4 cc_matViewProj;\nuniform mat4 cc_matWorld;\nattribute vec3 a_position;\nvoid main () {\n  gl_Position = cc_matViewProj * cc_matWorld * vec4(a_position, 1);\n  gl_Position.z -= 0.0001;\n}",
         "frag": "\nprecision highp float;\nvec4 CCFragOutput (vec4 color) {\n  #if OUTPUT_TO_GAMMA\n    color.rgb = sqrt(color.rgb);\n  #endif\n\treturn color;\n}\nuniform vec4 diffuseColor;\nvec4 front() {\n  return CCFragOutput(diffuseColor);\n}\nvoid main() { gl_FragColor = front(); }"
       },
       "builtins": {
@@ -136,13 +136,13 @@
       "name": "__builtin-editor-gizmo-line|gizmo-line-vs|gizmo-line-fs:front"
     },
     {
-      "hash": 2538316070,
+      "hash": 1890857295,
       "glsl3": {
-        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nattribute vec3 a_position;\nvoid main () {\n  gl_Position = cc_matViewProj * cc_matWorld * vec4(a_position, 1);\n  gl_Position.z -= 0.0001;\n}",
+        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  highp   vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n  mediump vec4 cc_nativeSize;\n  highp   mat4 cc_matView;\n  mediump mat4 cc_matViewInv;\n  mediump mat4 cc_matProj;\n  mediump mat4 cc_matProjInv;\n  mediump mat4 cc_matViewProj;\n  mediump mat4 cc_matViewProjInv;\n  mediump vec4 cc_cameraPos;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nattribute vec3 a_position;\nvoid main () {\n  gl_Position = cc_matViewProj * cc_matWorld * vec4(a_position, 1);\n  gl_Position.z -= 0.0001;\n}",
         "frag": "\nprecision highp float;\nvec4 CCFragOutput (vec4 color) {\n  #if OUTPUT_TO_GAMMA\n    color.rgb = sqrt(color.rgb);\n  #endif\n\treturn color;\n}\nuniform DIFFUSE_COLOR {\n  vec4 diffuseColor;\n};\nvec4 back() {\n  return CCFragOutput(vec4(diffuseColor.rgb, diffuseColor.a * 0.2));\n}\nout vec4 cc_FragColor;\nvoid main() { cc_FragColor = back(); }"
       },
       "glsl1": {
-        "vert": "\nprecision highp float;\nuniform mat4 cc_matViewProj;\nuniform mat4 cc_matWorld;\nattribute vec3 a_position;\nvoid main () {\n  gl_Position = cc_matViewProj * cc_matWorld * vec4(a_position, 1);\n  gl_Position.z -= 0.0001;\n}",
+        "vert": "\nprecision highp float;\nuniform mediump mat4 cc_matViewProj;\nuniform mat4 cc_matWorld;\nattribute vec3 a_position;\nvoid main () {\n  gl_Position = cc_matViewProj * cc_matWorld * vec4(a_position, 1);\n  gl_Position.z -= 0.0001;\n}",
         "frag": "\nprecision highp float;\nvec4 CCFragOutput (vec4 color) {\n  #if OUTPUT_TO_GAMMA\n    color.rgb = sqrt(color.rgb);\n  #endif\n\treturn color;\n}\nuniform vec4 diffuseColor;\nvec4 back() {\n  return CCFragOutput(vec4(diffuseColor.rgb, diffuseColor.a * 0.2));\n}\nvoid main() { gl_FragColor = back(); }"
       },
       "builtins": {

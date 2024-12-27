@@ -15,7 +15,6 @@ cc._RF.push(module, '4d3c33W2UxLl7F7kDHQxUXA', 'use_reversed_rotateBy');
  * 如果你的项目中没用到 Action，可直接删除该脚本。
  * 如果你的项目有托管于 git 等版本库，请将此脚本一并上传。
  */
-
 cc.RotateBy._reverse = true;
 
 cc._RF.pop();

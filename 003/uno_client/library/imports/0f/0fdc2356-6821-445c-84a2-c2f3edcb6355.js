@@ -4,37 +4,45 @@ cc._RF.push(module, '0fdc2NWaCFEXISiwvPty2NV', 'gameMgr');
 
 "use strict";
 
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports["default"] = void 0;
+
 var gameMgr = function gameMgr() {
   var that = {};
   var _socketMgr = null;
   var _eventMgr = null;
   var _validateMgr = null;
+
   that.setSocketMgr = function (socketMgr) {
     _socketMgr = socketMgr;
   };
+
   that.setEventlister = function (eventMgr) {
     _eventMgr = eventMgr;
   };
+
   that.setValidateMgr = function (validateMgr) {
     _validateMgr = validateMgr;
   };
+
   that.posId = ''; //座位号
+
   that.cards = [];
   that.play_count = 0; //局数
+
   that.score_list = [];
   that.lossBeatNums = 0; //丢失心跳次数
-
   //房间状态
+
   that.roomState = {
     state: 0,
     //0准备状态  1打牌状态 2结束状态
     timeout: 30,
     gametime_remain: 0
-  };
+  }; //座位状态
 
-  //座位状态
   that.playerData = {
     left: {
       uid: 0,
@@ -81,35 +89,44 @@ var gameMgr = function gameMgr() {
       target_timer_value: 0
     }
   };
+
   that.beatCount = function () {
     that.lossBeatNums++;
+
     if (that.lossBeatNums >= 3) {
       _eventMgr.fire('MESSAGE', '游戏已断线！');
     }
+
     setTimeout(that.beatCount, 5000);
   };
+
   that.checkBeat = function () {
     setTimeout(that.beatCount, 5000);
   };
+
   that.updateHouseStatus = function (deskId, posId, state) {
     var pos = that.getPos(deskId, posId);
+
     if (pos) {
       pos.state = state;
     }
   };
+
   that.getPlayerData = function (posId) {
     return this.playerData[this.getPlayerDataKey(posId)];
   };
+
   that.setPlayerData = function (posId, data) {
     this.playerData[this.getPlayerDataKey(posId)] = data;
   };
-  that.getPlayerDataKey = function (targetPosId, selfPosId) {
-    if (selfPosId === void 0) {
-      selfPosId = null;
-    }
+
+  that.getPlayerDataKey = function (targetPosId) {
+    var selfPosId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
     if (selfPosId == null) {
       selfPosId = this.playerData.self.posId;
     }
+
     var map = {
       '0': {
         '0': 'self',
@@ -138,27 +155,34 @@ var gameMgr = function gameMgr() {
     };
     return map[selfPosId.toString()][targetPosId.toString()];
   };
+
   that.resetRoomStatus = function () {
     that.posId = '';
     that.deskId = '';
     that.posState.self.state = 0;
     that.roomState.state = 0;
   };
+
   that.getSelectdCards = function () {
     return that.posState.self.cards.filter(function (card) {
       return card.selected;
     });
   };
+
   that.getCardIndex = function (pos, card) {
     var cards = this.posState[pos].cards;
+
     for (var i = 0, len = cards.length; i < len; i++) {
       var item = cards[i];
+
       if (card.value === item.value && card.type === item.type) {
         return i;
       }
     }
+
     return -1;
   };
+
   that.initCards = function (cards) {
     cards.forEach(function (cardGroup, index) {
       cardGroup.cards.forEach(function (card) {
@@ -169,12 +193,14 @@ var gameMgr = function gameMgr() {
       that.posState[redirection].cards = cardGroup.cards;
     });
   };
+
   that.updateCtxInfo = function (socket, data) {
     var ctx = data;
     ctx.ctxPos = that.getDirectionByPosId(ctx.ctxPos);
     that.roomState.ctxPos = ctx.ctxPos;
     that.roomState.ctxScore = ctx.ctxScore;
     that.roomState.timeout = ctx.timeout;
+
     if (ctx.calledScores) {
       for (var key in ctx.calledScores) {
         if (ctx.calledScores.hasOwnProperty(key)) {
@@ -184,10 +210,9 @@ var gameMgr = function gameMgr() {
         }
       }
     }
-    that.startTimer();
-  };
 
-  // that.autoPlayCards = function () {
+    that.startTimer();
+  }; // that.autoPlayCards = function () {
   //     if (that.roomState.ctxPos === 'self') {
   //         var len = that.posState.self.cards.length;
   //         var cards = that.roomState.ctxCard.ctxPos === 'self' ? [that.posState.self.cards[len-1]] : [];
@@ -195,18 +220,22 @@ var gameMgr = function gameMgr() {
   //     }
   // }
 
+
   that.removeCards = function (pos, cards) {
     cards.forEach(function (card) {
       var index = that.getCardIndex(pos, card);
+
       if (index !== -1) {
         that.posState[pos].cards.splice(index, 1);
       }
     });
   };
+
   that.playCards = function () {
     if (that.roomState.state !== 2) {
       return;
     }
+
     if (that.roomState.ctxPos !== 'self') {
       return; //layer.msg('未到出牌时间');
     }
@@ -216,6 +245,7 @@ var gameMgr = function gameMgr() {
     var card_values = cards.map(function (card) {
       return card.value;
     });
+
     if (that.isLaizi == 0) {
       ret = _validateMgr.validate_base(card_values);
     } else {
@@ -224,14 +254,19 @@ var gameMgr = function gameMgr() {
       });
       ret = _validateMgr.validate_laizi(card_values, laizi_values);
     }
+
     if (!ret.status) {
       _eventMgr.fire('PLAY_CARD_ERROR', '你的牌不符合规则');
+
       return console.log('你的牌不符合规则');
     }
+
     _socketMgr.getSocket().emit('PLAY_CARD', cards);
   };
+
   return that;
 };
+
 var _default = gameMgr;
 exports["default"] = _default;
 module.exports = exports["default"];

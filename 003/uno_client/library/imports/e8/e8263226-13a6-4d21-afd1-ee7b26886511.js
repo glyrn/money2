@@ -15,7 +15,6 @@ cc._RF.push(module, 'e8263ImE6ZNIa/R7nsmiGUR', 'use_v2.1-2.2.1_cc.Toggle_event')
  * 如果你的项目中没用到 Toggle，可直接删除该脚本。
  * 如果你的项目有托管于 git 等版本库，请将此脚本一并上传。
  */
-
 if (cc.Toggle) {
   // Whether to trigger 'toggle' and 'checkEvents' events when modifying 'toggle.isChecked' in the code
   // 在代码中修改 'toggle.isChecked' 时是否触发 'toggle' 与 'checkEvents' 事件

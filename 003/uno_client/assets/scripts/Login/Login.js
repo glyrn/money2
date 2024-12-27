@@ -37,10 +37,14 @@ cc.Class({
             }
             cc.args = field;
 
-            globalData.socketMgr.login(cc.args['uid'],cc.args['name'],decodeURIComponent(cc.args['avatorUrl']),cc.args['score'] ,cc.args['room'],
-                cc.args['play_mode'],cc.args['game_time'],cc.args['specific_score'],function(){
-                    cc.director.loadScene("Game");
-                });
+            globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                if (isOk) {
+                    globalData.socketMgr.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
+                        cc.args['play_mode'], cc.args['game_time'], cc.args['specific_score'], function () {
+                            cc.director.loadScene("Game");
+                        });
+                }
+            });
         }
     },
 

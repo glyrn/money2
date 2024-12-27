@@ -85,7 +85,7 @@
   {
     "__type__": "cc.Node",
     "_name": "3D Camera",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 1
     },
@@ -196,7 +196,7 @@
   {
     "__type__": "cc.Node",
     "_name": "New Directional Light",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 1
     },
@@ -282,6 +282,7 @@
     "_shadowDarkness": 0.5,
     "_shadowMinDepth": 1,
     "_shadowMaxDepth": 1000,
+    "_shadowDepthScale": 250,
     "_shadowFrustumSize": 50,
     "_shadowBias": 0.0005,
     "_id": ""
@@ -300,7 +301,7 @@
   {
     "__type__": "cc.Node",
     "_name": "New Ambient Light",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 1
     },
@@ -386,6 +387,7 @@
     "_shadowDarkness": 0.5,
     "_shadowMinDepth": 1,
     "_shadowMaxDepth": 1000,
+    "_shadowDepthScale": 250,
     "_shadowFrustumSize": 50,
     "_shadowBias": 0.0005,
     "_id": ""

@@ -4,13 +4,21 @@ cc._RF.push(module, 'cf1918JMs5Bz5/txXUv3+ma', 'globalData');
 
 "use strict";
 
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports["default"] = void 0;
+
 var _gameMgr = _interopRequireDefault(require("./data/gameMgr.js"));
+
 var _socketMgr = _interopRequireDefault(require("./data/socketMgr.js"));
+
 var _event_lister = _interopRequireDefault(require("./util/event_lister.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 require('./data/audioMgr');
+
 var globalData = {} || globalData;
 globalData.gameMgr = (0, _gameMgr["default"])();
 globalData.eventlister = (0, _event_lister["default"])({});

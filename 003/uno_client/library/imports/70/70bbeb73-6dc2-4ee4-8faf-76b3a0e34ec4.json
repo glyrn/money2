@@ -122,38 +122,38 @@
       "__id__": 37
     },
     "bursts": [],
+    "shapeModule": {
+      "__id__": 41
+    },
+    "colorOverLifetimeModule": {
+      "__id__": 46
+    },
+    "sizeOvertimeModule": {
+      "__id__": 51
+    },
+    "velocityOvertimeModule": {
+      "__id__": 68
+    },
+    "forceOvertimeModule": {
+      "__id__": 85
+    },
+    "limitVelocityOvertimeModule": {
+      "__id__": 98
+    },
+    "rotationOvertimeModule": {
+      "__id__": 115
+    },
+    "textureAnimationModule": {
+      "__id__": 128
+    },
+    "trailModule": {
+      "__id__": 137
+    },
     "_renderMode": 0,
     "_velocityScale": 1,
     "_lengthScale": 1,
     "_mesh": null,
-    "_id": "",
-    "_shapeModule": {
-      "__id__": 41
-    },
-    "_colorOverLifetimeModule": {
-      "__id__": 46
-    },
-    "_sizeOvertimeModule": {
-      "__id__": 51
-    },
-    "_velocityOvertimeModule": {
-      "__id__": 68
-    },
-    "_forceOvertimeModule": {
-      "__id__": 85
-    },
-    "_limitVelocityOvertimeModule": {
-      "__id__": 98
-    },
-    "_rotationOvertimeModule": {
-      "__id__": 115
-    },
-    "_textureAnimationModule": {
-      "__id__": 128
-    },
-    "_trailModule": {
-      "__id__": 137
-    }
+    "_id": ""
   },
   {
     "__type__": "cc.CurveRange",
@@ -1935,6 +1935,8 @@
     "__type__": "cc.TextureAnimationModule",
     "_enable": false,
     "_mode": 0,
+    "numTilesX": 0,
+    "numTilesY": 0,
     "animation": 0,
     "randomRow": false,
     "rowIndex": 0,
@@ -1944,9 +1946,7 @@
     "startFrame": {
       "__id__": 133
     },
-    "cycleCount": 0,
-    "_numTilesX": 0,
-    "_numTilesY": 0
+    "cycleCount": 0
   },
   {
     "__type__": "cc.CurveRange",

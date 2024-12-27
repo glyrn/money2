@@ -4,10 +4,14 @@ cc._RF.push(module, 'd485eyCsiBLBqweDM7SjVQh', 'event_lister');
 
 "use strict";
 
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports["default"] = void 0;
+
 var eventLister = function eventLister(obj) {
   var register = {};
+
   obj.on = function (type, method) {
     if (register.hasOwnProperty(type)) {
       register[type].push(method);
@@ -15,30 +19,37 @@ var eventLister = function eventLister(obj) {
       register[type] = [method];
     }
   };
+
   obj.fire = function (type) {
     if (register.hasOwnProperty(type)) {
       var methodList = register[type];
+
       for (var i = 0; i < methodList.length; ++i) {
         var handle = methodList[i];
         var args = [];
+
         for (var j = 1; i < arguments.length; ++i) {
           args.push(arguments[j]);
-        }
+        } //handle.call(this,args)
 
-        //handle.call(this,args)
+
         console.log("handle.call(this,args) type:" + type);
         handle.apply(this, args);
       }
     }
   };
+
   obj.removeLister = function (type) {
     register[type] = [];
   };
+
   obj.removeAllLister = function () {
     register = {};
   };
+
   return obj;
 };
+
 var _default = eventLister;
 exports["default"] = _default;
 module.exports = exports["default"];

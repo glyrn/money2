@@ -2,11 +2,11 @@
   "android-instant": {
     "REMOTE_SERVER_ROOT": "",
     "host": "",
+    "packageName": "org.cocos2d.demo",
     "pathPattern": "",
     "recordPath": "",
     "scheme": "https",
-    "skipRecord": false,
-    "packageName": "org.cocos2d.demo"
+    "skipRecord": false
   },
   "appBundle": false,
   "baidugame": {
@@ -52,24 +52,24 @@
   "mainIsRemote": false,
   "nativeMd5Cache": true,
   "android": {
-    "packageName": "org.cocos2d.demo",
-    "REMOTE_SERVER_ROOT": ""
+    "REMOTE_SERVER_ROOT": "",
+    "packageName": "org.cocos2d.demo"
   },
   "ios": {
-    "packageName": "org.cocos2d.demo",
     "REMOTE_SERVER_ROOT": "",
-    "ios_enable_jit": true
+    "ios_enable_jit": true,
+    "packageName": "org.cocos2d.demo"
   },
   "mac": {
-    "packageName": "org.cocos2d.demo",
     "REMOTE_SERVER_ROOT": "",
-    "width": 1280,
-    "height": 720
+    "height": 720,
+    "packageName": "org.cocos2d.demo",
+    "width": 1280
   },
   "win32": {
     "REMOTE_SERVER_ROOT": "",
-    "width": 1280,
-    "height": 720
+    "height": 720,
+    "width": 1280
   },
   "openharmony": {
     "packageName": "com.cocos.openharmony",

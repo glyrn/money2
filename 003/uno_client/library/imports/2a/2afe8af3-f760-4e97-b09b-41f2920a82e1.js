@@ -5,7 +5,9 @@ cc._RF.push(module, '2afe8rz92BOl7CbQfKSCoLh', 'Card');
 "use strict";
 
 var _globalData = _interopRequireDefault(require("../../globalData"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 cc.Class({
   "extends": cc.Component,
   name: 'Card',
@@ -43,7 +45,9 @@ cc.Class({
   onBtnClick: function onBtnClick() {
     if (!this._touchEnable) return;
     if (!this._data) return;
+
     this._player.resetCard(this);
+
     this._data.selected = !this._data.selected;
     this.checkSelectColor();
     this.updatePos();
@@ -61,15 +65,14 @@ cc.Class({
   },
   checkShowColor: function checkShowColor() {
     if (this._data && this._data.value == 'plus4' || this._data.value == 'color') {
-      _globalData["default"].eventlister.fire('SHOW_CARD_COLOR', this._data.color);
-      // this.color.node.active = true;
+      _globalData["default"].eventlister.fire('SHOW_CARD_COLOR', this._data.color); // this.color.node.active = true;
       // this.color.spriteFrame = this['sf_color' + this._data.color];
+
     } else {
-      _globalData["default"].eventlister.fire('HIDE_CARD_COLOR', this._data.color);
-      // this.color.node.active = false;
+      _globalData["default"].eventlister.fire('HIDE_CARD_COLOR', this._data.color); // this.color.node.active = false;
+
     }
   },
-
   resetPos: function resetPos() {
     if (!this._data) return;
     this._data.selected = false;
@@ -81,6 +84,7 @@ cc.Class({
     this.num.node.active = true;
     this.num.getComponent(cc.Sprite).spriteFrame = this['sf_' + data.value];
     this.bg.getComponent(cc.Sprite).spriteFrame = this['sf_color' + data.color];
+
     if (data.isNew) {
       data.isNew = false;
       this.mask.active = true;
