@@ -452,8 +452,9 @@ cc.Class({
                     if (!err) {
                         that._avatorUrl = data.avatorUrl;
                         that.img_avatar.spriteFrame = new cc.SpriteFrame(img);
+                    }else{
+                        console.log("头像：",err)
                     }
-                    console.log("头像：",err)
                 });
             }
         }

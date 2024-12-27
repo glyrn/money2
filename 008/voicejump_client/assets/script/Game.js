@@ -1,34 +1,72 @@
-import globalData from "./data/globalData"
+import globalData from "./data/globalData";
 
-const Bird = require('bird');
-const Map = require('map')
+const Bird = require('../prefab/Bird');
+const Map = require('./Map');
+const Avator = require('../prefab/Avator');
 
 cc.Class({
     extends: cc.Component,
     properties: {
-        bird: Bird,
-        scoreLabel: cc.Label,
+        player0: Bird,
+        player1: Bird,
+        player2: Bird,
+        player3: Bird,
+        avator0:Avator,
+        avator1:Avator,
+        avator2:Avator,
+        avator3:Avator,
+        lab_score: cc.Label,
         map:Map,
-        readyMenu: {
-            default: null,
-            type: cc.Node
-        },
-        gameOverMenu: {
-            default: null,
-            type: cc.Node
-        },
+        panel_score: cc.Node,
         lab_room:cc.Label,
+        btn_ready:cc.Node,
     },
     onLoad() {
-        this.score = 0;
-        this.scoreLabel.string = this.score;
-        this.bird.init(this);
-        this.enableInput(true);
 
-        var self = this;
+        var that = this;
+
+        //进入后台继续动画
+        that.handleMainLoopTimer=setInterval(()=>{
+            cc.director.mainLoop();
+        }, 1000 / 60);
+
+        for (let i = 0; i < 4; i++) {
+            that['avator'+i].node.active = false;
+        }
+        for (let i = 0; i < 4; i++) {
+            that['player'+i].node.active = false;
+        }
+        this.lab_score.node.active = false;
+        this.map.node.active = false;
+
+        this.enableInput(true);
         //刷新玩家
         globalData.eventlister.on("SIT_CHANGE",function(data){
+            that['avator'+data.posId].render(data.target);
+        });
 
+        globalData.eventlister.on('PREPARE_SUCCESS',function(posId){
+            that['avator'+posId].render(globalData.gameMgr.playerData[posId]);
+            that['player'+posId].render(globalData.gameMgr.playerData[posId]);
+            that['player'+posId].init();
+            that.render();
+        });
+
+        globalData.eventlister.on("REFRESH_MAP",function(data){
+            that.map.refresh(data.mapInfo);
+        });
+
+        globalData.eventlister.on('GAME_START',function(data){
+            for (const i in globalData.gameMgr.playerData) {
+                that['avator'+i].render(globalData.gameMgr.playerData[i]);
+                that['player'+i].startFly();
+            }
+            that.map.node.active = true;
+            that.map.startRun(data.level);
+            that.render();
+        });
+
+        globalData.eventlister.on("GAME_OVER",function(){
 
         });
 
@@ -38,87 +76,42 @@ cc.Class({
         globalData.socketMgr.prepare()
     },
     onBtnScore(){
-        this.overSprite.active = true;
+        this.panel_score.active = true;
     },
     render(){
         this.lab_room.string = "房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
-    },
-    gameStart() {
-        // bird fly
-        this.bird.startFly();
-        this.map.startRun();
+        this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
+            globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 ;
+
+        this.lab_score.node.active = globalData.gameMgr.roomState.state == 1;//游戏进行中
+
+        for (const i in globalData.gameMgr.playerData) {
+            this['avator'+i].render(globalData.gameMgr.playerData[i]);
+        }
     },
     gameOver() {
-
-        // 管道重置
-        // this.pipeManager.reset();
         this.map.stopRun();
         // 停止游戏输入监听
         this.enableInput(false);
         // 显示游戏结束面板
-        this.showGameOverMenu()
+        this.panel_score.active = true;
     },
-    gainScore(startTime) {
-        this.score = Math.floor(new Date().getTime() / 1000) - startTime;
-        this.scoreLabel.string = this.score
-    },
-    // 显示游戏结束面板
-    showGameOverMenu() {
-        // 隐藏分数
-        cc.tween(this.scoreLabel.node).to(.3, { opacity: 0 }).call(() => {
-            this.scoreLabel.node.active = false;
-        }).start();
-        // 获取游戏结束界面的各个节点
-        const gameOverNode = this.gameOverMenu.getChildByName("gameOverLabel");
-        const resultBoardNode = this.gameOverMenu.getChildByName("resultBoard");
-        const startButtonNode = this.gameOverMenu.getChildByName("startBtn");
-        const backButtonNode = this.gameOverMenu.getChildByName("backbtn");
-        const currentScoreNode = resultBoardNode.getChildByName("currentScore");
-        const bestScoreNode = resultBoardNode.getChildByName("bestScore");
-        const medalNode = resultBoardNode.getChildByName("medal");
-        // 保存最高分
-        let bestScore = 0;
-        // 显示当前分数、最高分
-        currentScoreNode.getComponent(cc.Label).string = this.score;
-        bestScoreNode.getComponent(cc.Label).string = bestScore;
-        // 判断是否显示奖牌
-        let showMedal = (err, spriteFrame) => {
-            if (this.score >= this.goldScore) {
-                medalNode.getComponent(cc.Sprite).spriteFrame = spriteFrame._spriteFrames.medal_gold;
-            } else if (this.score >= this.silverScore) {
-                medalNode.getComponent(cc.Sprite).spriteFrame = spriteFrame._spriteFrames.medal_silver;
-            } else {
-                medalNode.getComponent(cc.Sprite).spriteFrame = null;
-            }
-        };
-        cc.loader.loadRes("res_bundle", cc.SpriteAtlas, showMedal); // 动态加载资源
-        // 依次显示各个节点
-        startButtonNode.active = true;
-        backButtonNode.active = true;
-        this.gameOverMenu.active = true;
-        startButtonNode.opacity = 1;
-        gameOverNode.opacity = 1;
-        cc.tween(gameOverNode).parallel(
-            cc.tween().to(.2, { opacity: 255 }),
-            cc.tween().by(.2, { position: cc.v2(0, 10) }).by(.3, { position: cc.v2(0, -10) })
-        ).start();
-        cc.tween(startButtonNode).delay(.3).to(.5, { opacity: 255 }).start();
-        cc.tween(resultBoardNode).delay(.3).to(.9, { position: cc.v2(resultBoardNode.x, 200) }, { easing: 'cubicInOut' }).start();
-    },
+
     // 开始或者bird jump
-    startGameOrJumpBird() {
-        if (this.bird.state === Bird.State.Ready) {
-            this.gameStart()
-        } else {
-            this.bird.rise()
-        }
+    onTouchCallBack() {
+        // if (this.bird.state === Bird.State.Ready) {
+        //     this.gameStart()
+        // } else {
+        //     this.bird.rise()
+        // }
+        globalData.socketMgr.birdRise();
     },
     // 事件控制
     enableInput(enable) {
         if (enable) {
-            this.node.on(cc.Node.EventType.TOUCH_START, this.startGameOrJumpBird, this)
+            this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
         } else {
-            this.node.off(cc.Node.EventType.TOUCH_START, this.startGameOrJumpBird, this)
+            this.node.off(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
         }
     }
 })

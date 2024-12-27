@@ -55,7 +55,6 @@ const socketMgr = function(){
         });
 
         _socket.on("SIT_CHANGE",function(data){
-            console.log(data)
             //对手逃跑 重置游戏
             if(data.target == null){
                 _gameMgr.playerData[data.posId] = null;
@@ -65,6 +64,10 @@ const socketMgr = function(){
                 _gameMgr.playerData[data.posId] = data.target;
             }
             _eventMgr.fire("SIT_CHANGE",data)
+        })
+
+        _socket.on("REFRESH_MAP",function(data){
+            _eventMgr.fire("REFRESH_MAP",data)
         })
 
         _socket.on('GAME_START',function(data){
@@ -96,17 +99,8 @@ const socketMgr = function(){
     that.prepare = function(){
         _socket.emit('PREPARE');
     }
-    that.makeDiceNum = function(){
-        _socket.emit('MAKE_DICE_NUM');
-    }
-    that.playMoveStep = function(chess_idx,num){
-        _socket.emit('PLAY_MOVE_STEP', {idx:chess_idx,num:num});
-    }
-    that.nextPlayerDice = function(){
-        _socket.emit('NEXT_PLAYER_DICE');
-    }
-    that.finish_chess = function(posId,chess_idx){
-        _socket.emit('FINISH_CHESS', {posId:posId,idx:chess_idx});
+    that.birdRise = function(){
+        _socket.emit('BIRD_RISE');
     }
     that.getSocket = function(){
         return _socket;

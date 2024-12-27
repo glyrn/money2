@@ -23,10 +23,6 @@ cc.Class({
             default: State.Ready,
             type: State,
         },
-        ground: {
-            default: null,
-            type: cc.Node
-        }
     },
     onLoad() {
         const manager = cc.director.getCollisionManager();
@@ -35,14 +31,22 @@ cc.Class({
         this.fallOver = false;
         this.tweenAction = null;
     },
-    init(game) {
-        this.game = game;
+    init() {
+        this.node.active = true;
         this.state = State.Ready;
         this.currentSpeed = 0;
-        // this.accelerationUp = 0;
+
         this.anim = this.getComponent(cc.Animation);
         this.anim.playAdditive("birdFlapping");
         this.anim.playAdditive("birdWing");
+    },
+    render(data){
+        if(data === null || (data && data.uid === 0)){
+            this.node.active = false;
+            return;
+        }
+
+        this.node.active = true;
     },
     startFly() {
 
@@ -93,10 +97,10 @@ cc.Class({
         if (this.fallOver) {
             this.state = State.Drop;
             this.anim.stop();
-            this.game.gameOver();
+            // this.game.gameOver();
         }
         //计算得分
-        this.game.gainScore(this.startTime);
+        // this.game.gainScore(this.startTime);
     },
 
     onCollisionEnter(other, self) {

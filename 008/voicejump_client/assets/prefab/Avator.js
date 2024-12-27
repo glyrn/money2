@@ -1,9 +1,11 @@
+import globalData from "../script/data/globalData";
 
 cc.Class({
     extends: cc.Component,
     properties: {
         img_avatar:cc.Sprite,
         lab_name:cc.Label,
+        img_ready:cc.Node,
     },
     name:"Avator",
 
@@ -27,5 +29,6 @@ cc.Class({
         }
 
         this.lab_name.string = data.name;
+        this.img_ready.active = data.state == 2 && globalData.gameMgr.roomState.state != 1;
     },
 });

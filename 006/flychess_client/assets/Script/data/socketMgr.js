@@ -22,7 +22,7 @@ const socketMgr = function(){
         }
         console.log(defines.serverUrl)
 
-        _socket = window.io.connect('wss://' + defines.serverUrl, opts);
+        _socket = window.io.connect('ws://' + defines.serverUrl, opts);
         _socket.on('ping', function (data) {
             //心跳
             _socket.emit('pong', {beat: 1});
@@ -41,7 +41,6 @@ const socketMgr = function(){
             _eventMgr.fire('PREPARE_SUCCESS',posId);
         });
         _socket.on("LOGIN_SUCCESS", function (data) {
-            console.log("data.playerData:",data.playerData)
             _gameMgr.roomState.roomId = data.roomId;
             _gameMgr.playerData = data.playerData;
             _gameMgr.play_mode = data.play_mode;
