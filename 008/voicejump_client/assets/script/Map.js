@@ -10,11 +10,15 @@ cc.Class({
 
     },
     refresh(mapInfo){
-        cc.moveTo(mapInfo.duration,cc.v2(mapInfo.x))
+
+        this.area1.stopAllActions();
+        this.area1.x = mapInfo.last_x;
+        this.area1.runAction(cc.moveTo(mapInfo.duration,cc.v2(mapInfo.x)));
     },
     update (dt) {
         // if(this.isCanRun){
-        //     this.area1.x += this.speed * dt;
+        //     this.area1.x += this.kjklnklm
+        //     'peed * dt;
         //     this.area2.x += this.speed * dt;
         //     if(this.area1.x < -5000*2+300){
         //         this.area1.x = 0;

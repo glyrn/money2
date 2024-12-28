@@ -282,32 +282,28 @@ const proto = {
                   room.play_count = obj.play_count;
                 }
 
-                var target = null;
-                if(room.play_mode == 1){ //人人对战
-                  for (let i = 0; i < room.positions.length; i++) {
-                    if(room.positions[i].state > 0 && room.positions[i].uid != obj.uid){
-                      var room_target = room.positions[i];
-                      target = {
-                        uid : room_target.uid,
-                        name : room_target.name,
-                        avatorUrl : room_target.avatorUrl,
-                        score : room_target.score,
-                        posId: room_target.posId,
-                        state : room_target.state,
-                      }
-                    }
+                var playerData = [];
+                for (let i = 0; i < room.positions.length; i++) {
+                  if(room.positions[i].state > 0){
+                    playerData[room.positions[i].posId] = {
+                      uid: room.positions[i].uid,
+                      state: room.positions[i].state,
+                      name: room.positions[i].name,
+                      avatorUrl: room.positions[i].avatorUrl,
+                      score: room.positions[i].score,
+                      posId: room.positions[i].posId,
+                    };
                   }
                 }
 
                 socket.emit("LOGIN_SUCCESS",{
                   roomId:room.name,
+                  posId:obj.posId,
                   play_mode:room.play_mode,
                   play_count:room.play_count,
-                  self:obj,
-                  target:target,
+                  playerData:playerData,
                 });
-
-                self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj},obj.uid)
+                self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
               }
               // try {
               //   var path = `${__dirname}/../gobang_client/avator/${obj.uid}.jpg`;
@@ -332,33 +328,48 @@ const proto = {
       socket.on("PREPARE",function(){
 
         var isStartGame = false;
-        for (let i = 0; i < self.desks.length; i++) {
-          var ready_count = 0;
-
-          for (let j = 0; j < self.desks[i].positions.length; j++) {
-            var userObj = self.desks[i].positions[j];
-            if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
-              self.desks[i].positions[j].state = 2;
-            }
-            if(self.desks[i].positions[j].state == 2){
-              ready_count++;
-            }
+        var ready_count = 0;
+        const desk = self.getDesk(socket);
+        var prepare_posId = null;
+        for (let j = 0; j < desk.positions.length; j++) {
+          const userObj = desk.positions[j];
+          if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
+            desk.positions[j].state = 2;
+            prepare_posId = userObj.posId;
           }
-
-          if(self.desks[i].play_mode == 0 && ready_count == 1){ //人机
-            self.desks[i].state = 1;//开始游戏
-            isStartGame = true;
-          }else if(self.desks[i].play_mode == 1 && ready_count == 2){ //人人
-            self.desks[i].state = 1;//开始游戏
-            isStartGame = true;
+          if(desk.positions[j].state == 2){
+            ready_count++;
           }
         }
 
-        self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),self.getUid(socket));
+        if(desk.play_mode == 1 && ready_count == 2 ||
+            desk.play_mode == 2 && ready_count == 4 ){
+          desk.ready_count = ready_count;
+          desk.state = 1;//开始游戏
+          isStartGame = true;
+        }
+
+        self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),prepare_posId);
         if(isStartGame)
         {
-          self.broadCastRoom("GAME_START",self.getDeskId(socket),1);
+          self.broadCastRoom("GAME_START",self.getDeskId(socket),{level:1});
+
+          if(desk.handleLoopTimer){
+            clearInterval(desk.handleLoopTimer);
+            desk.handleLoopTimer = null;
+          }
+          desk.mapInfo = {x:0,last_x:0};
+          desk.handleLoopTimer=setInterval(()=>{
+            desk.mapInfo.last_x = desk.mapInfo.x;
+            desk.mapInfo.x = desk.mapInfo.last_x - 200;
+            desk.mapInfo.duration = 2;
+            self.broadCastRoom("REFRESH_MAP",self.getDeskId(socket),{mapInfo:desk.mapInfo});
+          }, desk.mapInfo.duration * 1000);
         }
+      });
+
+      socket.on("BIRD_RISE",function(){
+
       });
 
       socket.on('disconnect', function(){
@@ -382,13 +393,9 @@ const proto = {
               delete self.clients[userObj.uid];
 
               self.desks[i].state = 0;
-              for (let k = 0; k < self.desks[i].chequer.length; k++) {
-                self.desks[i].chequer[k].state = -1;
-                self.desks[i].chequer[k].idx = -1;
-              }
 
               self.broadCastRoom("MESSAGE",self.desks[i].deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
-              self.broadCastRoom("SIT_CHANGE",self.desks[i].deskId,{target:null},userObj.uid);
+              self.broadCastRoom("SIT_CHANGE",self.desks[i].deskId,{target:null,posId:userObj.posId},userObj.uid);
             }
             if(self.desks[i].positions[j].state != 0){
               isClean = false;
@@ -402,85 +409,7 @@ const proto = {
           }
         }
       });
-      socket.on('PLAY_CHESS', function(tag){
-        var desk = self.getDesk(socket);
-        var posId = self.getPosId(socket);
-        var count_chess_state = 0;
-        for (let i = 0; i < desk.chequer.length; i++) {
-          if(desk.chequer[i].state != -1){
-            count_chess_state++;
-          }
-        }
-        var isOk = false;
-        for (let i = 0; i <  desk.chequer.length; i++) {
-          if(desk.chequer[i].tag == tag && desk.chequer[i].state == -1){
-            if(posId == 0){
-              desk.chequer[i].state = 1; //1白色 0黑色
-              desk.chequer[i].idx = count_chess_state;
-            }else{
-              desk.chequer[i].state = 0; //1白色 0黑色
-              desk.chequer[i].idx = count_chess_state;
-            }
-            isOk = true;
-          }
-        }
-        if(!isOk){
-          socket.emit('MESSAGE','该位置已有棋！');
-        }else{
-          self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{posId:posId,tag:tag});
-          self.checkOver(desk.deskId,tag,posId);
-        }
-      });
 
-      socket.on("RETRACK_CHESS_RSP",function(option){
-
-        var room = self.getDesk(socket);
-        var uid = self.getUid(socket);
-
-        if(option == 1){ //同意悔棋
-
-          var target_posId_state;
-          var target_posId;
-          for (let i = 0; i < room.positions.length; i++) {
-            if (room.positions[i].state > 0 && room.positions[i].uid != uid) {
-              var room_target = room.positions[i];
-              target_posId = room_target.posId;
-              if(room_target.posId == 0){
-                target_posId_state = 1;
-              }else{
-                target_posId_state = 0;
-              }
-            }
-          }
-
-          var target_max_idx = -1;
-
-          for (let i = 0; i < room.chequer.length; i++) {
-            if(target_posId_state == room.chequer[i].state){ //找到对方的棋子
-              target_max_idx = Math.max(target_max_idx,room.chequer[i].idx);
-            }
-          }
-
-          var del_list = [];
-          for (let i = 0; i < room.chequer.length; i++) {
-            if(room.chequer[i].idx >= target_max_idx){
-              del_list.push(room.chequer[i].tag);
-              room.chequer[i].idx = -1;
-              room.chequer[i].state = -1;
-            }
-          }
-          var now_idx = target_max_idx - 1;
-          var now_tag = -1;
-          for (let i = 0; i < room.chequer.length; i++) {
-            if(room.chequer[i].idx == now_idx){
-              now_tag = room.chequer[i].tag;
-            }
-          }
-          self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{del_list:del_list,posId:target_posId,now_tag:now_tag});
-        }else{
-          self.broadCastRoom("MESSAGE",room.deskId,"对方不同意悔棋~",uid);
-        }
-      })
 
 
     });
