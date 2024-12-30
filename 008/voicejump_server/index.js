@@ -369,10 +369,10 @@ const proto = {
             desk.refreshData.x = desk.refreshData.last_x + 300;
 
             for (let j = 0; j < desk.positions.length; j++) {
-              console.log("REFRESH_DATA"+j);
               if(!desk.positions[j].is_fall_over){
                 if(desk.positions[j].socket)
                   desk.positions[j].socket.emit("REFRESH_DATA",desk.refreshData);
+                  console.log("REFRESH_DATA"+j);
               }
             }
           }
@@ -383,11 +383,9 @@ const proto = {
 
       socket.on("BIRD_RISE",function(){
         const desk = self.getDesk(socket);
-        for (let j = 0; j < desk.positions.length; j++) {
-          if(!desk.positions[j].is_fall_over){
-            if(desk.positions[j].socket)
-              desk.positions[j].socket.emit("BIRD_RISE_SUCCESS",j);
-          }
+        var posId = self.getPosId(socket);
+        if(!desk.positions[posId].is_fall_over){
+          self.broadCastRoom("BIRD_RISE_SUCCESS",self.getDeskId(socket),posId);
         }
       });
 
@@ -422,6 +420,11 @@ const proto = {
               delete self.clients[userObj.uid];
 
               self.desks[i].state = 0;
+              // 清定时器
+              if(self.desks[i].handleLoopTimer){
+                clearInterval(self.desks[i].handleLoopTimer);
+                self.desks[i].handleLoopTimer = null;
+              }
 
               self.broadCastRoom("MESSAGE",self.desks[i].deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
               self.broadCastRoom("SIT_CHANGE",self.desks[i].deskId,{target:null,posId:userObj.posId},userObj.uid);

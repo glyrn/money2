@@ -37,51 +37,23 @@ cc.Class({
         this.tweenAction = null;
         this._initPosX = this.node.x;
     },
-    init() {
-        this.node.active = true;
-        this.state = State.Ready;
-        this.currentSpeedY = 0;
-        this.anim = this.getComponent(cc.Animation);
-        // this.anim.playAdditive("birdFlapping");
-        this.anim.playAdditive("birdWing");
-    },
     render(data){
         if(data === null || (data && data.uid === 0)){
             this.node.active = false;
             return;
         }
 
-        this.posId = data.posId;
         this.node.active = true;
-    },
-    refreshData(data) {
-        if (this.tweenMoveAction) {
-            this.tweenMoveAction.stop();
-            this.tweenMoveAction = null;
-        };
+        this.state = State.Ready;
+        this.currentSpeedY = 0;
+        this.anim = this.getComponent(cc.Animation);
+        // this.anim.playAdditive("birdFlapping");
+        this.anim.playAdditive("birdWing");
 
-        this.node.x = this._initPosX + data.last_x;
-        this.tweenMoveAction = cc.tween(this.node).to(data.duration, { x: this._initPosX + data.x }).start();
-
-        if(this.posId == globalData.gameMgr.posId) {
-            //摄像机跟随
-            if (this.tweenMoveAction1) {
-                this.tweenMoveAction1.stop();
-                this.tweenMoveAction1 = null;
-            }
-            ;
-            this.tweenMoveAction1 = cc.tween(this.main_camera).to(data.duration, {x: data.x}).start();
-            //UI跟随
-            if (this.tweenMoveAction2) {
-                this.tweenMoveAction2.stop();
-                this.tweenMoveAction2 = null;
-            }
-            ;
-            this.tweenMoveAction2 = cc.tween(this.main_ui).to(data.duration, {x: data.x}).start();
-        }
+        this.posId = data.posId;
     },
     startFly() {
-
+        console.log("startFly")
         // 停止小鸟上下浮动
         // this.anim.stop("birdFlapping");
         // bird rise move
@@ -99,21 +71,14 @@ cc.Class({
     updatePosition(dt) {
         var flying = this.state === State.Rise || this.state === State.FreeFall;
         if (flying) {
-            // this.currentSpeedY -= dt * this.gravity;
-            // this.node.y += dt * this.currentSpeedY;
-
-            // this.node.x += dt * this.currentSpeedX;
-            //控制摄像机
-            // if(this.posId == globalData.gameMgr.posId){
-            //     this.main_camera.x += dt * this.currentSpeedX;
-            //     this.main_ui.x += dt * this.currentSpeedX;
-            // }
+            this.currentSpeedY -= dt * this.gravity;
+            this.node.y += dt * this.currentSpeedY;
         }
         //限制不能超出屏幕
         this.node.y = Math.min(this.node.y,640/2);
 
         if(this.node.y < -640/2){
-            // this.fallOver = true;
+            this.fallOver = true;
         }
 
     },
@@ -153,7 +118,11 @@ cc.Class({
         }
         //碰到地板要弹起来
         if (other.node._name === "ground"){
-            this.currentSpeedY = 500; //回弹力度
+            // this.currentSpeedY = 500; //回弹力度
+            if(this.posId == globalData.gameMgr.posId){
+                globalData.socketMgr.birdRise();
+            }
+
         }
         //碰到冰块 冰块会消失
         if(other.node._name === 'ice'){

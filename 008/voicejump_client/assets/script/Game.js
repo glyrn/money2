@@ -42,21 +42,27 @@ cc.Class({
         //刷新玩家
         globalData.eventlister.on("SIT_CHANGE",function(data){
             that['avator'+data.posId].render(data.target);
-            that['player'+data.posId].render(data.target);
-            that['player'+data.posId].init();
+            if(data.target){ //准备中
+                if(data.target.state == 2){
+                    that['player'+data.posId].render(data.target);
+                }
+
+            }else{ //掉线
+                that['player'+data.posId].node.active = false;
+            }
         });
 
         globalData.eventlister.on('PREPARE_SUCCESS',function(posId){
             that['avator'+posId].render(globalData.gameMgr.playerData[posId]);
             that['player'+posId].render(globalData.gameMgr.playerData[posId]);
-            that['player'+posId].init();
             that.render();
         });
 
         globalData.eventlister.on("REFRESH_DATA",function(data){
-            for (const i in globalData.gameMgr.playerData) {
-                that['player' + i].refreshData(data);
-            }
+            // for (const i in globalData.gameMgr.playerData) {
+            //     that['player' + i].refreshData(data);
+            // }
+            that.map.refreshData(data);
         });
 
         globalData.eventlister.on("BIRD_RISE_SUCCESS",function(posId){
@@ -93,6 +99,9 @@ cc.Class({
 
         for (const i in globalData.gameMgr.playerData) {
             this['avator'+i].render(globalData.gameMgr.playerData[i]);
+            if(globalData.gameMgr.playerData[i].state == 2){
+                this['player'+i].render(globalData.gameMgr.playerData[i]);
+            }
         }
     },
     gameOver() {
@@ -104,17 +113,13 @@ cc.Class({
     },
 
     // 开始或者bird jump
-    onTouchCallBack(event) {
+    onTouchCallBack() {
         // if (this.bird.state === Bird.State.Ready) {
         //     this.gameStart()
         // } else {
         //     this.bird.rise()
         // }
         //控制摄像机
-
-        let keyCode = event.keyCode;
-        // 根据keyCode处理按键按下的逻辑
-        console.log('Key down:', keyCode);
 
         console.log(globalData.gameMgr.posId)
         if(!this['player'+globalData.gameMgr.posId].fallOver){
@@ -126,10 +131,10 @@ cc.Class({
     enableInput(enable) {
         if (enable) {
             // cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onTouchCallBack, this);
-            // this.map.node.on(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
+            this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
         } else {
             // cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onTouchCallBack, this);
-            // this.map.node.off(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
+            this.node.off(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
         }
     }
 })

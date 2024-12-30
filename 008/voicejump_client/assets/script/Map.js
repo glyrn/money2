@@ -7,14 +7,36 @@ cc.Class({
         area3:cc.Node,
         isCanRun:false,
     },
-    start () {
-
+    onLoad () {
+        this._initPosX1 = this.area1.x;
+        this._initPosX2 = this.area2.x;
+        this._initPosX3 = this.area3.x;
     },
-    refresh(mapInfo){
+    refreshData(data){
 
-        this.area1.stopAllActions();
-        this.area1.x = mapInfo.last_x;
-        this.area1.runAction(cc.moveTo(mapInfo.duration,cc.v2(mapInfo.x)));
+        if (this.tweenMoveAction1) {
+            this.tweenMoveAction1.stop();
+            this.tweenMoveAction1 = null;
+        };
+
+        this.area1.x = this._initPosX1 - data.last_x;
+        this.tweenMoveAction1 = cc.tween(this.area1).to(data.duration, { x: this._initPosX1 - data.x }).start();
+
+        if (this.tweenMoveAction2) {
+            this.tweenMoveAction2.stop();
+            this.tweenMoveAction2 = null;
+        };
+
+        this.area2.x = this._initPosX2 - data.last_x;
+        this.tweenMoveAction1 = cc.tween(this.area2).to(data.duration, { x: this._initPosX2 - data.x }).start();
+
+        if (this.tweenMoveAction3) {
+            this.tweenMoveAction3.stop();
+            this.tweenMoveAction3 = null;
+        };
+
+        this.area3.x = this._initPosX3 - data.last_x;
+        this.tweenMoveAction1 = cc.tween(this.area3).to(data.duration, { x: this._initPosX3 - data.x }).start();
     },
     update (dt) {
         // if(this.isCanRun){
