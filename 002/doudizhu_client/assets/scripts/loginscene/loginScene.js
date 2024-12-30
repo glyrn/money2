@@ -52,7 +52,7 @@ cc.Class({
                     that._base_score = field['base_score'];
                     that._score = field['score'];
                     if (typeof that._score == 'undefined') {
-                        this._score = 0;
+                        that._score = 0;
                     }
                     that._play_count = field['play_count'];
                     that._play_mode = field['play_mode'];
