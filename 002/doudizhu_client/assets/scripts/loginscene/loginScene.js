@@ -41,22 +41,22 @@ cc.Class({
                 field[obj[0]] = obj[1];
             }
             cc.args = field;
+            var that = this;
             globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
                 if (isOk) {
 
-                    this._uid = data.data.userId;
-                    this._name = data.data.nickname;
-                    this._room = field['room'];
-                    this._avatarUrl = data.data.avatar;
-                    this._base_score = field['base_score'];
-                    this._score = field['score'];
-                    if (typeof this._score == 'undefined') {
+                    that._uid = data.data.userId;
+                    that._name = data.data.nickname;
+                    that._room = field['room'];
+                    that._avatarUrl = data.data.avatar;
+                    that._base_score = field['base_score'];
+                    that._score = field['score'];
+                    if (typeof that._score == 'undefined') {
                         this._score = 0;
                     }
-                    this._play_count = field['play_count'];
-                    this._play_mode = field['play_mode'];
+                    that._play_count = field['play_count'];
+                    that._play_mode = field['play_mode'];
 
-                    var that = this;
                     //设置自己名字
                     globalData.gameMgr.posState.self.name = that._name;
                     globalData.gameMgr.posState.self.avatarUrl = that._avatarUrl;
