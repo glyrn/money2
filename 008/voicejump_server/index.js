@@ -358,19 +358,48 @@ const proto = {
             clearInterval(desk.handleLoopTimer);
             desk.handleLoopTimer = null;
           }
-          desk.mapInfo = {x:0,last_x:0};
-          desk.handleLoopTimer=setInterval(()=>{
-            desk.mapInfo.last_x = desk.mapInfo.x;
-            desk.mapInfo.x = desk.mapInfo.last_x - 200;
-            desk.mapInfo.duration = 2;
-            self.broadCastRoom("REFRESH_MAP",self.getDeskId(socket),{mapInfo:desk.mapInfo});
-          }, desk.mapInfo.duration * 1000);
+
+          for (let j = 0; j < desk.positions.length; j++) {
+            desk.positions[j].is_fall_over = false;
+          }
+
+          desk.refreshData = {x:0,duration:1};
+          var intervalFunc = function(){
+            desk.refreshData.last_x = desk.refreshData.x;
+            desk.refreshData.x = desk.refreshData.last_x + 300;
+
+            for (let j = 0; j < desk.positions.length; j++) {
+              console.log("REFRESH_DATA"+j);
+              if(!desk.positions[j].is_fall_over){
+                if(desk.positions[j].socket)
+                  desk.positions[j].socket.emit("REFRESH_DATA",desk.refreshData);
+              }
+            }
+          }
+          intervalFunc();
+          desk.handleLoopTimer=setInterval(intervalFunc, desk.refreshData.duration * 1000);
         }
       });
 
       socket.on("BIRD_RISE",function(){
-
+        const desk = self.getDesk(socket);
+        for (let j = 0; j < desk.positions.length; j++) {
+          if(!desk.positions[j].is_fall_over){
+            if(desk.positions[j].socket)
+              desk.positions[j].socket.emit("BIRD_RISE_SUCCESS",j);
+          }
+        }
       });
+
+      socket.on("FALL_OVER",function(){
+        const desk = self.getDesk(socket);
+        console.log("fallover ",self.getPosId(socket))
+        var userObj = desk.positions[self.getPosId(socket)];
+        if(!userObj.is_fall_over){
+          userObj.is_fall_over = true;
+        }
+
+      })
 
       socket.on('disconnect', function(){
 

@@ -14,12 +14,14 @@ const socketMgr = function(){
         _eventMgr = eventMgr
     },
     that.initSocket = function() {
+
         var opts = {
             'reconnection': false,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
             // 'path':'/voice_socket.io',
         }
+
         console.log(defines.serverUrl)
 
         _socket = window.io.connect('ws://' + defines.serverUrl, opts);
@@ -66,8 +68,12 @@ const socketMgr = function(){
             _eventMgr.fire("SIT_CHANGE",data)
         })
 
-        _socket.on("REFRESH_MAP",function(data){
-            _eventMgr.fire("REFRESH_MAP",data)
+        _socket.on("REFRESH_DATA",function(data){
+            _eventMgr.fire("REFRESH_DATA",data)
+        });
+
+        _socket.on("BIRD_RISE_SUCCESS",function(data){
+            _eventMgr.fire("BIRD_RISE_SUCCESS",data)
         })
 
         _socket.on('GAME_START',function(data){
@@ -77,7 +83,6 @@ const socketMgr = function(){
             if(_gameMgr.play_index > _gameMgr.play_count){
                 _gameMgr.play_index = 1;
             }
-
             _eventMgr.fire("GAME_START",data);
         })
 
@@ -101,6 +106,9 @@ const socketMgr = function(){
     }
     that.birdRise = function(){
         _socket.emit('BIRD_RISE');
+    }
+    that.fallOver = function(){
+        _socket.emit('FALL_OVER');
     }
     that.getSocket = function(){
         return _socket;

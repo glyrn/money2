@@ -1,3 +1,5 @@
+import globalData from "../script/data/globalData";
+
 const State = cc.Enum({
     //游戏开始前的准备状态
     Ready: -1,
@@ -16,8 +18,11 @@ cc.Class({
     properties: {
         //上抛初速度，单位：像素/秒
         initRiseSpeed: 800,
+        currentSpeedX:300,
         //重力加速度，单位：像素/秒的平方
         gravity: 1000,
+        main_camera:cc.Node,
+        main_ui:cc.Node,
         //小鸟的状态
         state: {
             default: State.Ready,
@@ -30,14 +35,14 @@ cc.Class({
         manager.enabledDebugDraw = false;
         this.fallOver = false;
         this.tweenAction = null;
+        this._initPosX = this.node.x;
     },
     init() {
         this.node.active = true;
         this.state = State.Ready;
-        this.currentSpeed = 0;
-
+        this.currentSpeedY = 0;
         this.anim = this.getComponent(cc.Animation);
-        this.anim.playAdditive("birdFlapping");
+        // this.anim.playAdditive("birdFlapping");
         this.anim.playAdditive("birdWing");
     },
     render(data){
@@ -46,13 +51,39 @@ cc.Class({
             return;
         }
 
+        this.posId = data.posId;
         this.node.active = true;
+    },
+    refreshData(data) {
+        if (this.tweenMoveAction) {
+            this.tweenMoveAction.stop();
+            this.tweenMoveAction = null;
+        };
+
+        this.node.x = this._initPosX + data.last_x;
+        this.tweenMoveAction = cc.tween(this.node).to(data.duration, { x: this._initPosX + data.x }).start();
+
+        if(this.posId == globalData.gameMgr.posId) {
+            //摄像机跟随
+            if (this.tweenMoveAction1) {
+                this.tweenMoveAction1.stop();
+                this.tweenMoveAction1 = null;
+            }
+            ;
+            this.tweenMoveAction1 = cc.tween(this.main_camera).to(data.duration, {x: data.x}).start();
+            //UI跟随
+            if (this.tweenMoveAction2) {
+                this.tweenMoveAction2.stop();
+                this.tweenMoveAction2 = null;
+            }
+            ;
+            this.tweenMoveAction2 = cc.tween(this.main_ui).to(data.duration, {x: data.x}).start();
+        }
     },
     startFly() {
 
-        this.startTime = Math.floor(new Date().getTime() / 1000);
         // 停止小鸟上下浮动
-        this.anim.stop("birdFlapping");
+        // this.anim.stop("birdFlapping");
         // bird rise move
         this.rise();
     },
@@ -68,21 +99,28 @@ cc.Class({
     updatePosition(dt) {
         var flying = this.state === State.Rise || this.state === State.FreeFall;
         if (flying) {
-            this.currentSpeed -= dt * this.gravity;
-            this.node.y += dt * this.currentSpeed;
+            // this.currentSpeedY -= dt * this.gravity;
+            // this.node.y += dt * this.currentSpeedY;
+
+            // this.node.x += dt * this.currentSpeedX;
+            //控制摄像机
+            // if(this.posId == globalData.gameMgr.posId){
+            //     this.main_camera.x += dt * this.currentSpeedX;
+            //     this.main_ui.x += dt * this.currentSpeedX;
+            // }
         }
         //限制不能超出屏幕
         this.node.y = Math.min(this.node.y,640/2);
 
         if(this.node.y < -640/2){
-            this.fallOver = true;
+            // this.fallOver = true;
         }
 
     },
     updateState() {
         switch (this.state) {
             case State.Rise:
-                if (this.currentSpeed < 0) {
+                if (this.currentSpeedY < 0) {
                     this.state = State.FreeFall;
                     this.runFallAction(.6);
                 }
@@ -97,6 +135,11 @@ cc.Class({
         if (this.fallOver) {
             this.state = State.Drop;
             this.anim.stop();
+
+            if(this.posId == globalData.gameMgr.posId){
+                globalData.socketMgr.fallOver();
+            }
+
             // this.game.gameOver();
         }
         //计算得分
@@ -106,21 +149,21 @@ cc.Class({
     onCollisionEnter(other, self) {
         //碰到砖块就挂了
         if(other.node._name === 'block'){
-            this.fallOver = true;
+            // this.fallOver = true;
         }
         //碰到地板要弹起来
         if (other.node._name === "ground"){
-            this.currentSpeed = 500; //回弹力度
+            this.currentSpeedY = 500; //回弹力度
         }
         //碰到冰块 冰块会消失
         if(other.node._name === 'ice'){
-            this.currentSpeed = 300;
+            this.currentSpeedY = 300;
             other.node.getComponent("Ice").fadeOut();
         }
     },
     rise() {
         this.state = State.Rise;
-        this.currentSpeed = this.initRiseSpeed;
+        this.currentSpeedY = this.initRiseSpeed;
         this.runRiseAction();
     },
     // 上升动作

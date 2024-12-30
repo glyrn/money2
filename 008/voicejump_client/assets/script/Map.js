@@ -4,6 +4,7 @@ cc.Class({
         // speed: -300,
         area1:cc.Node,
         area2:cc.Node,
+        area3:cc.Node,
         isCanRun:false,
     },
     start () {
@@ -30,8 +31,8 @@ cc.Class({
     },
     startRun: function() {
         this.isCanRun = true;
-        this.area1.x = 0;
-        this.area2.x = 5000;
+        // this.area1.x = 0;
+        // this.area2.x = 5000;
     },
     stopRun:function(){
         this.isCanRun = false;

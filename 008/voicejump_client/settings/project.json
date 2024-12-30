@@ -154,8 +154,8 @@
   "fit-width": false,
   "group-list": [
     "default",
-    "heroBullet",
-    "enemyBullet",
+    "ui",
+    "item3d",
     "enemy",
     "hero",
     "buff",
@@ -175,8 +175,8 @@
   },
   "use-customize-simulator": true,
   "use-project-simulator-setting": false,
-  "start-scene": "current",
   "migrate-history": [
     "cloud-function"
-  ]
+  ],
+  "start-scene": "current"
 }

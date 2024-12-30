@@ -37,12 +37,13 @@ cc.Class({
             that['player'+i].node.active = false;
         }
         this.lab_score.node.active = false;
-        this.map.node.active = false;
 
         this.enableInput(true);
         //刷新玩家
         globalData.eventlister.on("SIT_CHANGE",function(data){
             that['avator'+data.posId].render(data.target);
+            that['player'+data.posId].render(data.target);
+            that['player'+data.posId].init();
         });
 
         globalData.eventlister.on('PREPARE_SUCCESS',function(posId){
@@ -52,8 +53,14 @@ cc.Class({
             that.render();
         });
 
-        globalData.eventlister.on("REFRESH_MAP",function(data){
-            that.map.refresh(data.mapInfo);
+        globalData.eventlister.on("REFRESH_DATA",function(data){
+            for (const i in globalData.gameMgr.playerData) {
+                that['player' + i].refreshData(data);
+            }
+        });
+
+        globalData.eventlister.on("BIRD_RISE_SUCCESS",function(posId){
+            that['player' + posId].rise()
         });
 
         globalData.eventlister.on('GAME_START',function(data){
@@ -61,7 +68,6 @@ cc.Class({
                 that['avator'+i].render(globalData.gameMgr.playerData[i]);
                 that['player'+i].startFly();
             }
-            that.map.node.active = true;
             that.map.startRun(data.level);
             that.render();
         });
@@ -98,20 +104,32 @@ cc.Class({
     },
 
     // 开始或者bird jump
-    onTouchCallBack() {
+    onTouchCallBack(event) {
         // if (this.bird.state === Bird.State.Ready) {
         //     this.gameStart()
         // } else {
         //     this.bird.rise()
         // }
-        globalData.socketMgr.birdRise();
+        //控制摄像机
+
+        let keyCode = event.keyCode;
+        // 根据keyCode处理按键按下的逻辑
+        console.log('Key down:', keyCode);
+
+        console.log(globalData.gameMgr.posId)
+        if(!this['player'+globalData.gameMgr.posId].fallOver){
+            console.log("跳啊 ",globalData.gameMgr.posId)
+            globalData.socketMgr.birdRise();
+        }
     },
     // 事件控制
     enableInput(enable) {
         if (enable) {
-            this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
+            // cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onTouchCallBack, this);
+            // this.map.node.on(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
         } else {
-            this.node.off(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
+            // cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onTouchCallBack, this);
+            // this.map.node.off(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
         }
     }
 })
