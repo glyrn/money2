@@ -18,7 +18,7 @@ cc.Class({
     properties: {
         //上抛初速度，单位：像素/秒
         initRiseSpeed: 800,
-        currentSpeedX:300,
+        iceRiseSpeed:300,
         //重力加速度，单位：像素/秒的平方
         gravity: 1000,
         main_camera:cc.Node,
@@ -52,12 +52,21 @@ cc.Class({
 
         this.posId = data.posId;
     },
+    refreshData(data){
+        if (this.tweenMoveAction1) {
+            this.tweenMoveAction1.stop();
+            this.tweenMoveAction1 = null;
+        };
+
+        this.node.x = this._initPosX + data.last_x;
+        this.tweenMoveAction1 = cc.tween(this.node).to(data.duration, { x: this._initPosX + data.x }).start();
+    },
     startFly() {
-        console.log("startFly")
+
         // 停止小鸟上下浮动
         // this.anim.stop("birdFlapping");
         // bird rise move
-        this.rise();
+        this.rise({type:1});
     },
     update(dt) {
         if (this.state === State.Ready || this.state === State.Drop) return;
@@ -118,21 +127,27 @@ cc.Class({
         }
         //碰到地板要弹起来
         if (other.node._name === "ground"){
-            // this.currentSpeedY = 500; //回弹力度
             if(this.posId == globalData.gameMgr.posId){
-                globalData.socketMgr.birdRise();
+                globalData.socketMgr.birdRise({type:1,x:this.node.x,y:this.node.y});
             }
 
         }
         //碰到冰块 冰块会消失
         if(other.node._name === 'ice'){
-            this.currentSpeedY = 300;
-            other.node.getComponent("Ice").fadeOut();
+            if(this.posId == globalData.gameMgr.posId) {
+                globalData.socketMgr.birdRise({type: 2, x: this.node.x, y: this.node.y});
+                other.node.getComponent("Ice").fadeOut();
+            }
         }
     },
-    rise() {
+    rise(data) {
         this.state = State.Rise;
-        this.currentSpeedY = this.initRiseSpeed;
+        if(data.type == 1){
+            this.currentSpeedY = this.initRiseSpeed;
+        }else if(data.type == 2){
+            this.currentSpeedY = this.iceRiseSpeed;
+        }
+
         this.runRiseAction();
     },
     // 上升动作

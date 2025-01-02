@@ -59,23 +59,32 @@ cc.Class({
         });
 
         globalData.eventlister.on("REFRESH_DATA",function(data){
-            // for (const i in globalData.gameMgr.playerData) {
-            //     that['player' + i].refreshData(data);
-            // }
-            that.map.refreshData(data);
+            if(data.target == 'map'){
+                that.map.refreshData(data.refreshData);
+            }else if(data.target == 'other'){
+                for (const i in globalData.gameMgr.playerData) {
+                    if(!globalData.gameMgr.playerData[i].fallOver)
+                        that['player'+i].refreshData(data.refreshData);
+                }
+            }
         });
 
-        globalData.eventlister.on("BIRD_RISE_SUCCESS",function(posId){
-            that['player' + posId].rise()
+        globalData.eventlister.on("BIRD_RISE_SUCCESS",function(data){
+            that['player' + data.posId].node.x = data.x;
+            that['player' + data.posId].node.y = data.y;
+            that['player' + data.posId].rise(data)
         });
 
+        globalData.eventlister.on("FALL_OVER_SUCCESS",function(){
+
+        });
         globalData.eventlister.on('GAME_START',function(data){
+
+            that.render();
+
             for (const i in globalData.gameMgr.playerData) {
-                that['avator'+i].render(globalData.gameMgr.playerData[i]);
                 that['player'+i].startFly();
             }
-            that.map.startRun(data.level);
-            that.render();
         });
 
         globalData.eventlister.on("GAME_OVER",function(){
@@ -105,7 +114,7 @@ cc.Class({
         }
     },
     gameOver() {
-        this.map.stopRun();
+        // this.map.stopRun();
         // 停止游戏输入监听
         this.enableInput(false);
         // 显示游戏结束面板
@@ -120,20 +129,16 @@ cc.Class({
         //     this.bird.rise()
         // }
         //控制摄像机
-
-        console.log(globalData.gameMgr.posId)
         if(!this['player'+globalData.gameMgr.posId].fallOver){
-            console.log("跳啊 ",globalData.gameMgr.posId)
-            globalData.socketMgr.birdRise();
+            var node = this['player'+globalData.gameMgr.posId].node;
+            globalData.socketMgr.birdRise({type:1,x:node.x,y:node.y});
         }
     },
     // 事件控制
     enableInput(enable) {
         if (enable) {
-            // cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onTouchCallBack, this);
             this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
         } else {
-            // cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onTouchCallBack, this);
             this.node.off(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
         }
     }

@@ -74,7 +74,11 @@ const socketMgr = function(){
 
         _socket.on("BIRD_RISE_SUCCESS",function(data){
             _eventMgr.fire("BIRD_RISE_SUCCESS",data)
-        })
+        });
+
+        _socket.on("FALL_OVER_SUCCESS",function(data){
+            _eventMgr.fire("FALL_OVER_SUCCESS",data)
+        });
 
         _socket.on('GAME_START',function(data){
             _gameMgr.roomState.state = 1;//进行中
@@ -104,8 +108,8 @@ const socketMgr = function(){
     that.prepare = function(){
         _socket.emit('PREPARE');
     }
-    that.birdRise = function(){
-        _socket.emit('BIRD_RISE');
+    that.birdRise = function(data){
+        _socket.emit('BIRD_RISE',data);
     }
     that.fallOver = function(){
         _socket.emit('FALL_OVER');

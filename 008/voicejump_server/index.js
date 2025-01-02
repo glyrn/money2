@@ -361,18 +361,35 @@ const proto = {
 
           for (let j = 0; j < desk.positions.length; j++) {
             desk.positions[j].is_fall_over = false;
+            desk.positions[j].refreshData = {x:0,duration:1};
           }
 
           desk.refreshData = {x:0,duration:1};
           var intervalFunc = function(){
             desk.refreshData.last_x = desk.refreshData.x;
-            desk.refreshData.x = desk.refreshData.last_x + 300;
+            desk.refreshData.x = desk.refreshData.last_x + 400;
 
+            var fall_over_num = 0;
             for (let j = 0; j < desk.positions.length; j++) {
-              if(!desk.positions[j].is_fall_over){
-                if(desk.positions[j].socket)
-                  desk.positions[j].socket.emit("REFRESH_DATA",desk.refreshData);
-                  console.log("REFRESH_DATA"+j);
+              var userObj = desk.positions[j];
+              if(userObj.socket){
+                if(!userObj.is_fall_over){ //还没掉落
+
+                  userObj.refreshData.last_x = desk.refreshData.x;
+                  userObj.refreshData.x = desk.refreshData.last_x + 400;
+
+                  userObj.socket.emit("REFRESH_DATA",{type:"map",refreshData:desk.refreshData});
+                }else{ //已经掉落
+                  fall_over_num++;
+                  userObj.socket.emit("REFRESH_DATA",{type:"other",refreshData:desk.refreshData});
+                }
+              }
+            }
+
+            if(fall_over_num == desk.positions.length){
+              if(desk.handleLoopTimer){
+                clearInterval(desk.handleLoopTimer);
+                desk.handleLoopTimer = null;
               }
             }
           }
@@ -381,22 +398,25 @@ const proto = {
         }
       });
 
-      socket.on("BIRD_RISE",function(){
+      socket.on("BIRD_RISE",function(data){
         const desk = self.getDesk(socket);
         var posId = self.getPosId(socket);
         if(!desk.positions[posId].is_fall_over){
-          self.broadCastRoom("BIRD_RISE_SUCCESS",self.getDeskId(socket),posId);
+          self.broadCastRoom("BIRD_RISE_SUCCESS",self.getDeskId(socket),{type:data.type,posId:posId,x:data.x,y:data.y});
         }
       });
 
       socket.on("FALL_OVER",function(){
         const desk = self.getDesk(socket);
-        console.log("fallover ",self.getPosId(socket))
-        var userObj = desk.positions[self.getPosId(socket)];
-        if(!userObj.is_fall_over){
-          userObj.is_fall_over = true;
+        for (let j = 0; j < desk.positions.length; j++) {
+          var userObj = desk.positions[j];
+          if(userObj.socket == socket){
+            userObj.is_fall_over = true;
+          }else{ //还没掉落
+            userObj.refreshData = {x:0,duration:1};
+          }
         }
-
+        self.broadCastRoom("FALL_OVER_SUCCESS",self.getDeskId(socket));
       })
 
       socket.on('disconnect', function(){

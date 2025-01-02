@@ -38,19 +38,7 @@ cc.Class({
         this.area3.x = this._initPosX3 - data.last_x;
         this.tweenMoveAction1 = cc.tween(this.area3).to(data.duration, { x: this._initPosX3 - data.x }).start();
     },
-    update (dt) {
-        // if(this.isCanRun){
-        //     this.area1.x += this.kjklnklm
-        //     'peed * dt;
-        //     this.area2.x += this.speed * dt;
-        //     if(this.area1.x < -5000*2+300){
-        //         this.area1.x = 0;
-        //     }
-        //     if(this.area2.x < -5000-300){
-        //         this.area2.x = 5000;
-        //     }
-        // }
-    },
+
     startRun: function() {
         this.isCanRun = true;
         // this.area1.x = 0;
