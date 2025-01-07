@@ -132,89 +132,6 @@ const proto = {
     }
     return findDesk;
   },
-
-  checkOver:function(roomId,tag,posId){
-    var checkState = posId == 0 ? 1 : 0;
-    var chequer = this.getDeskById(roomId).chequer;
-    var x0 = tag % 15;
-    var y0 = parseInt(tag / 15);
-    //判断横向
-    var fiveCount = 0;
-    for(var x = 0;x < 15;x++){
-
-      if((chequer[y0*15+x].state == checkState)){
-        fiveCount++;
-        if(fiveCount==5){
-          this.gameOver(roomId,tag,posId)
-          return true;
-        }
-      }else{
-        fiveCount=0;
-      }
-    }
-    //判断纵向
-    fiveCount = 0;
-    for(var y = 0;y < 15;y++){
-      if(chequer[y*15+x0].state == checkState){
-        fiveCount++;
-        if(fiveCount==5){
-          this.gameOver(roomId,tag,posId)
-          return true;
-        }
-      }else{
-        fiveCount=0;
-      }
-    }
-    //判断右上斜向
-    var f = y0 - x0;
-    fiveCount = 0;
-    for(var x = 0;x < 15;x++){
-      if(f+x < 0 || f+x > 14){
-        continue;
-      }
-      if(chequer[(f+x)*15+x].state == checkState){
-        fiveCount++;
-        if(fiveCount==5){
-          this.gameOver(roomId,tag,posId)
-          return true;
-        }
-      }else{
-        fiveCount=0;
-      }
-    }
-    //判断右下斜向
-    f = y0 + x0;
-    fiveCount = 0;
-    for(var x = 0;x < 15;x++){
-      if(f-x < 0 || f-x > 14){
-        continue;
-      }
-      if(chequer[(f-x)*15+x].state == checkState){
-        fiveCount++;
-        if(fiveCount==5){
-          this.gameOver(roomId,tag,posId)
-          return true;
-        }
-      }else{
-        fiveCount=0;
-      }
-    }
-  },
-  gameOver:function(roomId,tag,posId){
-    // console.log('胜利',roomId,tag,posId);
-    const desk = this.getDeskById(roomId);
-    desk.state = 0;
-    if(desk.play_mode == 1) { // 人人对战
-      for (let i = 0; i < desk.positions.length; i++) {
-        desk.positions[i].state = 1;
-      }
-    }
-    for (let i = 0; i < desk.chequer.length; i++) {
-      desk.chequer[i].state = -1;
-    }
-    this.broadCastRoom('GAME_OVER',desk.deskId,{winer:posId,score:10});
-  },
-
   broadCastRoom:function(event,roomId,data,except){
     for (let i = 0; i < this.desks.length; i++) {
       if(this.desks[i].deskId == roomId){
@@ -231,6 +148,19 @@ const proto = {
         }
       }
     }
+  },
+  gameOver:function(desk){
+    var score_list = [];
+    for (let j = 0; j < desk.positions.length; j++) {
+      var userObj = desk.positions[j];
+      score_list.push({posId:j,score:userObj.gain_score,name:userObj.name});
+    }
+    score_list.sort((a, b) => b.score - a.score);
+
+    for (let i = 0; i < desk.positions.length; i++) {
+      desk.positions[i].state = 1;
+    }
+    this.broadCastRoom("GAME_OVER",desk.deskId,score_list);
   },
   init:function () {
 
@@ -252,7 +182,6 @@ const proto = {
             console.log(obj.name, '进入房间', room.name,room.deskId);
 
             var flag = false;
-
             for (let i = 0; i < room.positions.length; i++) {
               if(room.positions[i].state == 0){
                 room.positions[i].uid = obj.uid;
@@ -354,70 +283,75 @@ const proto = {
         {
           self.broadCastRoom("GAME_START",self.getDeskId(socket),{level:1});
 
-          if(desk.handleLoopTimer){
-            clearInterval(desk.handleLoopTimer);
-            desk.handleLoopTimer = null;
-          }
-
+          var refresh_list = [];
           for (let j = 0; j < desk.positions.length; j++) {
-            desk.positions[j].is_fall_over = false;
-            desk.positions[j].refreshData = {x:0,duration:1};
+            desk.positions[j].gain_score = 0;
+            desk.positions[j].refreshData = {game_type:'normal',speedX:300,posId:j};
+            refresh_list.push(desk.positions[j].refreshData);
           }
 
-          desk.refreshData = {x:0,duration:1};
-          var intervalFunc = function(){
-            desk.refreshData.last_x = desk.refreshData.x;
-            desk.refreshData.x = desk.refreshData.last_x + 400;
-
-            var fall_over_num = 0;
-            for (let j = 0; j < desk.positions.length; j++) {
-              var userObj = desk.positions[j];
-              if(userObj.socket){
-                if(!userObj.is_fall_over){ //还没掉落
-
-                  userObj.refreshData.last_x = desk.refreshData.x;
-                  userObj.refreshData.x = desk.refreshData.last_x + 400;
-
-                  userObj.socket.emit("REFRESH_DATA",{type:"map",refreshData:desk.refreshData});
-                }else{ //已经掉落
-                  fall_over_num++;
-                  userObj.socket.emit("REFRESH_DATA",{type:"other",refreshData:desk.refreshData});
-                }
-              }
-            }
-
-            if(fall_over_num == desk.positions.length){
-              if(desk.handleLoopTimer){
-                clearInterval(desk.handleLoopTimer);
-                desk.handleLoopTimer = null;
-              }
-            }
-          }
-          intervalFunc();
-          desk.handleLoopTimer=setInterval(intervalFunc, desk.refreshData.duration * 1000);
+          self.broadCastRoom("REFRESH_DATA",self.getDeskId(socket),refresh_list);
         }
       });
 
       socket.on("BIRD_RISE",function(data){
         const desk = self.getDesk(socket);
         var posId = self.getPosId(socket);
-        if(!desk.positions[posId].is_fall_over){
-          self.broadCastRoom("BIRD_RISE_SUCCESS",self.getDeskId(socket),{type:data.type,posId:posId,x:data.x,y:data.y});
+        if(desk.positions[posId].refreshData.game_type != "fall"){
+          self.broadCastRoom("BIRD_RISE_SUCCESS",self.getDeskId(socket),{type:data.type,posId:posId});
         }
       });
 
       socket.on("FALL_OVER",function(){
         const desk = self.getDesk(socket);
-        for (let j = 0; j < desk.positions.length; j++) {
-          var userObj = desk.positions[j];
-          if(userObj.socket == socket){
-            userObj.is_fall_over = true;
-          }else{ //还没掉落
-            userObj.refreshData = {x:0,duration:1};
+        var posId = self.getPosId(socket);
+        desk.positions[posId].refreshData.game_type = 'fall';
+        desk.positions[posId].refreshData.speedX = 0;
+        socket.emit("FALL_OVER_SUCCESS");
+        self.broadCastRoom("REFRESH_DATA",self.getDeskId(socket),[desk.positions[posId].refreshData]);
+
+        var fall_num = 0;
+        for (let i = 0; i < desk.positions.length; i++) {
+          if(desk.positions[i].refreshData.game_type == 'fall'){
+            fall_num ++ ;
           }
         }
-        self.broadCastRoom("FALL_OVER_SUCCESS",self.getDeskId(socket));
+        //全部掉落
+        if(fall_num == desk.ready_count){
+          self.gameOver(desk);
+        }
+      });
+
+      socket.on("PAUSE_OVER",function(data){
+        const desk = self.getDesk(socket);
+        var posId = self.getPosId(socket);
+        desk.positions[posId].refreshData.game_type = 'pause';
+        desk.positions[posId].refreshData.speedX = 0;
+        if(desk.positions[posId].pause_over_timer){
+          clearInterval(desk.positions[posId].pause_over_timer);
+          desk.positions[posId].pause_over_timer = null;
+        }
+        desk.positions[posId].pause_over_timer = setTimeout(function(){
+          //恢复飞行
+          if(desk.positions[posId].refreshData.game_type == 'pause') {
+            desk.positions[posId].refreshData.game_type = 'normal';
+            desk.positions[posId].refreshData.speedX = 300;
+            self.broadCastRoom("REFRESH_DATA", self.getDeskId(socket), [desk.positions[posId].refreshData]);
+          }
+        },1500)
+        self.broadCastRoom("PAUSE_OVER_SUCCESS",self.getDeskId(socket),{posId:posId});
+        self.broadCastRoom("REFRESH_DATA",self.getDeskId(socket),[desk.positions[posId].refreshData]);
       })
+
+      socket.on("GAIN_SCORE",function(data){
+        const desk = self.getDesk(socket);
+        var posId = self.getPosId(socket);
+        desk.positions[posId].gain_score = data;
+
+        if(data >= 100){
+          self.gameOver(desk);
+        }
+      });
 
       socket.on('disconnect', function(){
 
@@ -436,15 +370,10 @@ const proto = {
               self.desks[i].positions[j].avatorUrl = '';
               self.desks[i].positions[j].score = 0;
               self.desks[i].positions[j].socket = null;
-
               delete self.clients[userObj.uid];
+              self.desks[i].positions[j].uid = 0;
 
               self.desks[i].state = 0;
-              // 清定时器
-              if(self.desks[i].handleLoopTimer){
-                clearInterval(self.desks[i].handleLoopTimer);
-                self.desks[i].handleLoopTimer = null;
-              }
 
               self.broadCastRoom("MESSAGE",self.desks[i].deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
               self.broadCastRoom("SIT_CHANGE",self.desks[i].deskId,{target:null,posId:userObj.posId},userObj.uid);
@@ -461,8 +390,6 @@ const proto = {
           }
         }
       });
-
-
 
     });
 

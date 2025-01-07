@@ -1,50 +1,23 @@
 cc.Class({
     extends: cc.Component,
     properties: {
-        // speed: -300,
+        area0:cc.Node,
         area1:cc.Node,
         area2:cc.Node,
-        area3:cc.Node,
-        isCanRun:false,
-    },
-    onLoad () {
-        this._initPosX1 = this.area1.x;
-        this._initPosX2 = this.area2.x;
-        this._initPosX3 = this.area3.x;
-    },
-    refreshData(data){
-
-        if (this.tweenMoveAction1) {
-            this.tweenMoveAction1.stop();
-            this.tweenMoveAction1 = null;
-        };
-
-        this.area1.x = this._initPosX1 - data.last_x;
-        this.tweenMoveAction1 = cc.tween(this.area1).to(data.duration, { x: this._initPosX1 - data.x }).start();
-
-        if (this.tweenMoveAction2) {
-            this.tweenMoveAction2.stop();
-            this.tweenMoveAction2 = null;
-        };
-
-        this.area2.x = this._initPosX2 - data.last_x;
-        this.tweenMoveAction1 = cc.tween(this.area2).to(data.duration, { x: this._initPosX2 - data.x }).start();
-
-        if (this.tweenMoveAction3) {
-            this.tweenMoveAction3.stop();
-            this.tweenMoveAction3 = null;
-        };
-
-        this.area3.x = this._initPosX3 - data.last_x;
-        this.tweenMoveAction1 = cc.tween(this.area3).to(data.duration, { x: this._initPosX3 - data.x }).start();
+        camera:cc.Node,
     },
 
-    startRun: function() {
-        this.isCanRun = true;
-        // this.area1.x = 0;
-        // this.area2.x = 5000;
+    update(){
+        var cameraX = this.camera.x;
+        var cur_idx = Math.floor((cameraX+960) / 5000);
+        var pos_idx = cur_idx;
+        if(cur_idx >=3) cur_idx = cur_idx - 3;
+
+        this['area'+cur_idx].x = 5000 * pos_idx;
+        if(cur_idx+1 >= 3){
+            this['area0'].x = 5000 * (pos_idx+1)
+        }else{
+            this['area'+(cur_idx+1)].x = 5000 * (pos_idx+1);
+        }
     },
-    stopRun:function(){
-        this.isCanRun = false;
-    }
 });

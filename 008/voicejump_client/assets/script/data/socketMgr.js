@@ -80,6 +80,10 @@ const socketMgr = function(){
             _eventMgr.fire("FALL_OVER_SUCCESS",data)
         });
 
+        _socket.on("PAUSE_OVER_SUCCESS",function(data){
+            _eventMgr.fire("PAUSE_OVER_SUCCESS",data)
+        });
+
         _socket.on('GAME_START',function(data){
             _gameMgr.roomState.state = 1;//进行中
 
@@ -92,8 +96,8 @@ const socketMgr = function(){
 
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 2;
+            _gameMgr.score_list.push(data);
             for (const posId in _gameMgr.playerData) {
-                _gameMgr.playerData[posId].score = data.score_list[posId];
                 _gameMgr.playerData[posId].state = 1;
             }
             _eventMgr.fire("GAME_OVER",data);
@@ -113,6 +117,12 @@ const socketMgr = function(){
     }
     that.fallOver = function(){
         _socket.emit('FALL_OVER');
+    }
+    that.pauseOver = function(data){
+        _socket.emit('PAUSE_OVER',data);
+    }
+    that.gainScore = function(data){
+        _socket.emit('GAIN_SCORE', data);
     }
     that.getSocket = function(){
         return _socket;
