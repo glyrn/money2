@@ -33,9 +33,7 @@ cc.Class({
         },
     },
     onLoad() {
-        const manager = cc.director.getCollisionManager();
-        manager.enabled = true;
-        manager.enabledDebugDraw = false;
+
         this.fallOver = false;
         this.tweenAction = null;
         this._initPosX = this.node.parent.x;
@@ -140,11 +138,7 @@ cc.Class({
             if(this.posId == globalData.gameMgr.posId){
                 globalData.socketMgr.fallOver();
             }
-
-            // this.game.gameOver();
         }
-        //计算得分
-        // this.game.gainScore(this.startTime);
     },
     setGameOver(){
         this.state = State.GAMEOVER;

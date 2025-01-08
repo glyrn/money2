@@ -307,7 +307,7 @@ const proto = {
         var posId = self.getPosId(socket);
         desk.positions[posId].refreshData.game_type = 'fall';
         desk.positions[posId].refreshData.speedX = 0;
-        socket.emit("FALL_OVER_SUCCESS");
+        self.broadCastRoom("FALL_OVER_SUCCESS",self.getDeskId(socket),posId);
         self.broadCastRoom("REFRESH_DATA",self.getDeskId(socket),[desk.positions[posId].refreshData]);
 
         var fall_num = 0;
@@ -347,6 +347,8 @@ const proto = {
         const desk = self.getDesk(socket);
         var posId = self.getPosId(socket);
         desk.positions[posId].gain_score = data;
+
+        self.broadCastRoom("GAIN_SCORE_SUCCESS",self.getDeskId(socket),{posId:posId,gain_score:data});
 
         if(data >= 100){
           self.gameOver(desk);

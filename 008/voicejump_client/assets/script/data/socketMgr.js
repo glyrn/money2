@@ -39,7 +39,7 @@ const socketMgr = function(){
         _socket.on('PREPARE_SUCCESS',function(posId){
 
             _gameMgr.playerData[posId].state = 2;
-
+            _gameMgr.playerData[posId].game_type = 'normal';
             _eventMgr.fire('PREPARE_SUCCESS',posId);
         });
         _socket.on("LOGIN_SUCCESS", function (data) {
@@ -75,9 +75,13 @@ const socketMgr = function(){
         _socket.on("BIRD_RISE_SUCCESS",function(data){
             _eventMgr.fire("BIRD_RISE_SUCCESS",data)
         });
-
-        _socket.on("FALL_OVER_SUCCESS",function(data){
-            _eventMgr.fire("FALL_OVER_SUCCESS",data)
+        _socket.on("GAIN_SCORE_SUCCESS",function(data){
+            _gameMgr.playerData[data.posId].gain_score = data.gain_score;
+            _eventMgr.fire("GAIN_SCORE_SUCCESS",data)
+        })
+        _socket.on("FALL_OVER_SUCCESS",function(posId){
+            _gameMgr.playerData[posId].game_type = 'fall';
+            _eventMgr.fire("FALL_OVER_SUCCESS",posId)
         });
 
         _socket.on("PAUSE_OVER_SUCCESS",function(data){
@@ -90,6 +94,9 @@ const socketMgr = function(){
             _gameMgr.play_index++;
             if(_gameMgr.play_index > _gameMgr.play_count){
                 _gameMgr.play_index = 1;
+            }
+            for (const posId in _gameMgr.playerData) {
+                _gameMgr.playerData[posId].game_type = 'normal';
             }
             _eventMgr.fire("GAME_START",data);
         })

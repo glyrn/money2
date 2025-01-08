@@ -4,7 +4,7 @@ const Bird = require('../prefab/Bird');
 const Map = require('./Map');
 const Avator = require('../prefab/Avator');
 const PanelScore = require('PanelScore');
-
+const ProgBar = require("../prefab/ProgBar")
 cc.Class({
     extends: cc.Component,
     properties: {
@@ -24,11 +24,16 @@ cc.Class({
         btn_ready:cc.Node,
         camera:cc.Node,
         btn_score:cc.Node,
+        tips:cc.Node,
+        prog_bar:ProgBar,
     },
     onLoad() {
 
         var that = this;
 
+        const manager = cc.director.getCollisionManager();
+        manager.enabled = true;
+        manager.enabledDebugDraw = false;
         //进入后台继续动画
         that.handleMainLoopTimer=setInterval(()=>{
             cc.director.mainLoop();
@@ -79,6 +84,7 @@ cc.Class({
             that.lab_score.string = score;
             globalData.socketMgr.gainScore(score);
         });
+
         globalData.eventlister.on('GAME_START',function(data){
 
             that.enableInput(true);
@@ -89,8 +95,11 @@ cc.Class({
             }
             that.panel_score.node.active = false;
         });
-        globalData.eventlister.on("FALL_OVER_SUCCESS",function(){
-            that.panel_drop.active = true;
+        globalData.eventlister.on("FALL_OVER_SUCCESS",function(posId){
+            if(posId == globalData.gameMgr.posId) {
+                that.panel_drop.active = true;
+            }
+            that['avator'+posId].render(globalData.gameMgr.playerData[posId]);
         });
         globalData.eventlister.on("GAME_OVER",function(data){
             for (const i in globalData.gameMgr.playerData) {
@@ -104,8 +113,18 @@ cc.Class({
             that.btn_score.active = true;
             that.render()
         });
+        globalData.eventlister.on("MESSAGE",function(msg){
+            that.onShowTips(msg)
+        });
 
         this.render();
+        //初始化麦克风
+        navigator.mediaDevices.getUserMedia({audio: true}).then(
+            stream => {
+                that.voiceSuccess(stream);
+            }).catch(err => {
+                that.voiceFail(err);
+            });
     },
     onBtnReady(){
         globalData.socketMgr.prepare()
@@ -129,27 +148,80 @@ cc.Class({
                 this['player'+i].render(globalData.gameMgr.playerData[i]);
             }
         }
+
+        this.prog_bar.init();
     },
 
     // 开始或者bird jump
     onTouchCallBack() {
-        // if (this.bird.state === Bird.State.Ready) {
-        //     this.gameStart()
-        // } else {
-        //     this.bird.rise()
-        // }
-        //控制摄像机
+        //跳起来
         if(!this['player'+globalData.gameMgr.posId].fallOver){
-            var node = this['player'+globalData.gameMgr.posId].node;
             globalData.socketMgr.birdRise({type:1});
         }
     },
     // 事件控制
     enableInput(enable) {
-        if (enable) {
-            this.camera.on(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
-        } else {
-            this.camera.off(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
+        this._enableInput = enable;
+        if(cc.args['debug'] == 1) {
+            if (enable) {
+                this.camera.on(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
+            } else {
+                this.camera.off(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
+            }
         }
-    }
+    },
+    voiceFail(error){
+        this.onShowTips('获取麦克风音量时出错:'+ error);
+    },
+    voiceSuccess(stream){
+
+        var that = this;
+
+        const audioContext = new AudioContext();
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        function updateVolume() {
+            analyser.getByteFrequencyData(dataArray);
+            const rms = getRMS(dataArray);
+
+            // 在此处使用rms作为麦克风音量
+            // that.img_test.position = cc.v2(0, rms * 2);
+            if(rms > 50){
+
+                if(that._enableInput && cc.args['debug'] != 1) {
+                    //跳起来
+                    if (!that['player' + globalData.gameMgr.posId].fallOver) {
+                        globalData.socketMgr.birdRise({type: 1});
+                    }
+                }
+            }
+
+            requestAnimationFrame(updateVolume);
+        }
+
+        function getRMS(dataArray) {
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i] ** 2;
+            }
+            const avg = sum / dataArray.length;
+            return Math.sqrt(avg);
+        }
+
+        updateVolume();
+    },
+    onShowTips(msg){
+        var that = this;
+        this.tips.active = true;
+        this.tips.getChildByName('label').getComponent(cc.Label).string = msg;
+        this.scheduleOnce(function () {
+            that.tips.active = false;
+        },1);
+    },
 })
