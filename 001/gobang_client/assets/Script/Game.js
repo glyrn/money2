@@ -92,10 +92,14 @@ cc.Class({
     },
     onBtnRetrack(){
         if(globalData.gameMgr.play_mode == 1) { //人人
-            var target = globalData.gameMgr.playerData.turn == 1 ? '白棋' : "黑棋";
-            this.pushNoteMsg(target+"请求[悔棋]")
-            globalData.socketMgr.retrackChess()
-            globalData.eventlister.fire("MESSAGE","请求悔棋中");
+            if(globalData.gameMgr.roomState.state == 1){
+                var target = globalData.gameMgr.playerData.turn == 1 ? '白棋' : "黑棋";
+                this.pushNoteMsg(target+"请求[悔棋]")
+                globalData.socketMgr.retrackChess()
+                globalData.eventlister.fire("MESSAGE","请求悔棋中");
+            }else{
+                globalData.eventlister.fire("MESSAGE","请等待玩家就位");
+            }
         }else{
             this.makeRetrackWithPc()
         }
@@ -149,7 +153,7 @@ cc.Class({
                         if (globalData.gameMgr.play_mode == 0) {
 
                             self.touchChess.getComponent(cc.Sprite).spriteFrame = self.whiteSpriteFrame;//下子后添加棋子图片使棋子显示
-                            cc.playEffect("down_chess.mp3",false,1);
+                            cc.playEffect("down_chess",false,1);
                             self.pushNoteMsg("白棋落在("+(tag % 15)+","+(parseInt(tag / 15))+")");
                             self.chequer_list.push({tag:tag,flag:'self'});
 
@@ -229,12 +233,12 @@ cc.Class({
             var sf;
             if(data.posId == 0){
                 sf = self.whiteSpriteFrame;
-                self.pushNoteMsg("白棋落在("+(data.tag % 15)+","+(parseInt(data.tag / 15))+")");
+                self.pushNoteMsg("白棋落在("+(data.tag % 15)+","+(parseInt(data.tag / 15))+")",data.day_time);
             }else{
                 sf = self.blackSpriteFrame;
-                self.pushNoteMsg("黑棋落在("+(data.tag % 15)+","+(parseInt(data.tag / 15))+")");
+                self.pushNoteMsg("黑棋落在("+(data.tag % 15)+","+(parseInt(data.tag / 15))+")",data.day_time);
             }
-            cc.playEffect("down_chess.mp3",false,1);
+            cc.playEffect("down_chess",false,1);
 
             self.chessList[data.tag].getComponent(cc.Sprite).spriteFrame = sf;
             self.touchChess = self.chessList[data.tag];
@@ -286,7 +290,7 @@ cc.Class({
                 var randomInt = Math.floor(Math.random() * (max - min + 1)) + min;
                 self.chessList[randomInt].getComponent(cc.Sprite).spriteFrame = self.blackSpriteFrame;
                 self.pushNoteMsg("黑棋落在("+(randomInt % 15)+","+(parseInt(randomInt / 15))+")");
-                cc.playEffect("down_chess.mp3",false,1);
+                cc.playEffect("down_chess",false,1);
                 self.chequer_list = [];
                 self.chequer_list.push({tag:randomInt,flag:'pc'});
                 globalData.gameMgr.playerData.turn = globalData.gameMgr.playerData.self.posId;
@@ -327,6 +331,11 @@ cc.Class({
         this.render();
     },
 
+    start:function(){
+        if(globalData.gameMgr.recoverData){
+            this.renderRecoverData(globalData.gameMgr.recoverData)
+        }
+    },
     render(){
 
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
@@ -444,7 +453,7 @@ cc.Class({
         //在最最优位置下子
         var tag = this.fiveGroup[mPosition][nPosition];
         this.chessList[tag].getComponent(cc.Sprite).spriteFrame = this.blackSpriteFrame;
-        cc.playEffect("down_chess.mp3",false,1);
+        cc.playEffect("down_chess",false,1);
         this.pushNoteMsg("黑棋落在("+(tag % 15)+","+(parseInt(tag / 15))+")");
         this.touchChess = this.chessList[tag];
         this.chequer_list.push({tag:tag,flag:'pc'});
@@ -584,13 +593,30 @@ cc.Class({
             }
         }
     },
-    pushNoteMsg(msg){
+    pushNoteMsg(msg,day_time){
         var note_item = cc.instantiate(this.note_item_prefab)
         note_item.active = true;
         note_item.parent = this.note_item_content;
-        var day = new Date().toLocaleDateString()
-        var time = new Date().toLocaleTimeString('chinese', { hour12: false })
-        note_item.getComponent(cc.Label).string = day + " "+time +" "+msg;
-    },
+        if(!day_time){
+            var day = new Date().toLocaleDateString()
+            var time = new Date().toLocaleTimeString('chinese', { hour12: false });
+            day_time = day + " "+time;
+        }
 
+        note_item.getComponent(cc.Label).string = day_time +" "+msg;
+    },
+    renderRecoverData(data) {
+        console.log("renderRecoverData")
+
+        data.chequer.sort((a,b)=>(a.idx>b.idx?1:-1));
+        for (let i = 0; i < data.chequer.length; i++) {
+            if(data.chequer[i].state != -1) {
+                globalData.eventlister.fire("PLAY_CHESS_SUCCESS", {
+                    tag: data.chequer[i].tag,
+                    posId: data.chequer[i].state == 1 ? 0 : 1,
+                    day_time:data.chequer[i].day_time,
+                });
+            }
+        }
+    }
 });

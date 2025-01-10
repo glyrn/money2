@@ -1,8 +1,15 @@
 const defines = {};
-// defines.serverUrl = "42.51.37.98:8002";
-// defines.serverUrl = "8.138.184.167:8002";
 
-// defines.serverUrl = "localhost:9001";
-defines.serverUrl = "www.fsyctech.com";
+var host = window.location.host;
+//本地调试
+if(host.indexOf('localhost')!=-1){
+    defines.isDebug = true;
+}
+
+if(defines.isDebug){
+    defines.serverUrl = "localhost:9001";
+}else{
+    defines.serverUrl = "www.fsyctech.com";
+}
 
 window.defines = defines;

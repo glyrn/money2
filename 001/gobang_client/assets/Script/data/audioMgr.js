@@ -6,7 +6,6 @@
  * @return {[type]}          [description]
  */
 cc.playEffect=function(url,boolean,val){
-
     cc.loader.loadRes(url,cc.AudioClip,function (err,clip){
         cc.audioEngine.play(clip,boolean,val);
     });

@@ -17,12 +17,17 @@ const socketMgr = function(){
             'reconnection': false,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
-            'path':'/wzq_socket.io',
         }
 
-        console.log(defines.serverUrl)
-
-        _socket = window.io.connect('wss://'+defines.serverUrl, opts);
+        var protocol = ''
+        if(defines.isDebug){
+            protocol = 'ws://';
+        }else{
+            opts['path'] = '/wzq_socket.io';
+            protocol = 'wss://';
+        }
+        console.log(protocol+defines.serverUrl)
+        _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('ping', function (data) {
             //心跳
             _socket.emit('pong', {beat: 1});
@@ -47,7 +52,7 @@ const socketMgr = function(){
                 }
             }
 
-            _eventMgr.fire('PREPARE_SUCCESS', data.msg);
+            _eventMgr.fire('PREPARE_SUCCESS', data);
         });
         _socket.on("LOGIN_SUCCESS", function (data) {
             _gameMgr.roomState.roomId = data.roomId;
@@ -62,6 +67,23 @@ const socketMgr = function(){
                 _cbLogin();
             }
         });
+        _socket.on("RECOVER_DATA",function(data){
+
+            _gameMgr.roomState.roomId = data.roomId;
+            _gameMgr.roomState.state = data.roomState;
+            _gameMgr.playerData.target = data.target;
+            _gameMgr.playerData.self = data.self;
+            _gameMgr.play_mode = data.play_mode;
+            _gameMgr.play_index = data.play_index;
+            _gameMgr.play_count = data.play_count;
+            _gameMgr.checkBeat();
+            //保存恢复数据
+            _gameMgr.recoverData = data;
+
+            if (_cbLogin) {
+                _cbLogin();
+            }
+        })
 
         _socket.on("PLAY_CHESS_SUCCESS",function(data){
             _eventMgr.fire('PLAY_CHESS_SUCCESS', data);
