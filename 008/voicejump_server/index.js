@@ -1,7 +1,7 @@
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
-    io = require('socket.io')(http);
+    io = require('socket.io')(http,{path:'/voice_socket.io'});
 app.use(express.static(`${__dirname}/../voicejump_client`));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
