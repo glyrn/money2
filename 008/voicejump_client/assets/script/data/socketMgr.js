@@ -19,7 +19,7 @@ const socketMgr = function(){
             'reconnection': false,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
-            // 'path':'/voice_socket.io',
+            'path':'/voice_socket.io',
         }
 
         var protocol = ''
