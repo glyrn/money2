@@ -311,13 +311,17 @@ const proto = {
         self.broadCastRoom("REFRESH_DATA",self.getDeskId(socket),[desk.positions[posId].refreshData]);
 
         var fall_num = 0;
+        var player_num = 0;
         for (let i = 0; i < desk.positions.length; i++) {
-          if(desk.positions[i].refreshData.game_type == 'fall'){
-            fall_num ++ ;
+          if(desk.positions[i].uid > 0){
+            if(desk.positions[i].refreshData.game_type == 'fall'){
+              fall_num ++ ;
+            }
+            player_num ++;
           }
         }
         //全部掉落
-        if(fall_num == desk.ready_count){
+        if(fall_num == player_num){
           self.gameOver(desk);
         }
       });

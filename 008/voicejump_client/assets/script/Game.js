@@ -49,7 +49,7 @@ cc.Class({
         this.btn_score.active = false;
         this.panel_score.node.active = false;
 
-        this.enableInput(true);
+        this.enableInput(false);
         //刷新玩家
         globalData.eventlister.on("SIT_CHANGE",function(data){
             that['avator'+data.posId].render(data.target);
@@ -194,7 +194,7 @@ cc.Class({
             // that.img_test.position = cc.v2(0, rms * 2);
             if(rms > 50){
 
-                if(that._enableInput && cc.args['debug'] != 1) {
+                if(that._enableInput && cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1) {
                     //跳起来
                     if (!that['player' + globalData.gameMgr.posId].fallOver) {
                         globalData.socketMgr.birdRise({type: 1});

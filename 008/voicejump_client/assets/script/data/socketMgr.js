@@ -105,7 +105,9 @@ const socketMgr = function(){
             _gameMgr.roomState.state = 2;
             _gameMgr.score_list.push(data);
             for (const posId in _gameMgr.playerData) {
-                _gameMgr.playerData[posId].state = 1;
+                if(_gameMgr.playerData[posId]){
+                    _gameMgr.playerData[posId].state = 1;
+                }
             }
             _eventMgr.fire("GAME_OVER",data);
         });

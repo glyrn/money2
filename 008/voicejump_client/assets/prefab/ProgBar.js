@@ -34,7 +34,12 @@ cc.Class({
     refresh: function () {
         var that = this;
         for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
-            that['avator' + i].node.x = globalData.gameMgr.playerData[i].gain_score / 100 * 450;
+            if(globalData.gameMgr.playerData[i]){
+                that['avator' + i].node.x = globalData.gameMgr.playerData[i].gain_score / 100 * 450;
+            }else{
+                that['avator' + i].node.active = false;
+            }
+
         }
     },
 });
