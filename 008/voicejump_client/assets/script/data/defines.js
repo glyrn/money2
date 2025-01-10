@@ -7,7 +7,7 @@ if(host.indexOf('localhost')!=-1){
 }
 
 if(defines.isDebug){
-    defines.serverUrl = "localhost:8001";
+    defines.serverUrl = "localhost:9007";
 }else{
     defines.serverUrl = "www.fsyctech.com";
 }
