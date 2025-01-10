@@ -1,7 +1,13 @@
+const os = require('os');
+//本地调试
+var ioParam = {path:'/voice_socket.io'};
+if(getCurrentIP().indexOf("192.168") != -1){
+  ioParam = null;
+}
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
-    io = require('socket.io')(http,{path:'/voice_socket.io'});
+    io = require('socket.io')(http,ioParam);
 app.use(express.static(`${__dirname}/../voicejump_client`));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
@@ -23,6 +29,19 @@ function GameServer() {
 
   this.onlineUser = {}
 }
+function getCurrentIP() {
+  const interfaces = os.networkInterfaces();
+  for (const iface of Object.values(interfaces)) {
+    for (const info of iface) {
+      if (info.family === 'IPv4' && !info.internal) {
+        return info.address;
+      }
+    }
+  }
+  return null;
+}
+
+
 const proto = {
 
   time:function (){

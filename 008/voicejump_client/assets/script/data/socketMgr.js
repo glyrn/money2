@@ -19,13 +19,13 @@ const socketMgr = function(){
             'reconnection': false,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
-            'path':'/voice_socket.io',
         }
 
         var protocol = ''
         if(defines.isDebug){
             protocol = 'ws://';
         }else{
+            opts['path'] = '/voice_socket.io';
             protocol = 'wss://';
         }
         console.log(protocol+defines.serverUrl)
