@@ -22,9 +22,14 @@ const socketMgr = function(){
             // 'path':'/voice_socket.io',
         }
 
-        console.log(defines.serverUrl)
-
-        _socket = window.io.connect('ws://' + defines.serverUrl, opts);
+        var protocol = ''
+        if(defines.isDebug){
+            protocol = 'ws://';
+        }else{
+            protocol = 'wss://';
+        }
+        console.log(protocol+defines.serverUrl)
+        _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('ping', function (data) {
             //心跳
             _socket.emit('pong', {beat: 1});
