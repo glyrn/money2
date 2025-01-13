@@ -1,5 +1,6 @@
-import globalData from "./globalData";
-
+if(window.io == undefined){
+    console.error("找不到socket.io.js库文件");
+}
 const socketMgr = function(){
     var that = {}
 
