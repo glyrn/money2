@@ -96,7 +96,6 @@ cc.Class({
                 var target = globalData.gameMgr.playerData.turn == 1 ? '白棋' : "黑棋";
                 this.pushNoteMsg(target+"请求[悔棋]")
                 globalData.socketMgr.retrackChess()
-                globalData.eventlister.fire("MESSAGE","请求悔棋中");
             }else{
                 globalData.eventlister.fire("MESSAGE","请等待玩家就位");
             }

@@ -1,3 +1,5 @@
+import globalData from "./globalData";
+
 const socketMgr = function(){
     var that = {}
 
@@ -69,6 +71,7 @@ const socketMgr = function(){
         });
         _socket.on("RECOVER_DATA",function(data){
 
+            console.log(data)
             _gameMgr.roomState.roomId = data.roomId;
             _gameMgr.roomState.state = data.roomState;
             _gameMgr.playerData.target = data.target;
@@ -79,7 +82,8 @@ const socketMgr = function(){
             _gameMgr.checkBeat();
             //保存恢复数据
             _gameMgr.recoverData = data;
-
+            //是否旁观
+            _gameMgr.is_ob = cc.args['ob_uid'] != undefined;
             if (_cbLogin) {
                 _cbLogin();
             }
@@ -123,21 +127,31 @@ const socketMgr = function(){
         })
     }
 
-    that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,cbFunc){
-        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count});
+    that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
+        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count,ob_uid:ob_uid});
         _cbLogin = cbFunc;
     }
-
+    that.checkIsObserve = function(){
+        if(_gameMgr.is_ob){
+            _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
+        }
+        return _gameMgr.is_ob;
+    }
     that.prepare = function(){
+        if(that.checkIsObserve()) return;
         _socket.emit('PREPARE');
     }
     that.playChess = function(chessTag){
+        if(that.checkIsObserve()) return;
         _socket.emit('PLAY_CHESS',chessTag);
     }
     that.retrackChess = function(){
+        if(that.checkIsObserve()) return;
+        _eventMgr.fire("MESSAGE","请求悔棋中");
         _socket.emit('RETRACK_CHESS');
     }
     that.retrackRsp = function(option){
+        if(that.checkIsObserve()) return;
         _socket.emit('RETRACK_CHESS_RSP',option);
     }
     that.getSocket = function(){

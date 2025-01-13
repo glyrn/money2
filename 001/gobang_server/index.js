@@ -70,12 +70,14 @@ const proto = {
       }
       for (let j = 0; j < 2; j++) {
         desk.positions.push({
+          uid:0,
           posId: j,
           state: 0,
           name: '',
           avatorUrl: '',
           score:0,
           socket:null,
+          ob_socket_map:{},
         })
       }
       ret.push(desk);
@@ -151,7 +153,12 @@ const proto = {
     }
     return findDesk;
   },
-
+  socketEmit:function(userObj,event,data){
+    for (const ob_uid in userObj.ob_socket_map) {
+      userObj.ob_socket_map[ob_uid].emit(event,data);
+    }
+    userObj.socket.emit(event,data);
+  },
   checkOver:function(roomId,tag,posId){
     var checkState = posId == 0 ? 1 : 0;
     var chequer = this.getDeskById(roomId).chequer;
@@ -236,15 +243,17 @@ const proto = {
 
   broadCastRoom:function(event,roomId,data,except){
     for (let i = 0; i < this.desks.length; i++) {
-      if(this.desks[i].deskId == roomId){
-        for (let j = 0; j < this.desks[i].positions.length; j++) {
-          if(this.desks[i].positions[j].socket){
+      var roomObj = this.desks[i];
+      if(roomObj.deskId == roomId){
+        for (let j = 0; j < roomObj.positions.length; j++) {
+          var userObj = roomObj.positions[j];
+          if(userObj.socket){
             if(except){
-              if(this.desks[i].positions[j].uid != except){
-                this.desks[i].positions[j].socket.emit(event,data);
+              if(userObj.uid != except){
+                this.socketEmit(userObj,event,data);
               }
             }else{
-              this.desks[i].positions[j].socket.emit(event,data);
+              this.socketEmit(userObj,event,data);
             }
           }
         }
@@ -295,24 +304,30 @@ const proto = {
       var roomObj = this.desks[i];
       for (let j = 0; j < roomObj.positions.length; j++) {
         var userObj = roomObj.positions[j];
-        if(userObj.uid == obj.uid){
-          userObj.disconnectTime = null;
+        if(userObj.uid == 0) continue;
+        // 断线重连、旁观
+        if(userObj.uid == obj.uid || userObj.uid == obj.ob_uid ){
+          if(userObj.uid == obj.uid){ //断线重连
+            userObj.disconnectTime = null;
+            userObj.socket = socket; //重连上
+            this.clients[obj.uid] = socket;
+          }else if(userObj.uid == obj.ob_uid) { //旁观
+            userObj.ob_socket_map[obj.uid] = socket;
+          }
 
-          userObj.socket = socket; //重连上
-          this.clients[obj.uid] = socket;
-
-          var player_data = {};
+          var self_data = {};
           for (const k in userObj) {
-            if(k != 'socket' && k != 'disconnectTime'){
-              player_data[k] = userObj[k];
+            if(k != 'socket' && k != 'disconnectTime' && k != 'ob_socket_map'){
+              self_data[k] = userObj[k];
             }
           }
 
           var target = null;
           if(roomObj.play_mode == 1){ //人人对战
             for (let i = 0; i < roomObj.positions.length; i++) {
-              if(roomObj.positions[i].state > 0 && roomObj.positions[i].uid != obj.uid){
-                var room_target = roomObj.positions[i];
+              var room_target = roomObj.positions[i];
+
+              if(room_target.state > 0 && room_target.uid != self_data.uid){
                 target = {
                   uid : room_target.uid,
                   name : room_target.name,
@@ -328,7 +343,7 @@ const proto = {
           socket.emit("RECOVER_DATA",{
             roomId:roomObj.name,
             roomState:roomObj.state,
-            self:player_data,
+            self:self_data,
             target:target,
             play_mode:roomObj.play_mode,
             play_count:roomObj.play_count,
@@ -373,15 +388,17 @@ const proto = {
               //推送恢复数据
               return;
             }
+            var userObj = null;
             for (let i = 0; i < room.positions.length; i++) {
-              if(room.positions[i].state == 0){
-                room.positions[i].uid = obj.uid;
-                room.positions[i].state = 1;
-                room.positions[i].name = obj.name;
-                room.positions[i].avatorUrl = obj.avatorUrl;
-                room.positions[i].score = obj.score;
-                room.positions[i].socket = socket;
-                obj.posId = room.positions[i].posId;
+              userObj = room.positions[i];
+              if(userObj.state == 0){
+                userObj.uid = obj.uid;
+                userObj.state = 1;
+                userObj.name = obj.name;
+                userObj.avatorUrl = obj.avatorUrl;
+                userObj.score = obj.score;
+                userObj.socket = socket;
+                obj.posId = userObj.posId;
                 obj.state = 1;
                 flag = true;
                 break;
@@ -390,7 +407,7 @@ const proto = {
             if(flag){// 坐下成功
 
               if(self.checkUserLogin(obj.uid)){
-                socket.emit("MESSAGE",'玩家'+obj.name+'已登录');
+                self.socketEmit(userObj,"MESSAGE",'玩家'+obj.name+'已登录');
                 return;
               }
 
@@ -474,6 +491,16 @@ const proto = {
           for (let j = 0; j < self.desks[i].positions.length; j++) {
             var userObj = self.desks[i].positions[j];
 
+            //待删旁观uid
+            var del_ob_uid = [];
+            for (const ob_uid in userObj.ob_socket_map) {
+                if(userObj.ob_socket_map[ob_uid].id == socket.id){
+                  del_ob_uid.push(ob_uid);
+                }
+            }
+            for (let k = 0; k < del_ob_uid.length; k++) {
+                delete userObj.ob_socket_map[del_ob_uid[k]];
+            }
             if(userObj.state > 0 && userObj.socket && userObj.socket.id == socket.id){
 
               console.log('用户 '+userObj.name+" "+userObj.uid+' 断线');
@@ -510,7 +537,7 @@ const proto = {
           }
         }
         if(!isOk){
-          socket.emit('MESSAGE','该位置已有棋！');
+          self.socketEmit(desk.positions[posId],'MESSAGE','该位置已有棋！');
         }else{
           self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{posId:posId,tag:tag});
           self.checkOver(desk.deskId,tag,posId);
@@ -575,7 +602,7 @@ const proto = {
             if (room.positions[i].state > 0 && room.positions[i].uid != uid) {
               var room_target = room.positions[i];
               if(room_target.socket){
-                room_target.socket.emit('RETRACK_CHESS_REQ');
+                self.socketEmit(room_target,'RETRACK_CHESS_REQ')
               }
             }
           }
