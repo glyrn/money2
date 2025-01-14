@@ -64,31 +64,14 @@ const socketMgr = function(){
             _gameMgr.play_mode = data.play_mode;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
+            //是否旁观
+            _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;
             _gameMgr.checkBeat();
 
             if (_cbLogin) {
                 _cbLogin();
             }
         });
-        _socket.on("RECOVER_DATA",function(data){
-
-            console.log(data)
-            _gameMgr.roomState.roomId = data.roomId;
-            _gameMgr.roomState.state = data.roomState;
-            _gameMgr.playerData.target = data.target;
-            _gameMgr.playerData.self = data.self;
-            _gameMgr.play_mode = data.play_mode;
-            _gameMgr.play_index = data.play_index;
-            _gameMgr.play_count = data.play_count;
-            _gameMgr.checkBeat();
-            //保存恢复数据
-            _gameMgr.recoverData = data;
-            //是否旁观
-            _gameMgr.is_ob = cc.args['ob_uid'] != undefined;
-            if (_cbLogin) {
-                _cbLogin();
-            }
-        })
 
         _socket.on("PLAY_CHESS_SUCCESS",function(data){
             _eventMgr.fire('PLAY_CHESS_SUCCESS', data);

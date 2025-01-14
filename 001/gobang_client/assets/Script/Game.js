@@ -329,12 +329,6 @@ cc.Class({
 
         this.render();
     },
-
-    start:function(){
-        if(globalData.gameMgr.recoverData){
-            this.renderRecoverData(globalData.gameMgr.recoverData)
-        }
-    },
     render(){
 
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
@@ -604,18 +598,4 @@ cc.Class({
 
         note_item.getComponent(cc.Label).string = day_time +" "+msg;
     },
-    renderRecoverData(data) {
-        console.log("renderRecoverData")
-
-        data.chequer.sort((a,b)=>(a.idx>b.idx?1:-1));
-        for (let i = 0; i < data.chequer.length; i++) {
-            if(data.chequer[i].state != -1) {
-                globalData.eventlister.fire("PLAY_CHESS_SUCCESS", {
-                    tag: data.chequer[i].tag,
-                    posId: data.chequer[i].state == 1 ? 0 : 1,
-                    day_time:data.chequer[i].day_time,
-                });
-            }
-        }
-    }
 });
