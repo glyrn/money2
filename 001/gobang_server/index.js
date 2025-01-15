@@ -235,8 +235,6 @@ const proto = {
     if(desk.play_mode == 1) { // 人人对战
       for (let i = 0; i < desk.positions.length; i++) {
         desk.positions[i].state = 1;
-        //清空断线重连信息
-        desk.positions[i].recover_disconnect_data = [];
       }
     }
     for (let i = 0; i < desk.chequer.length; i++) {
@@ -278,6 +276,8 @@ const proto = {
           userObj.avatorUrl = '';
           userObj.score = 0;
           userObj.disconnectTime = null;
+          //清空断线重连信息
+          userObj.recover_disconnect_data = [];
 
           this.broadCastRoom("MESSAGE",this.desks[i].deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
           this.broadCastRoom("SIT_CHANGE",this.desks[i].deskId,{target:null},userObj.uid);
