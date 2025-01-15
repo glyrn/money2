@@ -1,10 +1,13 @@
-const fs = require('fs');
-const request = require('request')
+const os = require('os');
+//本地调试
+var ioParam = {path:'/wzq_socket.io'};
+if(getCurrentIP().indexOf("192.168") != -1){
+  ioParam = null;
+}
 const express = require('express'),
-  app = express(),
-  http = require('http').Server(app),
-    // io = require('socket.io')(http);
-  io = require('socket.io')(http,{path:"/hlddz_socket.io"});
+    app = express(),
+    http = require('http').Server(app),
+    io = require('socket.io')(http,ioParam);
 app.use(express.static(`${__dirname}/../doudizhu_client`));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
@@ -37,30 +40,35 @@ function createDeskList(n) {
     }
     for (let j = 0; j < 3; j++) {
       desk.positions.push({
+        uid:0,
         posId: j,
         state: 0,
-        userName: '',
+        name: '',
         avatarUrl: '',
         score:0,
+        ob_socket_map:{},
+        recover_disconnect_data:[],//断线重连缓存数据
       })
     }
     ret.push(desk);
   }
   return ret;
 }
-
-function time() {
-  return (new Date()).toLocaleTimeString();
+function getCurrentIP() {
+  const interfaces = os.networkInterfaces();
+  for (const iface of Object.values(interfaces)) {
+    for (const info of iface) {
+      if (info.family === 'IPv4' && !info.internal) {
+        return info.address;
+      }
+    }
+  }
+  return null;
 }
 
-
-var guid = function () {
-  var n = 0;
-  return function () {
-    return ++n;
-  }
-}();
-
+function time() {
+  return (new Date()).toLocaleDateString()+" "+(new Date()).toLocaleTimeString();
+}
 
 function GameServer(port) {
   this.clients = [];
@@ -73,7 +81,7 @@ const proto = {
     socket = socket === undefined ? null : socket;
     this.clients.forEach((client, index) => {
       if (client.deskId === '') {
-        client.socket.emit(event, data);
+        this.socketEmit(client,event, data);
       }
     });
   },
@@ -82,9 +90,23 @@ const proto = {
 
     this.clients.forEach((client, index) => {
       if (client.deskId === deskId && client.socket !== socket) {
-        client.socket.emit(event, data);
+        this.socketEmit(client,event, data);
       }
     });
+  },
+  socketEmit:function(client,event,data){
+    var userObj = this.getPositionByClient(client);
+    if(userObj) {
+      var saveData = data;
+      if(data instanceof Object){//深复制data
+        saveData = JSON.parse(JSON.stringify(data));
+      }
+      for (const ob_uid in userObj.ob_socket_map) {
+        userObj.ob_socket_map[ob_uid].emit(event, saveData);
+      }
+      userObj.recover_disconnect_data.push({event:event,data:saveData});
+    }
+    client.socket.emit(event,data);
   },
   getDesk(deskId) {
     for (let i = 0, len = this.desks.length; i < len; i++) {
@@ -116,13 +138,40 @@ const proto = {
     }
     return findDesk;
   },
+  getAllPosInfo(deskId) {
+    let desk = this.getDesk(deskId);
+    if (desk) {
+      var newPositionList = [];
+      for (let i = 0; i < desk.positions.length; i++) {
+        var newPostion = {}
+        for (const k in desk.positions[i]) {
+          if(k != "recover_disconnect_data" && k != 'ob_socket_map'){
+            newPostion[k] = desk.positions[i][k];
+          }
+        }
+        newPositionList.push(newPostion);
+      }
+      return newPositionList;
+    }
+    return [];
+  },
   getOtherPosInfo(deskId, posId) {
     let desk = this.getDesk(deskId);
     if (desk) {
-      let positions = desk.positions;
-      return positions.filter(function (pos) {
+      var positions = desk.positions.filter(function (pos) {
         return pos.posId !== posId;
-      })
+      });
+      var newPositionList = [];
+      for (let i = 0; i < positions.length; i++) {
+        var newPostion = {}
+        for (const k in positions[i]) {
+          if(k != "recover_disconnect_data" && k != 'ob_socket_map'){
+            newPostion[k] = positions[i][k];
+          }
+        }
+        newPositionList.push(newPostion);
+      }
+      return newPositionList;
     }
     return [];
   },
@@ -143,6 +192,18 @@ const proto = {
       let position = desk.positions[i];
       if (position.posId == posId) {
         return position;
+      }
+    }
+    return null;
+  },
+  getPositionByClient(client){
+    var desk = this.getDesk(client.deskId);
+    if(desk) {
+      for (let i = 0, len = desk.positions.length; i < len; i++) {
+        let position = desk.positions[i];
+        if (position.uid == client.uid) {
+          return position;
+        }
       }
     }
     return null;
@@ -168,14 +229,14 @@ const proto = {
     }
     return false;
   },
-  updatePosStatus(deskId, posId, state, userName,avatarUrl,score,uid) {
+  updatePosStatus(deskId, posId, state, name,avatarUrl,score,uid) {
     const desk = this.getDesk(deskId);
     if (desk) {
       const position = this.getPosition(desk, posId);
       if (position) {
         position.state = state;
-        if (userName === '' || userName) {
-          position.userName = userName;
+        if (name === '' || name) {
+          position.name = name;
           position.avatarUrl = avatarUrl;
           position.score = score;
           position.uid = uid;
@@ -214,12 +275,21 @@ const proto = {
     }
   },
   addClient(socket, data) {
-    this.clients.push({ uid:data.uid,userName: data.userName,avatarUrl:data.avatarUrl,score:data.score, socket: socket, deskId: '', posId: '' });
+    this.clients.push({ uid:data.uid,name: data.name,avatarUrl:data.avatarUrl,score:data.score, socket: socket, deskId: '', posId: '' });
   },
   getClient(socket) {
     for (let i = 0, len = this.clients.length; i < len; i++) {
       let client = this.clients[i];
       if (client.socket == socket) {
+        return client;
+      }
+    }
+    return null;
+  },
+  getClientByUid(uid){
+    for (let i = 0, len = this.clients.length; i < len; i++) {
+      let client = this.clients[i];
+      if (client.uid == uid) {
         return client;
       }
     }
@@ -235,7 +305,7 @@ const proto = {
   getUserName(socket) {
     for (let i = 0, len = this.clients.length; i < len; i++) {
       if (this.clients[i].socket == socket) {
-        return this.clients[i].userName;
+        return this.clients[i].name;
       }
     }
     return null;
@@ -285,6 +355,78 @@ const proto = {
     }
     return false;
   },
+  checkDisconnect:function(){
+    for (let i = 0; i < this.desks.length; i++) {
+      var room = this.desks[i];
+      for (let j = 0; j < room.positions.length; j++) {
+        var userObj = room.positions[j];
+
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 10){
+          console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
+          userObj.disconnectTime = null;
+          //清空断线重连缓存数据
+          userObj.recover_disconnect_data = [];
+
+          var client = this.getClientByUid(userObj.uid);
+          var posId = userObj.posId;
+          var deskId = room.deskId;
+
+          var socket = client.socket;
+          this.removeClient(socket);
+          //更新座位状态
+          this.updatePosStatus(deskId, posId, 0, '','',0,0);
+          //重置房间状态
+          this.updateRoomStatus(deskId, posId, 0);
+          //解绑座位号 桌号
+          this.updateClientState(socket);
+          //通知在房间里的其它客户端，更新座位息
+          this.broadCastRoom("POS_STATUS_CHANGE", deskId, { posId, state: 0 }, socket);
+          //通知大厅其它客户端更新该座位信息
+          this.broadCastHouse('STATUS_CHANGE', { deskId, posId, state: 0 });
+
+          //如果在游戏中，则有玩家强行退出，重置此房间其它玩家的状态为未准备
+          //更新其它两位玩家的座位状态为未准备
+          this.updateOtherPosStatus(deskId, posId, 1);
+          //获取其它两位玩家的座位信息
+          const otherPosInfo = this.getOtherPosInfo(deskId, posId);
+          //通知其它两位玩家重置自己的状态为未准备
+          this.broadCastRoom("POS_STATUS_RESET", deskId, { pos: otherPosInfo, state: 1 });
+          //通知其它两位玩家重置房间状态
+          this.broadCastRoom('ROOM_STATUS_CHANGE', deskId, { state: 0 });
+          //通知其它两位玩家当前玩家逃跑
+          this.broadCastRoom('FORCE_EXIT_EV', deskId, { msg: '有玩家逃跑，游戏结束', posId });
+          const game = this.gameDatas[deskId];
+          game.init();
+        }
+      }
+    }
+  },
+  checkRecover:function(socket,obj){
+    for (let i = 0; i < this.desks.length; i++) {
+      var roomObj = this.desks[i];
+      for (let j = 0; j < roomObj.positions.length; j++) {
+        var userObj = roomObj.positions[j];
+        if(userObj.uid == 0) continue;
+        // 断线重连、旁观
+        if(userObj.uid == obj.uid || userObj.uid == obj.ob_uid ){
+          if(userObj.uid == obj.uid){ //断线重连
+            userObj.disconnectTime = null;
+            this.getClientByUid(obj.uid).socket = socket; //重连上
+          }else if(userObj.uid == obj.ob_uid) { //旁观
+            userObj.ob_socket_map[obj.uid] = socket;
+          }
+          //重连恢复
+          console.log("断线重连：",userObj.uid,userObj.name);
+          for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
+            var emitObj = userObj.recover_disconnect_data[k];
+            socket.emit(emitObj.event,emitObj.data);
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  },
   startGame(deskId,isRestart) {
     if (this.gameDatas[deskId] === undefined) {
       this.gameDatas[deskId] = new Game();
@@ -297,11 +439,19 @@ const proto = {
   },
   init() {
 
+    const self = this;
+
     function setHeartbeat(){
       setTimeout(setHeartbeat,5000);
       io.sockets.emit('ping',{beat:1});
     }
     setTimeout(setHeartbeat,5000);
+
+    function checkDisconnect(){
+      setTimeout(checkDisconnect, 5000);
+      self.checkDisconnect()
+    }
+    setTimeout(checkDisconnect, 5000);
 
     io.on('connection', socket => {
       socket.on('pong', function(data){
@@ -309,31 +459,21 @@ const proto = {
 
       console.log('有客户端接入，时间： %s', time());
       socket.on('LOGIN', data => {
+
+        //检测是否重连玩家
+        if(self.checkRecover(socket,data)){
+          //推送恢复数据
+          return;
+        }
+
         if (this.checkUserName(data.uid)) {
-          var that = this;
-          var next = function(){
-            that.addClient(socket, {uid:data.uid, userName:data.name,avatarUrl:data.avatarUrl,score:data.score});
-            socket.emit('LOGIN_SUCCESS', this.desks);
-            console.log('有客户端登录，时间： %s', time());
-          }
 
-
-          // try {
-            //下载头像
-            // var path = `${__dirname}/../doudizhu_client/avator/${data.uid}.jpg`;
-            // if(!fs.existsSync(path)){
-            //   request(data.avatarUrl).pipe(fs.createWriteStream(path)).on('close',next);
-            // }else{
-              next();
-            // }
-          // }catch (e){
-          //   console.log('下载头像失败：'+data.avatarUrl);
-          //   console.log(e.message)
-          //   next();
-          // }
+          this.addClient(socket, {uid:data.uid, name:data.name,avatarUrl:data.avatarUrl,score:data.score});
+          this.socketEmit(this.getClient(socket),'LOGIN_SUCCESS', this.desks);
+          console.log('有客户端登录，时间： %s', time());
 
         } else {
-          socket.emit('LOGIN_FAIL', { msg: '该用户名已存在' });
+          this.socketEmit(this.getClient(socket),'LOGIN_FAIL', { msg: '该用户名已存在' });
         }
       });
 
@@ -346,7 +486,7 @@ const proto = {
         let desk = this.getDeskByName(data.deskName);
         if(!desk) {
           //房间已满
-          socket.emit('SITDOWN_ERROR', { msg: '找不到可用的房间' });
+          this.socketEmit(this.getClient(socket),'SITDOWN_ERROR', { msg: '找不到可用的房间' });
           //坐下失败 强制退出
           this.removeClient(socket);
           return;
@@ -354,7 +494,7 @@ const proto = {
 
         //检查该座位是否是空闲状态
           var newPosId = this.getEmptyPos(data.deskName);
-        console.log("newPosId:",data.deskName,newPosId);
+          // console.log("newPosId:",data.deskName,newPosId);
           if (newPosId !== false)
           {
             //成功坐下
@@ -370,15 +510,15 @@ const proto = {
             let play_count = desk.play_count;
             let play_index = desk.play_index;
 
-            console.log('有客户端进入房间，桌号：%s %s，座位：%s，时间： %s ，玩法：%s，总局数：%s，第%s局 ', desk.deskId,desk.name, newPosId, time(),islaizi,play_count,play_index);
+            console.log('有客户端进入房间，桌号：%s %s，posId：%s，时间： %s ，玩法：%s，总局数：%s，第%s局 ', desk.deskId,desk.name, newPosId, time(),islaizi,play_count,play_index);
             //更新座位状态为占用
             this.updatePosStatus(desk.deskId, newPosId, 1, this.getUserName(socket), this.getAvatarUrl(socket),this.getScore(socket),this.getUid(socket));
             //绑定客户端桌号，座位号
             this.updateClientState(socket, desk.deskId, newPosId);
             //获取除当前房间其它座位信息
-            let posInfos = this.getOtherPosInfo(desk.deskId, newPosId);
+            let posInfos = this.getAllPosInfo(desk.deskId);
             //通知该客户端坐下成功 并发送当前房间的信息给该客户端
-            socket.emit('SITDOWN_SUCCESS', {posId:newPosId,deskId:desk.deskId,deskName:desk.name, posInfos, islaizi,base_score,play_count,play_index});
+            this.socketEmit(this.getClient(socket),'SITDOWN_SUCCESS', {posId:newPosId,deskId:desk.deskId,deskName:desk.name, posInfos, islaizi,base_score,play_count,play_index});
             //通知在大厅游览的所有客户端当前坐位已被占用
             this.broadCastHouse('STATUS_CHANGE', {deskId:desk.deskId, posId:newPosId, state: 1});
 
@@ -386,28 +526,19 @@ const proto = {
             this.broadCastRoom("POS_STATUS_CHANGE", desk.deskId, {
               posId:newPosId,
               state: 1,
-              userName: this.getUserName(socket),
+              name: this.getUserName(socket),
               avatarUrl: this.getAvatarUrl(socket),
               score:this.getScore(socket),
               uid:this.getUid(socket),
             }, socket);
 
-            //推送一条无关紧要的消息
-            socket.emit('USER_MESSAGE', {type: 'SYS', posId:newPosId, msg: '欢迎您加入本房间，祝您游戏愉快！', id: guid(), time: time()});
-            this.broadCastRoom('USER_MESSAGE', desk.deskId, {
-              type: 'SYS',
-              posId:newPosId,
-              msg: `玩家[${this.getUserName(socket)}]进入房间`,
-              id: guid(),
-              time: time()
-            }, socket);
         } else {
-          //通知该客户端此座位被人占用
-          socket.emit('SITDOWN_ERROR', { msg: '房间已满员' });
-          //坐下失败 强制退出
-          this.removeClient(socket);
-          //由于当前位置被占用可能是由于该客户端数据不同步造成，所以再次向该客户端推送一次所有桌数据
-          socket.emit('REFRESH_LIST', this.desks);
+            //通知该客户端此座位被人占用
+            this.socketEmit(this.getClient(socket),'SITDOWN_ERROR', { msg: '房间已满员' });
+            //坐下失败 强制退出
+            this.removeClient(socket);
+            //由于当前位置被占用可能是由于该客户端数据不同步造成，所以再次向该客户端推送一次所有桌数据
+            this.socketEmit(this.getClient(socket),'REFRESH_LIST', this.desks);
         }
       });
 
@@ -424,7 +555,7 @@ const proto = {
         //更新座位状态
         this.updatePosStatus(deskId, posId, 0, '','',0,0);
         //重置房间状态
-        this.updateRoomStatus(deskId, posId, 0);
+        this.updateRoomStatus(deskId, 0);
         //解绑座位号 桌号
         this.updateClientState(socket);
         //通知在房间里的其它客户端，更新座位息
@@ -455,11 +586,7 @@ const proto = {
           }
         }
         //通知当前玩家退出房间成功
-        socket.emit('UNSITDOWN_SUCCESS', this.desks);
-
-
-        //推送一条无关紧要的消息
-        this.broadCastRoom('USER_MESSAGE', deskId, { type: 'SYS', posId, msg: `玩家[${this.getUserName(socket)}]退出房间`, id: guid(), time: time() })
+        this.socketEmit(this.getClient(socket),'UNSITDOWN_SUCCESS', this.desks);
       });
 
       socket.on('PREPARE', data => {
@@ -474,7 +601,7 @@ const proto = {
         //更新座位为准备状态
         this.updatePosStatus(deskId, posId, 2);
         //通知该客户端准备成功
-        socket.emit('PREPARE_SUCCESS');
+        this.socketEmit(this.getClient(socket),'PREPARE_SUCCESS');
         //通知房间里的其它客户端更新座位信息
         this.broadCastRoom("POS_STATUS_CHANGE", deskId, { posId, state: 2 }, socket);
 
@@ -503,7 +630,7 @@ const proto = {
 
         const status = game.next(posId, score).getStatus();
         if (status == 1) {
-          socket.emit('CALL_SCORE_SUCCESS',score);
+          this.socketEmit(this.getClient(socket),'CALL_SCORE_SUCCESS',score);
           const ctxPos = game.getContextPosId();
           const ctxScore = game.getContextScore();
           const calledScores = game.getCalledScores();
@@ -516,7 +643,7 @@ const proto = {
           let islaizi = desk.islaizi;
           const laiziCards = islaizi > 0 ? game.getLaiziCards(islaizi) : [];
           game.contextLaiziCards = laiziCards;
-          socket.emit('CALL_SCORE_SUCCESS',score);
+          this.socketEmit(this.getClient(socket),'CALL_SCORE_SUCCESS',score);
           this.broadCastRoom('SHOW_TOP_CARD', deskId, { topCards,laiziCards, dizhuPosId, timeout: 15 });
           this.broadCastRoom('CTX_PLAY_CHANGE', deskId, {
             ctxData: {
@@ -534,10 +661,8 @@ const proto = {
         }
         if (status == 4) {
           this.broadCastRoom('MESSAGE', deskId, { msg: '没有玩家叫分，重新发牌' });
-          socket.emit('CALL_SCORE_SUCCESS',0);
+          this.socketEmit(this.getClient(socket),'CALL_SCORE_SUCCESS',0);
           this.startGame(deskId,true);
-          //推送一条无关紧要的消息
-          this.broadCastRoom('USER_MESSAGE', deskId, { type: 'SYS', posId, msg: '本局游戏无人叫分，重新发牌', id: guid(), time: time() })
         }
       });
 
@@ -558,7 +683,7 @@ const proto = {
             game.next(posId, data,islaizi);
 
             if (game.getStatus() === 5) {
-              socket.emit('PLAY_CARD_ERROR', '游戏出错');
+              this.socketEmit(this.getClient(socket),'PLAY_CARD_ERROR', '游戏出错');
               return;
             }
 
@@ -574,10 +699,11 @@ const proto = {
               timeout: 15,
               isPass:isPass,
             })
-            socket.emit('PLAY_CARD_SUCCESS', data)
+            this.socketEmit(this.getClient(socket),'PLAY_CARD_SUCCESS', data)
             if (game.getStatus() === 3) {
 
-              this.broadCastRoom('GAME_OVER', deskId, game.getResult())
+              this.broadCastRoom('GAME_OVER', deskId, game.getResult());
+
               desk.play_index++;
               if(desk.play_count < desk.play_index){ //剩余局数为0
                 desk.play_index = 1;
@@ -590,7 +716,7 @@ const proto = {
 
 
           } else {
-            socket.emit('PLAY_CARD_ERROR', '你的牌不符合规则')
+            this.socketEmit(this.getClient(socket),'PLAY_CARD_ERROR', '你的牌不符合规则')
           }
         }
       });
@@ -600,63 +726,38 @@ const proto = {
         if (!client) {
           return;
         }
-        const userName = this.getUserName(socket);
+
         const { deskId, posId } = client;
-        this.removeClient(socket);
-
         if (deskId) {
-          //更新座位状态
-          this.updatePosStatus(deskId, posId, 0, '','',0,0);
-          //重置房间状态
-          this.updateRoomStatus(deskId, posId, 0);
-          //解绑座位号 桌号
-          this.updateClientState(socket);
-          //通知在房间里的其它客户端，更新座位息
-          this.broadCastRoom("POS_STATUS_CHANGE", deskId, { posId, state: 0 }, socket);
-          //通知大厅其它客户端更新该座位信息
-          this.broadCastHouse('STATUS_CHANGE', { deskId, posId, state: 0 });
 
-          //如果在游戏中，则有玩家强行退出，重置此房间其它玩家的状态为未准备
           //获取此桌游戏数据
           const game = this.gameDatas[deskId];
           //判断是否在进行游戏
           if (game) {
             const status = game.getStatus();
-            if (game && status && status !== 3) {
-              //更新其它两位玩家的座位状态为未准备
-              this.updateOtherPosStatus(deskId, posId, 1);
-              //获取其它两位玩家的座位信息
-              const otherPosInfo = this.getOtherPosInfo(deskId, posId);
-              //通知其它两位玩家重置自己的状态为未准备
-              this.broadCastRoom("POS_STATUS_RESET", deskId, { pos: otherPosInfo, state: 1 });
-              //通知其它两位玩家重置房间状态
-              this.broadCastRoom('ROOM_STATUS_CHANGE', deskId, { state: 0 });
-              //通知其它两位玩家当前玩家逃跑
-              this.broadCastRoom('FORCE_EXIT_EV', deskId, { msg: '有玩家逃跑，游戏结束', posId });
-              game.init();
+            if (status == 1 || status == 2 || status == 4) { //游戏中
+
+              //待删旁观uid
+              var del_ob_uid = [];
+              var userObj = this.getPositionByClient(client);
+              for (const ob_uid in userObj.ob_socket_map) {
+                if(userObj.ob_socket_map[ob_uid].id == socket.id){
+                  del_ob_uid.push(ob_uid);
+                }
+              }
+              for (let k = 0; k < del_ob_uid.length; k++) {
+                delete userObj.ob_socket_map[del_ob_uid[k]];
+              }
+              //记录断线时间
+              userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
             }
           }
-          //推送一条无关紧要的消息
-          this.broadCastRoom('USER_MESSAGE', deskId, { type: 'SYS', posId, msg: `玩家[${userName}]退出房间`, id: guid(), time: time() })
+
           console.log('有客户端退出房间，桌号：%s，座位：%s，时间：', deskId, posId, time());
         }
 
         console.log('有客户端断开了连接 %s', time());
       })
-
-      socket.on('USER_MESSAGE', msg => {
-        const client = this.getClient(socket);
-        if (!client) {
-          return;
-        }
-        const { deskId, posId } = client;
-        if (!deskId) {
-          return;
-        }
-        this.broadCastRoom('USER_MESSAGE', deskId, { type: 'USER', posId, msg, time: time(), id: guid() })
-      })
-
-
     });
 
 

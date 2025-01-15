@@ -54,7 +54,7 @@ cc.Class({
             that.renderCard();
             that.renderTopCard();
             that.renderRoom();
-            cc.playEffect("sound/wash_card.mp3",false,1);
+            cc.playEffect("sound/wash_card",false,1);
         });
         globalData.eventlister.on("SHOW_TOP_CARD",function(){
             that.renderPlayerNode();
@@ -70,7 +70,7 @@ cc.Class({
             if(globalData.gameMgr.posState.right.isPass){
                 that._player_node_list[2].getComponent('PlayerNode').cleanPass()
             }
-            cc.playEffect("sound/singer_send_card.mp3",false,1);
+            cc.playEffect("sound/singer_send_card",false,1);
         });
         globalData.eventlister.on('CTX_PLAY_CHANGE',function(){
             that.renderPlayerNode();
@@ -136,7 +136,7 @@ cc.Class({
         this._player_node_list[0].getComponent('PlayerNode').selectTips(globalData.gameMgr.posState.self,true)
     },
     renderRoom(){
-        this.lab_roomid.string = "版本:v0.0.7.1 房号:"+globalData.gameMgr.deskName +
+        this.lab_roomid.string = "房号:"+globalData.gameMgr.deskName +
             "  底分:"+globalData.gameMgr.base_score +
             "  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
     },
@@ -177,9 +177,15 @@ cc.Class({
         }
     },
 
-    renderBeforeUI(){
-
+    renderBeforeUI() {
         this.gameBeforeUI.getComponent('GameBeforeUI').render();
+    },
+    renderRecoverData(data) {
+        console.log("renderRecoverData")
+        this.renderPlayerNode();
+        this.renderCard();
+        this.renderTopCard();
+        this.renderBeforeUI();
+        this.gameUI.getComponent("GameUI").render()
     }
-
 });

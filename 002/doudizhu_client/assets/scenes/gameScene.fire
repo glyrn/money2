@@ -289,7 +289,7 @@
       "array": [
         0,
         0,
-        515.285115251741,
+        472.8498704663035,
         0,
         0,
         0,
@@ -3250,7 +3250,9 @@
       "__id__": 62
     },
     "_enabled": true,
-    "cards_sprite_atlas": null,
+    "cards_sprite_atlas": {
+      "__uuid__": "0df6f387-8c7f-4e76-82cf-a2e102c57d00"
+    },
     "laizi_flag": {
       "__id__": 63
     },
@@ -3575,7 +3577,9 @@
       "__id__": 71
     },
     "_enabled": true,
-    "cards_sprite_atlas": null,
+    "cards_sprite_atlas": {
+      "__uuid__": "0df6f387-8c7f-4e76-82cf-a2e102c57d00"
+    },
     "laizi_flag": {
       "__id__": 72
     },
@@ -3900,7 +3904,9 @@
       "__id__": 80
     },
     "_enabled": true,
-    "cards_sprite_atlas": null,
+    "cards_sprite_atlas": {
+      "__uuid__": "0df6f387-8c7f-4e76-82cf-a2e102c57d00"
+    },
     "laizi_flag": {
       "__id__": 81
     },
@@ -4225,7 +4231,9 @@
       "__id__": 89
     },
     "_enabled": true,
-    "cards_sprite_atlas": null,
+    "cards_sprite_atlas": {
+      "__uuid__": "0df6f387-8c7f-4e76-82cf-a2e102c57d00"
+    },
     "laizi_flag": {
       "__id__": 90
     },
@@ -4550,7 +4558,9 @@
       "__id__": 98
     },
     "_enabled": true,
-    "cards_sprite_atlas": null,
+    "cards_sprite_atlas": {
+      "__uuid__": "0df6f387-8c7f-4e76-82cf-a2e102c57d00"
+    },
     "laizi_flag": {
       "__id__": 99
     },

@@ -371,7 +371,7 @@ Object.assign(
       return (diZhuLen === 0 && playerLen1 === 17 && playerLen2 === 17) || (diZhuLen !== 0 && this.sumCount[diZhuId] === 1 && (playerLen1 === 0 || playerLen2 === 0))
     },
     next(posId, data,islaizi) {
-console.log(posId, this.contextPosId)
+      // console.log(posId, this.contextPosId)
 
       if (posId == this.contextPosId) {
         if (this.status === 1) {

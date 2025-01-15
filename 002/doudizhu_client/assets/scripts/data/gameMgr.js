@@ -152,7 +152,6 @@ const gameMgr = function(){
                 1: 'left',
                 3: 'top',
             }
-
         }
         return mapping[that.posId][posId];
     }
@@ -177,18 +176,20 @@ const gameMgr = function(){
     }
 
     that.startTimer = function () {
-
         if(that._timer) clearInterval(that._timer);
 
         that._timer = setInterval(function () {
-            that.roomState.timeout--;
-            _eventMgr.fire("UPDATE_TIMER");
-            _eventMgr.fire("UPDATE_TIMER1");
+            //游戏中
+            if(that.roomState.state == 1 || that.roomState.state == 2) {
+                that.roomState.timeout--;
+                _eventMgr.fire("UPDATE_TIMER");
+                _eventMgr.fire("UPDATE_TIMER1");
 
-            if (that.roomState.timeout <= 0) {
-                clearInterval(that._timer);
-                if(that.roomState.state == 2 && that.roomState.ctxPos === 'self'){
-                    _eventMgr.fire('auto_play_card')
+                if (that.roomState.timeout <= 0) {
+                    clearInterval(that._timer);
+                    if (that.roomState.state == 2 && that.roomState.ctxPos === 'self') {
+                        _eventMgr.fire('auto_play_card')
+                    }
                 }
             }
         }, 1000);

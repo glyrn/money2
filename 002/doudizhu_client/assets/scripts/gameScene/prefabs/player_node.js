@@ -234,7 +234,6 @@ cc.Class({
         return list;
     },
     render(playerData,roomState){
-
         this.node.position = cc.v2(0,0)
         this.node.active = playerData.state > 0;
         // 准备状态
@@ -281,7 +280,6 @@ cc.Class({
         let base_pos = cc.find('card_pos',this.node.parent).position;
         let base_out_pos = cc.find('card_out_pos',this.node.parent).position;
         this.flag = flag;
-
         //手牌
         for(var i=0;i<this._cardNodeList.length;i++){
             this._cardNodeList[i].active = false;

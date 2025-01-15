@@ -41,30 +41,20 @@ cc.Class({
                 field[obj[0]] = obj[1];
             }
             cc.args = field;
-            var that = this;
-            globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
-                if (isOk) {
-
-                    that._uid = data.data.userId;
-                    that._name = data.data.nickname;
-                    that._room = field['room'];
-                    that._avatarUrl = data.data.avatar;
-                    that._base_score = field['base_score'];
-                    that._score = field['score'];
-                    if (typeof that._score == 'undefined') {
-                        that._score = 0;
-                    }
-                    that._play_count = field['play_count'];
-                    that._play_mode = field['play_mode'];
-
-                    //设置自己名字
-                    globalData.gameMgr.posState.self.name = that._name;
-                    globalData.gameMgr.posState.self.avatarUrl = that._avatarUrl;
-                    globalData.gameMgr.posState.self.score = that._score;
-                    globalData.gameMgr.posState.self.uid = that._uid;
+            cc.director.preloadScene("gameScene",function(){
+                if(defines.isDebug){
                     //请求登录
-                    globalData.socketMgr.login(that._uid, that._name, decodeURIComponent(that._avatarUrl), that._score, function () {
-                        globalData.socketMgr.sitdown(that._room, parseInt(that._score), that._base_score, that._play_count, that._play_mode);
+                    globalData.socketMgr.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'],field['ob_uid'],function(){
+                        globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
+                    })
+                }else{
+                    globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                        if (isOk) {
+                            //请求登录
+                            globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, field['score'],field['ob_uid'], function () {
+                                globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
+                            });
+                        }
                     });
                 }
             });
