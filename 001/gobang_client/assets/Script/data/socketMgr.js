@@ -64,8 +64,6 @@ const socketMgr = function(){
             _gameMgr.play_mode = data.play_mode;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
-            //是否旁观
-            _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;
             _gameMgr.checkBeat();
 
             if (_cbLogin) {
@@ -114,6 +112,8 @@ const socketMgr = function(){
     that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
         _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count,ob_uid:ob_uid});
         _cbLogin = cbFunc;
+        //是否旁观
+        _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;
     }
     that.checkIsObserve = function(){
         if(_gameMgr.is_ob){

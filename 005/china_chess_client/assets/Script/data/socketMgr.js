@@ -17,11 +17,18 @@ const socketMgr = function(){
             'reconnection': false,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
-            'path':'/zgxq_socket.io',
         }
         console.log(defines.serverUrl)
 
-        _socket = window.io.connect('wss://' + defines.serverUrl, opts);
+        var protocol = ''
+        if(defines.isDebug){
+            protocol = 'ws://';
+        }else{
+            opts['path'] = '/zgxq_socket.io';
+            protocol = 'wss://';
+        }
+        console.log(protocol+defines.serverUrl)
+        _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('ping', function (data) {
             //心跳
             _socket.emit('pong', {beat: 1});
@@ -92,10 +99,6 @@ const socketMgr = function(){
             _eventMgr.fire('CHANGE_TURN');
         })
 
-        // _socket.on('GAME_OVER',function(data){
-        //     _eventMgr.fire("GAME_OVER",data);
-        // });
-
         _socket.on("RETRACK_CHESS_REQ",function(){
             _eventMgr.fire('RETRACK_CHESS_REQ');
         });
@@ -107,25 +110,38 @@ const socketMgr = function(){
         })
     }
 
-    that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,cbFunc){
-        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count});
+    that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
+        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count,ob_uid:ob_uid});
         _cbLogin = cbFunc;
+        //是否旁观
+        _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;
     }
 
     that.prepare = function(){
+        if(that.checkIsObserve()) return;
         _socket.emit('PREPARE');
     }
     that.playChess = function(x,y){
+        if(that.checkIsObserve()) return;
         _socket.emit('PLAY_CHESS',{x:x,y:y});
     }
     that.retrackChess = function(){
+        if(that.checkIsObserve()) return;
         _socket.emit('RETRACK_CHESS');
     }
     that.retrackRsp = function(option){
+        if(that.checkIsObserve()) return;
         _socket.emit('RETRACK_CHESS_RSP',option);
     }
     that.reqGameOver = function(){
+        if(that.checkIsObserve()) return;
         _socket.emit("REQ_GAME_OVER");
+    }
+    that.checkIsObserve = function(){
+        if(_gameMgr.is_ob){
+            _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
+        }
+        return _gameMgr.is_ob;
     }
     that.getSocket = function(){
         return _socket;

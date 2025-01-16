@@ -155,11 +155,15 @@ const proto = {
     return findDesk;
   },
   socketEmit:function(userObj,event,data){
-    for (const ob_uid in userObj.ob_socket_map) {
-      userObj.ob_socket_map[ob_uid].emit(event,data);
+    var saveData = data;
+    if(data instanceof Object){//深复制data
+      saveData = JSON.parse(JSON.stringify(data));
     }
-    userObj.recover_disconnect_data.push({event:event,data:data});
-    userObj.socket.emit(event,data);
+    for (const ob_uid in userObj.ob_socket_map) {
+      userObj.ob_socket_map[ob_uid].emit(event,saveData);
+    }
+    userObj.recover_disconnect_data.push({event:event,data:saveData});
+    userObj.socket.emit(event,saveData);
   },
   checkOver:function(roomId,tag,posId){
     var checkState = posId == 0 ? 1 : 0;
