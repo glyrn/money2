@@ -19,11 +19,16 @@ const socketMgr = function(){
             'reconnection': false,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
-            'path':'/uno_socket.io',
         }
-        console.log(defines.serverUrl)
-
-        _socket = window.io.connect('wss://' + defines.serverUrl, opts);
+        var protocol = ''
+        if(defines.isDebug){
+            protocol = 'ws://';
+        }else{
+            opts['path'] = '/uno_socket.io';
+            protocol = 'wss://';
+        }
+        console.log(protocol+defines.serverUrl)
+        _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('ping', function (data) {
             //心跳
             _socket.emit('pong', {beat: 1});
@@ -117,13 +122,16 @@ const socketMgr = function(){
             _gameMgr.roomState.state = 2;
             _gameMgr.roomState.gametime_remain = 0;
             for (let i = 0; i < data.score_list.length; i++) {
-                _gameMgr.getPlayerData(i).state = 1;
-                var option = i == data.winer ? 1 : -1;
-                _gameMgr.getPlayerData(i).score_offset = option * parseInt(data.score_list[i]);
-                _gameMgr.getPlayerData(i).cards = data.cards_list[i];
-                if(_gameMgr.getPlayerData(i).score + _gameMgr.getPlayerData(i).score_offset >= parseInt(cc.args['specific_score'] ?? 300)){
+                var playerData = _gameMgr.getPlayerData(i);
+                if(playerData) {
+                    _gameMgr.getPlayerData(i).state = 1;
+                    var option = i == data.winer ? 1 : -1;
+                    _gameMgr.getPlayerData(i).score_offset = option * parseInt(data.score_list[i]);
+                    _gameMgr.getPlayerData(i).cards = data.cards_list[i];
+                    if (_gameMgr.getPlayerData(i).score + _gameMgr.getPlayerData(i).score_offset >= parseInt(cc.args['specific_score'] ?? 300)) {
 
-                    _gameMgr.is_quit = true;
+                        _gameMgr.is_quit = true;
+                    }
                 }
             }
             _gameMgr.score_list.push(data);
@@ -184,25 +192,32 @@ const socketMgr = function(){
         });
     }
 
-    that.login = function(uid,name,avatorUrl,score,room,play_mode,game_time,specific_score,cbFunc){
-        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,game_time:game_time,specific_score:specific_score});
+    that.login = function(uid,name,avatorUrl,score,room,play_mode,game_time,specific_score,ob_uid,cbFunc){
+        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,game_time:game_time,specific_score:specific_score,ob_uid:ob_uid});
         _cbLogin = cbFunc;
+        //是否旁观
+        _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;
     }
-
+    that.checkIsObserve = function(){
+        if(_gameMgr.is_ob){
+            _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
+        }
+        return _gameMgr.is_ob;
+    }
     that.prepare = function(){
+        if(that.checkIsObserve()) return;
         _socket.emit('PREPARE');
     }
     that.playCard = function(card){
+        if(that.checkIsObserve()) return;
         _socket.emit('PLAY_CARD',card);
     }
     that.passCard = function(){
+        if(that.checkIsObserve()) return;
         _socket.emit('PLAY_PASS');
     }
     that.getSocket = function(){
         return _socket;
-    }
-    that.debug = function(){
-        _socket.emit('DEBUG');
     }
     return that
 }

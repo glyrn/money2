@@ -362,7 +362,7 @@ cc.Class({
 
         for (let i = 0; i < 4; i++) {
             var label = this.panel_score.getChildByName('items').getChildByName('label'+i);
-            if(data.score_list[i]){
+            if(data.score_list[i] && globalData.gameMgr.getPlayerData(i)){
                 label.active = true;
                 var option = i == data.winer ? "+" : "-";
                 label.getComponent(cc.Label).string = globalData.gameMgr.getPlayerData(i).name + " " + option + data.score_list[i]+ "分";

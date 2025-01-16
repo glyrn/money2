@@ -13,6 +13,8 @@ var _gameMgr = _interopRequireDefault(require("./data/gameMgr.js"));
 
 var _socketMgr = _interopRequireDefault(require("./data/socketMgr.js"));
 
+var _utils = _interopRequireDefault(require("./data/utils.js"));
+
 var _event_lister = _interopRequireDefault(require("./util/event_lister.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
@@ -20,6 +22,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 require('./data/audioMgr');
 
 var globalData = {} || globalData;
+globalData.utils = (0, _utils["default"])();
 globalData.gameMgr = (0, _gameMgr["default"])();
 globalData.eventlister = (0, _event_lister["default"])({});
 globalData.socketMgr = (0, _socketMgr["default"])();

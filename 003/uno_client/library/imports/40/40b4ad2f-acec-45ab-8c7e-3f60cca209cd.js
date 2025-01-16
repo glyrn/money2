@@ -4,9 +4,19 @@ cc._RF.push(module, '40b4a0vrOxFq4x+P2DMognN', 'defines');
 
 "use strict";
 
-var defines = {}; // defines.serverUrl = "42.51.37.98:8005";
+var defines = {};
+var host = window.location.host; //本地调试
 
-defines.serverUrl = "www.fsyctech.com";
+if (host.indexOf('localhost') != -1) {
+  defines.isDebug = true;
+}
+
+if (defines.isDebug) {
+  defines.serverUrl = "localhost:9003";
+} else {
+  defines.serverUrl = "www.fsyctech.com";
+}
+
 window.defines = defines;
 
 cc._RF.pop();

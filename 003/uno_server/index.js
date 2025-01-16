@@ -1,9 +1,13 @@
-const fs = require('fs');
-const request = require('request')
+const os = require('os');
+//本地调试
+var ioParam = {path:'/uno_socket.io'};
+if(getCurrentIP().indexOf("192.168") != -1){
+  ioParam = null;
+}
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
-    io = require('socket.io')(http,{path:'/uno_socket.io'});
+    io = require('socket.io')(http,ioParam);
 app.use(express.static(`${__dirname}/../uno_client`));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
@@ -24,6 +28,17 @@ function GameServer() {
   this.clients = {};
 
   this.onlineUser = {}
+}
+function getCurrentIP() {
+  const interfaces = os.networkInterfaces();
+  for (const iface of Object.values(interfaces)) {
+    for (const info of iface) {
+      if (info.family === 'IPv4' && !info.internal) {
+        return info.address;
+      }
+    }
+  }
+  return null;
 }
 const proto = {
 
@@ -105,6 +120,8 @@ const proto = {
           avatorUrl: '',
           score:0,
           socket:null,
+          ob_socket_map:{},
+          recover_disconnect_data:[],
         })
       }
       ret.push(desk);
@@ -198,6 +215,17 @@ const proto = {
     }
     return findDesk;
   },
+  socketEmit:function(userObj,event,data){
+    var saveData = data;
+    if(data instanceof Object){//深复制data
+      saveData = JSON.parse(JSON.stringify(data));
+    }
+    for (const ob_uid in userObj.ob_socket_map) {
+      userObj.ob_socket_map[ob_uid].emit(event,saveData);
+    }
+    userObj.recover_disconnect_data.push({event:event,data:saveData});
+    userObj.socket.emit(event,saveData);
+  },
   //判断游戏结束
   checkTimeGameOver:function(){
 
@@ -257,20 +285,86 @@ const proto = {
   },
   broadCastRoom:function(event,roomId,data,except){
     for (let i = 0; i < this.desks.length; i++) {
-      if(this.desks[i].deskId == roomId){
-        for (let j = 0; j < this.desks[i].positions.length; j++) {
-          if(this.desks[i].positions[j].socket){
+      var roomObj = this.desks[i];
+      if(roomObj.deskId == roomId){
+        for (let j = 0; j < roomObj.positions.length; j++) {
+          var userObj = roomObj.positions[j];
+          if(userObj.socket){
             if(except){
-              if(this.desks[i].positions[j].uid != except){
-                this.desks[i].positions[j].socket.emit(event,data);
+              if(userObj.uid != except){
+                this.socketEmit(userObj,event,data);
               }
             }else{
-              this.desks[i].positions[j].socket.emit(event,data);
+              this.socketEmit(userObj,event,data);
             }
           }
         }
       }
     }
+  },
+  checkDisconnect:function(){
+    for (let i = 0; i < this.desks.length; i++) {
+      for (let j = 0; j < this.desks[i].positions.length; j++) {
+
+        var userObj = this.desks[i].positions[j];
+
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 10){
+          console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
+          userObj.uid = 0;
+          userObj.state = 0;
+          userObj.name = '';
+          userObj.avatorUrl = '';
+          userObj.score = 0;
+          userObj.disconnectTime = null;
+          //清空断线重连信息
+          userObj.recover_disconnect_data = [];
+
+          this.broadCastRoom("MESSAGE",this.desks[i].deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
+          this.broadCastRoom("SIT_CHANGE",this.desks[i].deskId,{target:null,posId:userObj.posId},userObj.uid);
+
+          //检查是否全部掉线 是的话要重置房间
+          var isClean = true;
+          for (let k = 0; k < this.desks[i].positions.length; k++) {
+            if(this.desks[i].positions[k].uid > 0 ){
+              isClean = false;
+            }
+          }
+          if(isClean){
+            this.desks[i].name = '';
+            this.desks[i].state = 0;
+            this.desks[i].play_index = 0;
+            this.desks[i].play_mode = -1;
+          }
+        }
+      }
+    }
+  },
+  checkRecover:function(socket,obj){
+
+    for (let i = 0; i < this.desks.length; i++) {
+      var roomObj = this.desks[i];
+      for (let j = 0; j < roomObj.positions.length; j++) {
+        var userObj = roomObj.positions[j];
+        if(userObj.uid == 0) continue;
+        // 断线重连、旁观
+        if(userObj.uid == obj.uid || userObj.uid == obj.ob_uid ){
+          if(userObj.uid == obj.uid){ //断线重连
+            userObj.disconnectTime = null;
+            userObj.socket = socket; //重连上
+            this.clients[obj.uid] = socket;
+          }else if(userObj.uid == obj.ob_uid) { //旁观
+            userObj.ob_socket_map[obj.uid] = socket;
+          }
+          //重连恢复
+          for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
+            var emitObj = userObj.recover_disconnect_data[k];
+            socket.emit(emitObj.event,emitObj.data);
+          }
+          return true;
+        }
+      }
+    }
+    return false;
   },
   init:function () {
 
@@ -281,6 +375,13 @@ const proto = {
       io.sockets.emit('ping', {beat: 1});
     }
     setTimeout(setHeartbeat, 5000);
+
+    function checkDisconnect(){
+      setTimeout(checkDisconnect, 5000);
+      self.checkDisconnect()
+    }
+    setTimeout(checkDisconnect, 5000);
+
     setInterval(function(){
       self.checkTimeGameOver();
     },1000);
@@ -295,16 +396,22 @@ const proto = {
             console.log(obj.name, '进入房间', room.name,room.deskId);
 
             var flag = false;
-
+            //检测是否重连玩家
+            if(self.checkRecover(socket,obj)){
+              //推送恢复数据
+              return;
+            }
+            var userObj = null;
             for (let i = 0; i < room.positions.length; i++) {
-              if(room.positions[i].state == 0){
-                room.positions[i].uid = obj.uid;
-                room.positions[i].state = 1;
-                room.positions[i].name = obj.name;
-                room.positions[i].avatorUrl = obj.avatorUrl;
-                room.positions[i].score = obj.score;
-                room.positions[i].socket = socket;
-                obj.posId = room.positions[i].posId;
+              userObj = room.positions[i];
+              if(userObj.state == 0){
+                userObj.uid = obj.uid;
+                userObj.state = 1;
+                userObj.name = obj.name;
+                userObj.avatorUrl = obj.avatorUrl;
+                userObj.score = obj.score;
+                userObj.socket = socket;
+                obj.posId = userObj.posId;
                 obj.state = 1;
                 flag = true;
                 break;
@@ -317,51 +424,35 @@ const proto = {
                 return;
               }
 
-              var next = function(){
-                self.clients[obj.uid] = socket;
+              self.clients[obj.uid] = socket;
 
-                if(room.play_mode == -1){
-                  room.game_time = obj.game_time ?? 4;
-                  room.play_mode = obj.play_mode;
-                  room.specific_score = obj.specific_score ?? 1000;
-                }
-
-                var playerData = [];
-                for (let i = 0; i < room.positions.length; i++) {
-                  if(room.positions[i].state > 0){
-                    playerData[room.positions[i].posId] = {
-                      uid: room.positions[i].uid,
-                      state: room.positions[i].state,
-                      name: room.positions[i].name,
-                      avatorUrl: room.positions[i].avatorUrl,
-                      score: room.positions[i].score,
-                      posId: room.positions[i].posId,
-                    };
-                  }
-                }
-
-                socket.emit("LOGIN_SUCCESS",{
-                  roomId:room.name,
-                  posId:obj.posId,
-                  play_mode:room.play_mode,
-                  playerData:playerData,
-                });
-                self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
+              if(room.play_mode == -1){
+                room.game_time = obj.game_time ?? 4;
+                room.play_mode = obj.play_mode;
+                room.specific_score = obj.specific_score ?? 1000;
               }
 
-              // try {
-              //   var path = `${__dirname}/../uno_client/avator/${obj.uid}.jpg`;
-              //   if(!fs.existsSync(path)){
-              //     //下载头像
-              //     request(obj.avatorUrl).pipe(fs.createWriteStream(path)).on('close',next);
-              //   }else{
-                  next();
-              //   }
-              // }catch (e){
-              //   console.log('下载头像失败：'+obj.avatorUrl);
-              //   console.log(e.message)
-              //   next();
-              // }
+              var playerData = [];
+              for (let i = 0; i < room.positions.length; i++) {
+                if(room.positions[i].state > 0){
+                  playerData[room.positions[i].posId] = {
+                    uid: room.positions[i].uid,
+                    state: room.positions[i].state,
+                    name: room.positions[i].name,
+                    avatorUrl: room.positions[i].avatorUrl,
+                    score: room.positions[i].score,
+                    posId: room.positions[i].posId,
+                  };
+                }
+              }
+
+              self.socketEmit(userObj,"LOGIN_SUCCESS",{
+                roomId:room.name,
+                posId:obj.posId,
+                play_mode:room.play_mode,
+                playerData:playerData,
+              });
+              self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
 
             }else{
               socket.emit("MESSAGE",'房间已满员');
@@ -527,16 +618,17 @@ const proto = {
           plusNum = 1;
         }
         var curPosId = self.getPosId(socket);
+        var userObj = desk.positions[curPosId];
         var nextPosId = self.getNextPosId(socket,curPosId);
         var plus_cards = [];
         for (let i = 0; i < plusNum; i++) {
           var card = desk.cards.shift();
           plus_cards.push(card);
-          desk.positions[curPosId].cards.push(card);
+          userObj.cards.push(card);
         }
 
-        console.log("玩家["+desk.positions[curPosId].name+"] 摸牌 ",plus_cards,' 手牌：',desk.positions[curPosId].cards.length);
-        socket.emit("PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
+        console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
+        self.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
         self.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId});
       });
 
@@ -584,7 +676,7 @@ const proto = {
               for (let k = 0; k < 7; k++) {
                 userObj.cards.push(desk.cards.shift());
               }
-              userObj.socket.emit('GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId});
+            self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId});
           }
         }
       });
@@ -592,7 +684,6 @@ const proto = {
       socket.on('disconnect', function(){
 
         for (let i = 0; i < self.desks.length; i++) {
-          var isClean = true;
           for (let j = 0; j < self.desks[i].positions.length; j++) {
 
             var userObj = self.desks[i].positions[j];
@@ -600,35 +691,14 @@ const proto = {
             if(userObj.state > 0 && userObj.socket && userObj.socket.id == socket.id){
 
               console.log('用户 '+userObj.name+" "+userObj.uid+' 断线');
-
-              self.desks[i].positions[j].state = 0;
-              self.desks[i].positions[j].name = '';
-              self.desks[i].positions[j].avatorUrl = '';
-              self.desks[i].positions[j].score = 0;
-              self.desks[i].positions[j].socket = null;
-              self.desks[i].positions[j].cards = [];
+              //记录掉线时间
               delete self.clients[userObj.uid];
-              self.desks[i].positions[j].uid = 0;
-
-              self.desks[i].state = 0;
-
-              self.broadCastRoom("MESSAGE",self.desks[i].deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
-              self.broadCastRoom("SIT_CHANGE",self.desks[i].deskId,{target:null,posId:userObj.posId},userObj.uid);
+              userObj.socket = null;
+              userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
             }
-            if(self.desks[i].positions[j].state != 0){
-              isClean = false;
-            }
-          }
-          if(isClean){
-            self.desks[i].name = '';
-            self.desks[i].state = 0;
-            self.desks[i].play_index = 1;
-            self.desks[i].play_mode = -1;
-
           }
         }
       });
-
     });
 
     http.listen(9003, function(){
