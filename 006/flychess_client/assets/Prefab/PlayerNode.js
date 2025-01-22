@@ -49,30 +49,30 @@ cc.Class({
             this.chess_list[i].resumeAllActions()
         }
     },
-    //进入后台恢复强刷画面
-    renderNowGame(){
-        var all_places = this.map.getComponent('Map').getPosPlaces(this.posId);
-        for (let i = 0; i < this.chess_list.length; i++) {
-            var target_place_node;
-            var moveTo;
-            if(this.chess_steps[i] > -1) {
-                if(this.chess_steps[i] == 0 && this.chess_status[i] == 1){ //起机
-                    target_place_node = this.standup_pos;
-                    moveTo = this.chess_list[i].parent.convertToNodeSpaceAR(target_place_node.parent.convertToWorldSpaceAR(target_place_node.position))
-                }else{
-                    if(this.chess_steps[i] == all_places.length - 1){//终点
-                        moveTo = this.finish_tags[i].position;
-                        this.finish_tags[i].active = true;
-                    }else{
-                        target_place_node = all_places[this.chess_steps[i]];
-                        moveTo = this.chess_list[i].parent.convertToNodeSpaceAR(target_place_node.parent.convertToWorldSpaceAR(target_place_node.position))
-                    }
-                }
-                this.chess_list[i].position = moveTo;
-            }
-        }
-        this.render();
-    },
+    // //进入后台恢复强刷画面
+    // renderNowGame(){
+    //     var all_places = this.map.getComponent('Map').getPosPlaces(this.posId);
+    //     for (let i = 0; i < this.chess_list.length; i++) {
+    //         var target_place_node;
+    //         var moveTo;
+    //         if(this.chess_steps[i] > -1) {
+    //             if(this.chess_steps[i] == 0 && this.chess_status[i] == 1){ //起机
+    //                 target_place_node = this.standup_pos;
+    //                 moveTo = this.chess_list[i].parent.convertToNodeSpaceAR(target_place_node.parent.convertToWorldSpaceAR(target_place_node.position))
+    //             }else{
+    //                 if(this.chess_steps[i] == all_places.length - 1){//终点
+    //                     moveTo = this.finish_tags[i].position;
+    //                     this.finish_tags[i].active = true;
+    //                 }else{
+    //                     target_place_node = all_places[this.chess_steps[i]];
+    //                     moveTo = this.chess_list[i].parent.convertToNodeSpaceAR(target_place_node.parent.convertToWorldSpaceAR(target_place_node.position))
+    //                 }
+    //             }
+    //             this.chess_list[i].position = moveTo;
+    //         }
+    //     }
+    //     this.render();
+    // },
     onPlayMoveStepAnim(chess_idx,num){
 
         for (let i = 0; i < this.chess_list.length; i++) {
@@ -80,9 +80,12 @@ cc.Class({
         }
         var that = this;
         var nextFunc = function(){
-            if(globalData.gameMgr.posId == that.posId){
-                that._chessClickLock = false;
-                globalData.eventlister.fire("FINISH_MOVE_STEP");
+
+            if(!globalData.gameMgr.isRecover){ //正常游玩
+                if(globalData.gameMgr.posId == that.posId){
+                    that._chessClickLock = false;
+                    globalData.eventlister.fire("FINISH_MOVE_STEP");
+                }
             }
         }
         var status = this.chess_status[chess_idx];
@@ -142,15 +145,24 @@ cc.Class({
         this.chess_status[idx] = 1;
 
         this.cur_run_idx = idx;
-        var moveTo = this.chess_list[this.cur_run_idx].parent.convertToNodeSpaceAR(this.standup_pos.parent.convertToWorldSpaceAR(this.standup_pos.position))
-        var act1 = cc.moveTo(0.5,moveTo);
-        var act2 = cc.rotateTo(0.5,this.standup_pos.getComponent("Place").angle);
-        this.chess_list[this.cur_run_idx].runAction(act1)
-        this.chess_list[this.cur_run_idx].runAction(cc.sequence(act2,cc.callFunc(function () {
+        var moveTo = this.chess_list[this.cur_run_idx].parent.convertToNodeSpaceAR(this.standup_pos.parent.convertToWorldSpaceAR(this.standup_pos.position));
+
+        if(globalData.gameMgr.isRecover){
+            this.chess_list[this.cur_run_idx].position = moveTo;
+            this.chess_list[this.cur_run_idx].angle = this.standup_pos.getComponent("Place").angle;
             if(cbFunc){
                 cbFunc()
             }
-        }, this)))
+        }else{
+            var act1 = cc.moveTo(0.5,moveTo);
+            var act2 = cc.rotateTo(0.5,this.standup_pos.getComponent("Place").angle);
+            this.chess_list[this.cur_run_idx].runAction(act1)
+            this.chess_list[this.cur_run_idx].runAction(cc.sequence(act2,cc.callFunc(function () {
+                if(cbFunc){
+                    cbFunc()
+                }
+            }, this)));
+        }
     },
 
     moveStep(idx,num,allCallFunc){
@@ -166,13 +178,18 @@ cc.Class({
         var cur_chess = this.chess_list[this.cur_run_idx];
 
         function animBomb(target_place) {
-            seq1.push(cc.callFunc(function () {
-                cur_chess.active = false;
-                target_place.bomb.play()
-                that.scheduleOnce(function () {
-                    cur_chess.active = true;
-                }, 0.5)
-            }, that))
+
+            if(globalData.gameMgr.isRecover){
+
+            }else{
+                seq1.push(cc.callFunc(function () {
+                    cur_chess.active = false;
+                    target_place.bomb.play()
+                    that.scheduleOnce(function () {
+                        cur_chess.active = true;
+                    }, 0.5)
+                }, that))
+            }
 
             var num = 3; // 爆炸退3格
             var _target_place;
@@ -184,21 +201,33 @@ cc.Class({
                     _target_place = target_place_node.getComponent('Place')
                     var moveTo = cur_chess.parent.convertToNodeSpaceAR(target_place_node.parent.convertToWorldSpaceAR(target_place_node.position))
                     var angle = _target_place.angle;
-                    var act1 = cc.rotateTo(0.2, angle)
-                    var act2 = cc.moveTo(0.2, moveTo)
 
-                    seq1.push(act1)
-                    seq2.push(act2)
+                    if(globalData.gameMgr.isRecover){
+                        that.chess_list[that.cur_run_idx].position = moveTo;
+                        that.chess_list[that.cur_run_idx].angle = angle;
+                    }else{
+                        var act1 = cc.rotateTo(0.2, angle)
+                        var act2 = cc.moveTo(0.2, moveTo)
+                        seq1.push(act1)
+                        seq2.push(act2)
+                    }
+
                 }else{
                     //回到起飞点
                     that.chess_steps[idx] = 0;
                     that.chess_status[idx] = 1;
 
                     var moveTo = that.chess_list[idx].parent.convertToNodeSpaceAR(that.standup_pos.parent.convertToWorldSpaceAR(that.standup_pos.position))
-                    var act1 = cc.moveTo(0.5,moveTo);
-                    var act2 = cc.rotateTo(0.5,that.standup_pos.getComponent("Place").angle);
-                    seq1.push(act1)
-                    seq2.push(act2)
+                    var angle = that.standup_pos.getComponent("Place").angle;
+                    if(globalData.gameMgr.isRecover){
+                        that.chess_list[that.cur_run_idx].position = moveTo;
+                        that.chess_list[that.cur_run_idx].angle = angle;
+                    }else{
+                        var act1 = cc.moveTo(0.5,moveTo);
+                        var act2 = cc.rotateTo(0.5,angle);
+                        seq1.push(act1);
+                        seq2.push(act2);
+                    }
                     continue;
                 }
             }
@@ -220,38 +249,55 @@ cc.Class({
 
             var moveTo = cur_chess.parent.convertToNodeSpaceAR(target_place_node.parent.convertToWorldSpaceAR(target_place_node.position))
             var angle = target_place.angle;
-            var act1 = cc.rotateTo(0.1, angle)
-            var act2 = cc.moveTo(0.2, moveTo)
-            // 检测飞行过程中是否撞别人的飞机
-            var act3 = cc.callFunc(function () {
-
+            if(globalData.gameMgr.isRecover){
+                that.chess_list[that.cur_run_idx].position = moveTo;
+                that.chess_list[that.cur_run_idx].angle = angle;
                 that.map.getComponent('Map').checkFlyHit(that.posId);
-            });
-            seq1.push(act1)
-            seq1.push(act3)
-            seq2.push(act2)
+            }else{
+                var act1 = cc.rotateTo(0.1, angle)
+                var act2 = cc.moveTo(0.2, moveTo);
+                // 检测飞行过程中是否撞别人的飞机
+                var act3 = cc.callFunc(function () {
+
+                    that.map.getComponent('Map').checkFlyHit(that.posId);
+                });
+                seq1.push(act1)
+                seq1.push(act3)
+                seq2.push(act2);
+            }
+
             that.chess_steps[idx] = that.chess_steps[idx] + num;
 
             if(target_place.type == 1) { //炸弹
                 animBomb(target_place)
             }
 
-            seq1.push(cc.callFunc(function () {
+            if(globalData.gameMgr.isRecover){
                 // 吃
                 that.map.getComponent('Map').checkEat(that.posId,target_place.id);
-            },that));
+            }else{
+                seq1.push(cc.callFunc(function () {
+                    // 吃
+                    that.map.getComponent('Map').checkEat(that.posId,target_place.id);
+                },that));
+            }
         }
 
         function jumpTo(idx,cbFunc){
-            var act1 = cc.rotateTo(0.35, 0)
-            var act2 = cc.moveTo(0.35, that.finish_tags[idx].position)
-            seq1.push(act1)
-            seq2.push(act2)
-            seq2.push(cc.callFunc(function () {
-                if(cbFunc){
-                    cbFunc()
-                }
-            }, that))
+            if(globalData.gameMgr.isRecover){
+                that.chess_list[that.cur_run_idx].position = that.finish_tags[idx].position;
+                that.chess_list[that.cur_run_idx].angle = 0;
+            }else{
+                var act1 = cc.rotateTo(0.35, 0)
+                var act2 = cc.moveTo(0.35, that.finish_tags[idx].position)
+                seq1.push(act1)
+                seq2.push(act2)
+                seq2.push(cc.callFunc(function () {
+                    if(cbFunc){
+                        cbFunc()
+                    }
+                }, that));
+            }
             that.chess_steps[idx] = -1;
         }
 
@@ -260,12 +306,16 @@ cc.Class({
             var is_special = false;
             if(target_place.type == 2 && target_place.color == that.color) { //跳
 
-                seq1.push(cc.delayTime(0.4))
-                seq2.push(cc.delayTime(0.4))
-                seq1.push(cc.callFunc(function () {
-                    // 吃
+                if(globalData.gameMgr.isRecover){
                     that.map.getComponent('Map').checkEat(that.posId,target_place.id);
-                }, that))
+                }else{
+                    seq1.push(cc.delayTime(0.4));
+                    seq2.push(cc.delayTime(0.4));
+                    seq1.push(cc.callFunc(function () {
+                        // 吃
+                        that.map.getComponent('Map').checkEat(that.posId,target_place.id);
+                    }, that))
+                }
                 jumpOnNum(12)
 
                 is_special = true;
@@ -309,21 +359,34 @@ cc.Class({
                     if(target_place_node) {
                         target_place = target_place_node.getComponent('Place');
 
-
                         var moveTo = cur_chess.parent.convertToNodeSpaceAR(target_place_node.parent.convertToWorldSpaceAR(target_place_node.position))
                         var angle = target_place.angle;
-                        var act1 = cc.rotateTo(0.2, angle)
-                        var act2 = cc.moveTo(0.2, moveTo)
 
-                        seq1.push(act1)
-                        seq2.push(act2)
+                        if(globalData.gameMgr.isRecover){
+
+                            that.chess_list[that.cur_run_idx].position = moveTo;
+                            that.chess_list[that.cur_run_idx].angle = angle;
+
+                        }else{
+                            var act1 = cc.rotateTo(0.2, angle)
+                            var act2 = cc.moveTo(0.2, moveTo)
+
+                            seq1.push(act1)
+                            seq2.push(act2)
+                        }
                     }
                 }
                 var _cur_step = that.chess_steps[idx];
-                seq1.push(cc.callFunc(function () {
+
+                if(globalData.gameMgr.isRecover){
                     // check
                     that.map.getComponent('Map').checkEat(that.posId,all_places[_cur_step].getComponent('Place').id);
-                },that));
+                }else{
+                    seq1.push(cc.callFunc(function () {
+                        // check
+                        that.map.getComponent('Map').checkEat(that.posId,all_places[_cur_step].getComponent('Place').id);
+                    },that));
+                }
 
                 that.chess_status[idx] = 2;
 
@@ -339,8 +402,13 @@ cc.Class({
                 var target_place = all_places[that.chess_steps[idx]].getComponent('Place');
                 if (target_place.type == 6) {
 
-                    seq1.push(cc.delayTime(0.4))
-                    seq2.push(cc.delayTime(0.4))
+                    if(globalData.gameMgr.isRecover){
+
+                    }else{
+                        seq1.push(cc.delayTime(0.4))
+                        seq2.push(cc.delayTime(0.4))
+                    }
+
                     jumpTo(idx, function () {
                         that.finish_tags[idx].active = true;
                         that.chess_status[idx] = 3;
@@ -349,8 +417,14 @@ cc.Class({
                 } else if (target_place.type == 0 || target_place.type == 7) { //普通
 
                     if (target_place.type == 0 && target_place.color == that.color) {//同色 奖励
-                        seq1.push(cc.delayTime(0.4))
-                        seq2.push(cc.delayTime(0.4))
+
+                        if(globalData.gameMgr.isRecover){
+
+                        }else{
+                            seq1.push(cc.delayTime(0.4))
+                            seq2.push(cc.delayTime(0.4))
+                        }
+
 
                         moveOnNumSimple(4)
                     }
@@ -361,16 +435,23 @@ cc.Class({
 
         moveOnNum(num);
 
-        seq1.push(cc.callFunc(function () {
+        if(globalData.gameMgr.isRecover){
             if(allCallFunc){
                 allCallFunc()
             }
-        }, that))
-        seq2.push(cc.callFunc(function () {
+        }else{
+            seq1.push(cc.callFunc(function () {
+                if(allCallFunc){
+                    allCallFunc()
+                }
+            }, that))
+            seq2.push(cc.callFunc(function () {
 
-        }, that))
-        this.chess_list[this.cur_run_idx].runAction(cc.sequence(seq1))
-        this.chess_list[this.cur_run_idx].runAction(cc.sequence(seq2))
+            }, that))
+            this.chess_list[this.cur_run_idx].runAction(cc.sequence(seq1))
+            this.chess_list[this.cur_run_idx].runAction(cc.sequence(seq2))
+        }
+
 
         if(all_places[that.chess_steps[idx]]){
             this.map.getComponent('Map').setChessPlace(this.posId,idx,all_places[that.chess_steps[idx]].getComponent('Place').id)
@@ -379,16 +460,21 @@ cc.Class({
 
     backHome(chess_idx){
 
-        var seq = cc.sequence([
-            cc.rotateTo(0.2, 0),
-            cc.rotateTo(0.15, 720),
-            cc.rotateTo(0.15, 0)
-        ])
-        var act2 = cc.moveTo(0.5, this.finish_tags[chess_idx].position)
-        this.chess_steps[chess_idx] = -1;
-        this.chess_status[chess_idx] = 0;
-        this.chess_list[chess_idx].runAction(seq)
-        this.chess_list[chess_idx].runAction(act2)
+        if(globalData.gameMgr.isRecover){
+            this.chess_list[chess_idx].angle = 0;
+            this.chess_list[chess_idx].position = this.finish_tags[chess_idx].position;
+        }else{
+            var seq = cc.sequence([
+                cc.rotateTo(0.2, 0),
+                cc.rotateTo(0.15, 720),
+                cc.rotateTo(0.15, 0)
+            ])
+            var act2 = cc.moveTo(0.5, this.finish_tags[chess_idx].position)
+            this.chess_steps[chess_idx] = -1;
+            this.chess_status[chess_idx] = 0;
+            this.chess_list[chess_idx].runAction(seq)
+            this.chess_list[chess_idx].runAction(act2)
+        }
     },
     getChessNowPlaceId(idx){
         var all_places = this.map.getComponent('Map').getPosPlaces(this.posId);

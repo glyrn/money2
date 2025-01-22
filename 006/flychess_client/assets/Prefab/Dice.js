@@ -34,5 +34,21 @@ cc.Class({
         this.show_num = num
         this.cbFunc = cbFunc;
         this.getComponent(cc.Animation).play()
+    },
+    showNum(num,cbFunc){
+        this.getComponent(cc.Button).interactable = false;
+        this.node.active = true;
+        this.tips.active = false;
+        this.show_num = num
+        this.cbFunc = cbFunc;
+
+        this.getComponent(cc.Sprite).spriteFrame = this['spriteNum'+this.show_num];
+        if(!this.isShow) {
+            this.tips.active = true;
+            this.node.active = false;
+        }
+        if(this.cbFunc){
+            this.cbFunc()
+        }
     }
 })

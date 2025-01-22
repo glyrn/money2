@@ -235,8 +235,12 @@ cc.Class({
             this.playerNodes[i].cleanDice();
         }
         console.log("cc.gameInBackgroud ",cc.gameInBackgroud)
+        if(globalData.gameMgr.isRecover){
+            this.dice.getComponent("Dice").showNum(num,cbFunc)
+        }else{
+            this.dice.getComponent("Dice").playNum(num,cbFunc)
+        }
 
-        this.dice.getComponent("Dice").playNum(num,cbFunc)
     },
 
     nextPlayerDice(data){

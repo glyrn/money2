@@ -18,11 +18,17 @@ const socketMgr = function(){
             'reconnection': false,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
-            'path':'/fxq_socket.io',
         }
         console.log(defines.serverUrl)
-
-        _socket = window.io.connect('wss://' + defines.serverUrl, opts);
+        var protocol = ''
+        if(defines.isDebug){
+            protocol = 'ws://';
+        }else{
+            opts['path'] = '/fxq_socket.io';
+            protocol = 'wss://';
+        }
+        console.log(protocol+defines.serverUrl)
+        _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('ping', function (data) {
             //心跳
             _socket.emit('pong', {beat: 1});
@@ -47,11 +53,14 @@ const socketMgr = function(){
             _gameMgr.posId = data.posId;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
-            _gameMgr.checkBeat();
 
+            _gameMgr.checkBeat();
             if (_cbLogin) {
                 _cbLogin();
             }
+        });
+        _socket.on("SET_RECOVER_STATUS",function(data){
+            _gameMgr.isRecover = data.isRecover;
         });
 
         _socket.on("MAKE_DICE_NUM_SUCCESS",function(data){
@@ -100,24 +109,36 @@ const socketMgr = function(){
         });
     }
 
-    that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,cbFunc){
-        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count});
+    that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
+        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count,ob_uid:ob_uid});
         _cbLogin = cbFunc;
+        //是否旁观
+        _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;
     }
-
+    that.checkIsObserve = function(){
+        if(_gameMgr.is_ob){
+            _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
+        }
+        return _gameMgr.is_ob;
+    }
     that.prepare = function(){
+        if(that.checkIsObserve()) return;
         _socket.emit('PREPARE');
     }
     that.makeDiceNum = function(){
+        if(that.checkIsObserve()) return;
         _socket.emit('MAKE_DICE_NUM');
     }
     that.playMoveStep = function(chess_idx,num){
+        if(that.checkIsObserve()) return;
         _socket.emit('PLAY_MOVE_STEP', {idx:chess_idx,num:num});
     }
     that.nextPlayerDice = function(){
+        if(that.checkIsObserve()) return;
         _socket.emit('NEXT_PLAYER_DICE');
     }
     that.finish_chess = function(posId,chess_idx){
+        if(that.checkIsObserve()) return;
         _socket.emit('FINISH_CHESS', {posId:posId,idx:chess_idx});
     }
     that.getSocket = function(){
