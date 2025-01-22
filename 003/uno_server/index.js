@@ -26,8 +26,6 @@ function GameServer() {
 
   this.desks = this.createDeskList(50);
   this.clients = {};
-
-  this.onlineUser = {}
 }
 function getCurrentIP() {
   const interfaces = os.networkInterfaces();
@@ -43,7 +41,7 @@ function getCurrentIP() {
 const proto = {
 
   time:function (){
-    return (new Date()).toLocaleTimeString();
+    return (new Date()).toLocaleDateString()+" "+(new Date()).toLocaleTimeString();
   },
 //获取 0-num范围的随机整数
   getRandomNumForRange:function(num) {

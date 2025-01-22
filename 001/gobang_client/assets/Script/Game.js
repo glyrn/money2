@@ -351,7 +351,7 @@ cc.Class({
             this.avator_target.getComponent("Avator").setData(globalData.gameMgr.playerData.target);
         }
 
-        this.lab_room.string = "版本:v0.0.2 房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
     },
     makeRetrackWithPc(){
         var del_list = [];
