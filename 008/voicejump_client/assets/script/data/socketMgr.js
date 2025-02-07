@@ -79,8 +79,8 @@ const socketMgr = function(){
             _eventMgr.fire("REFRESH_DATA",data)
         });
 
-        _socket.on("BIRD_RISE_SUCCESS",function(data){
-            _eventMgr.fire("BIRD_RISE_SUCCESS",data)
+        _socket.on("BIRD_MOVE_SUCCESS",function(data){
+            _eventMgr.fire("BIRD_MOVE_SUCCESS",data)
         });
         _socket.on("GAIN_SCORE_SUCCESS",function(data){
             _gameMgr.playerData[data.posId].gain_score = data.gain_score;
@@ -105,6 +105,7 @@ const socketMgr = function(){
             for (const posId in _gameMgr.playerData) {
                 _gameMgr.playerData[posId].game_type = 'normal';
             }
+            _gameMgr.roomState.gametime_remain = Date.parse(new Date()) / 1000 + 1 * 60;
             _eventMgr.fire("GAME_START",data);
         })
 
@@ -128,8 +129,8 @@ const socketMgr = function(){
     that.prepare = function(){
         _socket.emit('PREPARE');
     }
-    that.birdRise = function(data){
-        _socket.emit('BIRD_RISE',data);
+    that.birdMove = function(data){
+        _socket.emit('BIRD_MOVE',data);
     }
     that.fallOver = function(){
         _socket.emit('FALL_OVER');

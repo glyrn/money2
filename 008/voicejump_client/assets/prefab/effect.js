@@ -2,7 +2,7 @@ cc.Class({
     extends: cc.Component,
     name:"Effect",
     properties: {
-
+        isRepeatMove:false,
     },
     fadeOut:function(){
         var that = this;
@@ -15,5 +15,16 @@ cc.Class({
                 that.node.getComponent(cc.BoxCollider).enabled = true;
             }, that)
         ))
+    },
+    start:function(){
+        if(this.isRepeatMove){
+            this.node.runAction(
+                cc.repeatForever(
+                    cc.sequence(
+                    cc.moveBy(1,200,0),
+                    cc.moveBy(1,-200,0)
+                ))
+            )
+        }
     }
 });

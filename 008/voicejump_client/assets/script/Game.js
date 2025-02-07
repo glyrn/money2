@@ -26,6 +26,9 @@ cc.Class({
         btn_score:cc.Node,
         tips:cc.Node,
         prog_bar:ProgBar,
+        _lastVoiceTime:0,
+        _voiceCDTime:200,
+        slide_voice:cc.Slider,
     },
     onLoad() {
 
@@ -69,15 +72,8 @@ cc.Class({
             that.render();
         });
 
-        globalData.eventlister.on("REFRESH_DATA",function(refresh_list){
-            for (let i = 0; i < refresh_list.length; i++) {
-                var refreshData = refresh_list[i];
-                that['player'+refreshData.posId].refreshData(refreshData);
-            }
-        });
-
-        globalData.eventlister.on("BIRD_RISE_SUCCESS",function(data){
-            that['player' + data.posId].rise(data)
+        globalData.eventlister.on("BIRD_MOVE_SUCCESS",function(data){
+            that['player' + data.posId].move(data)
         });
 
         globalData.eventlister.on("GAIN_SCORE",function(score){
@@ -91,7 +87,7 @@ cc.Class({
             that.render();
 
             for (const i in globalData.gameMgr.playerData) {
-                that['player'+i].startFly();
+                that['player'+i].startMove();
             }
             that.panel_score.node.active = false;
         });
@@ -100,6 +96,7 @@ cc.Class({
                 that.panel_drop.active = true;
             }
             that['avator'+posId].render(globalData.gameMgr.playerData[posId]);
+            that.prog_bar.refresh();
         });
         globalData.eventlister.on("GAME_OVER",function(data){
             for (const i in globalData.gameMgr.playerData) {
@@ -119,7 +116,15 @@ cc.Class({
 
         this.render();
         //初始化麦克风
-        navigator.mediaDevices.getUserMedia({audio: true}).then(
+        navigator.mediaDevices.getUserMedia({audio:{
+                "mandatory": {
+                    "googEchoCancellation": "false",
+                    "googAutoGainControl": "false",
+                    "googNoiseSuppression": "false",
+                    "googHighpassFilter": "false"
+                },
+                "optional": []
+            }}).then(
             stream => {
                 that.voiceSuccess(stream);
             }).catch(err => {
@@ -135,8 +140,17 @@ cc.Class({
     onBtnClosePanelDrop(){
         this.panel_drop.active = false;
     },
+    renderRoomTitle(){
+        this.lab_room.string = "房号:"+globalData.gameMgr.roomState.roomId+" 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
+        if(distance > 0){
+            const minutes = Math.floor((distance % ( 60 * 60)) /  60);
+            const seconds = Math.floor(distance % 60);
+            this.lab_room.string += " 倒计时:"+minutes + "分 " + seconds + "秒 ";
+        }
+    },
     render(){
-        this.lab_room.string = "房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.renderRoomTitle();
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
             globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 ;
 
@@ -151,70 +165,78 @@ cc.Class({
 
         this.prog_bar.init();
     },
-
-    // 开始或者bird jump
-    onTouchCallBack() {
-        //跳起来
-        if(!this['player'+globalData.gameMgr.posId].fallOver){
-            globalData.socketMgr.birdRise({type:1});
-        }
-    },
     // 事件控制
     enableInput(enable) {
         this._enableInput = enable;
-        if(cc.args['debug'] == 1) {
-            if (enable) {
-                this.camera.on(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
-            } else {
-                this.camera.off(cc.Node.EventType.TOUCH_START, this.onTouchCallBack, this)
-            }
-        }
     },
     voiceFail(error){
         this.onShowTips('获取麦克风音量时出错:'+ error);
     },
     voiceSuccess(stream){
 
-        var that = this;
-
         const audioContext = new AudioContext();
         const source = audioContext.createMediaStreamSource(stream);
         const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
 
         source.connect(analyser);
         analyser.connect(audioContext.destination);
 
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        this.dataArray = new Uint8Array(analyser.frequencyBinCount);
+        this.analyser = analyser;
 
-        function updateVolume() {
-            analyser.getByteFrequencyData(dataArray);
-            const rms = getRMS(dataArray);
+    },
+    update(){
 
-            // 在此处使用rms作为麦克风音量
-            // that.img_test.position = cc.v2(0, rms * 2);
-            if(rms > 50){
+        var that = this;
 
-                if(that._enableInput && cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1) {
-                    //跳起来
-                    if (!that['player' + globalData.gameMgr.posId].fallOver) {
-                        globalData.socketMgr.birdRise({type: 1});
-                    }
+        function getRMS(frequencyData) {
+            let sum = 0;
+            for (let i = 0; i < frequencyData.length; i++) {
+                sum += frequencyData[i];
+            }
+            let averageVolume = sum / frequencyData.length;
+            // let averageDecibels = 20 * Math.log10(averageVolume / 255);
+            return averageVolume;
+        }
+        if(!this.analyser) return;
+
+        this.analyser.getByteFrequencyData(this.dataArray);
+        const rms = Math.floor(getRMS(this.dataArray));
+        that.slide_voice.progress = (rms/100);
+
+        if(cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1) {
+
+            if (!that['player' + globalData.gameMgr.posId].fallOver) {
+                if(that._lastVoiceTime + that._voiceCDTime > Date.now()){
+                    return
+                }
+                that._lastVoiceTime = Date.now();
+
+                var position = this['player'+globalData.gameMgr.posId].node.parent.position;
+                if(rms > 10 && rms <= 30){ //向前走
+                    globalData.socketMgr.birdMove({type: 1,cur_x:position.x,cur_y:position.y});
+                }else if(rms > 30 && rms <= 70){ //小跳
+                    globalData.socketMgr.birdMove({type: 2,cur_x:position.x,cur_y:position.y});
+                }else if(rms > 70) { //大跳
+                    globalData.socketMgr.birdMove({type: 3,cur_x:position.x,cur_y:position.y});
                 }
             }
-
-            requestAnimationFrame(updateVolume);
         }
 
-        function getRMS(dataArray) {
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-                sum += dataArray[i] ** 2;
-            }
-            const avg = sum / dataArray.length;
-            return Math.sqrt(avg);
-        }
-
-        updateVolume();
+        this.renderRoomTitle();
+    },
+    onBtnRun(){
+        var position = this['player'+globalData.gameMgr.posId].node.parent.position;
+        globalData.socketMgr.birdMove({type: 1,cur_x:position.x,cur_y:position.y});
+    },
+    onBtnJump1(){
+        var position = this['player'+globalData.gameMgr.posId].node.parent.position;
+        globalData.socketMgr.birdMove({type: 2,cur_x:position.x,cur_y:position.y});
+    },
+    onBtnJump2(){
+        var position = this['player'+globalData.gameMgr.posId].node.parent.position;
+        globalData.socketMgr.birdMove({type: 3,cur_x:position.x,cur_y:position.y});
     },
     onShowTips(msg){
         var that = this;

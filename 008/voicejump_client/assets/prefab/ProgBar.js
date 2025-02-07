@@ -12,6 +12,7 @@ cc.Class({
     onLoad: function () {
         for (let i = 0; i < 4; i++) {
             this['avator' + i].node.active = false;
+            this['avator' + i].node.getChildByName("label").active = false;
         }
         var that = this;
         globalData.eventlister.on("GAIN_SCORE_SUCCESS", function (data) {
@@ -26,6 +27,7 @@ cc.Class({
             if(globalData.gameMgr.playerData[i].avatorUrl){
                 cc.loader.load(globalData.gameMgr.playerData[i].avatorUrl, function (err, img) {
                     if (!err) {
+                        that['avator' + i].node.getChildByName("label").active = false;
                         that['avator' + i].spriteFrame = new cc.SpriteFrame(img);
                         that['avator' + i].node.x = 0;
                     }
@@ -36,8 +38,14 @@ cc.Class({
     refresh: function () {
         var that = this;
         for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
-            if(globalData.gameMgr.playerData[i]){
-                that['avator' + i].node.x = globalData.gameMgr.playerData[i].gain_score / 100 * 450;
+            var data = globalData.gameMgr.playerData[i];
+            if(data){
+                if(data.game_type == 'fall'){
+                    that['avator' + i].node.getChildByName("label").active = true;
+                }else{
+                    that['avator' + i].node.x = data.gain_score / 100 * 450;
+                }
+
             }else{
                 that['avator' + i].node.active = false;
             }

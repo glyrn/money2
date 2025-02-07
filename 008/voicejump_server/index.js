@@ -151,6 +151,16 @@ const proto = {
     }
     return findDesk;
   },
+  checkTimeGameOver:function(){
+    for (let _i = 0, len = this.desks.length; _i < len; _i++) {
+      var desk = this.desks[_i];
+      if(desk.state == 1) {
+        if (Date.parse(new Date()) / 1000 - desk.start_time > 1 * 60){ //最多玩5分钟
+          this.gameOver(desk);
+        }
+      }
+    }
+  },
   broadCastRoom:function(event,roomId,data,except){
     for (let i = 0; i < this.desks.length; i++) {
       if(this.desks[i].deskId == roomId){
@@ -179,6 +189,7 @@ const proto = {
     for (let i = 0; i < desk.positions.length; i++) {
       desk.positions[i].state = 1;
     }
+    desk.state = 0;
     this.broadCastRoom("GAME_OVER",desk.deskId,score_list);
   },
   init:function () {
@@ -188,6 +199,10 @@ const proto = {
       io.sockets.emit('ping', {beat: 1});
     }
     setTimeout(setHeartbeat, 5000);
+
+    setInterval(function(){
+      self.checkTimeGameOver();
+    },1000);
 
     const self = this;
     io.on('connection', function(socket){
@@ -290,8 +305,10 @@ const proto = {
           }
         }
 
-        if(desk.play_mode == 1 && ready_count == 2 ||
-            desk.play_mode == 2 && ready_count == 4 ){
+        if(desk.play_mode == 1 && ready_count == 1 ||
+            desk.play_mode == 2 && ready_count == 2 ||
+            desk.play_mode == 3 && ready_count == 3 ||
+            desk.play_mode == 4 && ready_count == 4 ){
           desk.ready_count = ready_count;
           desk.state = 1;//开始游戏
           isStartGame = true;
@@ -300,24 +317,20 @@ const proto = {
         self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),prepare_posId);
         if(isStartGame)
         {
+          desk.start_time = Date.parse(new Date()) / 1000;
           self.broadCastRoom("GAME_START",self.getDeskId(socket),{level:1});
-
-          var refresh_list = [];
           for (let j = 0; j < desk.positions.length; j++) {
             desk.positions[j].gain_score = 0;
-            desk.positions[j].refreshData = {game_type:'normal',speedX:300,posId:j};
-            refresh_list.push(desk.positions[j].refreshData);
+            desk.positions[j].refreshData = {game_type:'normal',posId:j};
           }
-
-          self.broadCastRoom("REFRESH_DATA",self.getDeskId(socket),refresh_list);
         }
       });
 
-      socket.on("BIRD_RISE",function(data){
+      socket.on("BIRD_MOVE",function(data){
         const desk = self.getDesk(socket);
         var posId = self.getPosId(socket);
         if(desk.positions[posId].refreshData.game_type != "fall"){
-          self.broadCastRoom("BIRD_RISE_SUCCESS",self.getDeskId(socket),{type:data.type,posId:posId});
+          self.broadCastRoom("BIRD_MOVE_SUCCESS",self.getDeskId(socket),{type:data.type,posId:posId,cur_x:data.cur_x,cur_y:data.cur_y});
         }
       });
 
@@ -325,9 +338,7 @@ const proto = {
         const desk = self.getDesk(socket);
         var posId = self.getPosId(socket);
         desk.positions[posId].refreshData.game_type = 'fall';
-        desk.positions[posId].refreshData.speedX = 0;
         self.broadCastRoom("FALL_OVER_SUCCESS",self.getDeskId(socket),posId);
-        self.broadCastRoom("REFRESH_DATA",self.getDeskId(socket),[desk.positions[posId].refreshData]);
 
         var fall_num = 0;
         var player_num = 0;
@@ -345,26 +356,6 @@ const proto = {
         }
       });
 
-      socket.on("PAUSE_OVER",function(data){
-        const desk = self.getDesk(socket);
-        var posId = self.getPosId(socket);
-        desk.positions[posId].refreshData.game_type = 'pause';
-        desk.positions[posId].refreshData.speedX = 0;
-        if(desk.positions[posId].pause_over_timer){
-          clearInterval(desk.positions[posId].pause_over_timer);
-          desk.positions[posId].pause_over_timer = null;
-        }
-        desk.positions[posId].pause_over_timer = setTimeout(function(){
-          //恢复飞行
-          if(desk.positions[posId].refreshData.game_type == 'pause') {
-            desk.positions[posId].refreshData.game_type = 'normal';
-            desk.positions[posId].refreshData.speedX = 300;
-            self.broadCastRoom("REFRESH_DATA", self.getDeskId(socket), [desk.positions[posId].refreshData]);
-          }
-        },1500)
-        self.broadCastRoom("PAUSE_OVER_SUCCESS",self.getDeskId(socket),{posId:posId});
-        self.broadCastRoom("REFRESH_DATA",self.getDeskId(socket),[desk.positions[posId].refreshData]);
-      })
 
       socket.on("GAIN_SCORE",function(data){
         const desk = self.getDesk(socket);
@@ -373,9 +364,9 @@ const proto = {
 
         self.broadCastRoom("GAIN_SCORE_SUCCESS",self.getDeskId(socket),{posId:posId,gain_score:data});
 
-        if(data >= 100){
-          self.gameOver(desk);
-        }
+        // if(data >= 100){
+        //   self.gameOver(desk);
+        // }
       });
 
       socket.on('disconnect', function(){

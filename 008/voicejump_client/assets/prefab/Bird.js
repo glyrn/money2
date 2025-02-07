@@ -3,10 +3,8 @@ import globalData from "../script/data/globalData";
 const State = cc.Enum({
     //游戏开始前的准备状态
     Ready: -1,
-    //小鸟上升中
-    Rise: -1,
-    //小鸟自由落体中
-    FreeFall: -1,
+    //移动
+    MOVE:-1,
     //小鸟碰撞到管道坠落中
     Drop: -1,
     //游戏结束
@@ -19,10 +17,12 @@ cc.Class({
     extends: cc.Component,
     properties: {
         //上抛初速度，单位：像素/秒
-        initRiseSpeed: 800,
+        initRiseSpeed1: 500,
+        initRiseSpeed2: 700,
         iceRiseSpeed:300,
         //重力加速度，单位：像素/秒的平方
         gravity: 1000,
+        // speedX:0,
         main_camera:cc.Node,
         main_ui:cc.Node,
         lab_name:cc.Label,
@@ -46,14 +46,17 @@ cc.Class({
         }
 
         this.lab_name.string = data.name;
+        if(data.posId == globalData.gameMgr.posId){
+            this.lab_name.node.color = cc.Color.GREEN;
+            console.log(this.lab_name.color)
+        }
         this.node.parent.active = true;
         this.fallOver = false;
         this.state = State.Ready;
         this.currentSpeedY = 0;
-        this.currentSpeedX = 0;
+        // this.currentSpeedX = 0;
         this.anim = this.getComponent(cc.Animation);
-        // this.anim.playAdditive("birdFlapping");
-        this.anim.playAdditive("birdWing");
+        this.anim.stop();
         this.node.angle = 0;
         this.node.parent.x = this._initPosX;
         this.node.parent.y = this._initPosY;
@@ -61,71 +64,46 @@ cc.Class({
 
         this.posId = data.posId;
     },
-    refreshData(data){
-
-        if(data.game_type == "normal") { // 正常飞行
-
-            this.currentSpeedX = data.speedX;
-
-        }else if(data.game_type == "pause"){ //暂停飞行
-
-            this.currentSpeedX = 0;
-        }else if(data.game_type == "fall") { //掉落
-
-            this.currentSpeedX = 0;
-        }
-    },
-    startFly() {
-
-        // 停止小鸟上下浮动
-        // this.anim.stop("birdFlapping");
-        // bird rise move
-        this.rise({type:1});
+    startMove() {
+        this.state = State.MOVE;
+        this.anim.stop();
     },
     update(dt) {
         if (this.state === State.Ready || this.state === State.Drop) return;
         // 每帧更新bird位置
         this.updatePosition(dt);
-        // 每帧更新状态
-        this.updateState();
         // 碰撞检测 处理
         this.detectCollision();
     },
     updatePosition(dt) {
-        var flying = this.state === State.Rise || this.state === State.FreeFall;
+        var flying = this.state === State.MOVE;
         if (flying) {
-            this.currentSpeedY -= dt * this.gravity;
-            this.node.parent.y += dt * this.currentSpeedY;
-
-            this.node.parent.x += dt * this.currentSpeedX;
-
-            if(this.posId == globalData.gameMgr.posId) {
+            if (this.posId == globalData.gameMgr.posId) {
                 this.main_camera.x = this.node.parent.x - this._initPosX;
-                var score = Math.floor((this.node.parent.x - this._initPosX)/100);
-                if(this.last_score != score){
-                    globalData.eventlister.fire("GAIN_SCORE",Math.floor((this.node.parent.x - this._initPosX)/100));
+                var score = Math.floor((this.node.parent.x - this._initPosX) / 100);
+                if (this.last_score != score) {
+                    globalData.eventlister.fire("GAIN_SCORE", Math.floor((this.node.parent.x - this._initPosX) / 100));
                     this.last_score = score;
                 }
             }
-        }
-        //限制不能超出屏幕
-        this.node.parent.y = Math.min(this.node.parent.y,640/2);
 
-        if(this.node.parent.y < -640/2){
-            this.fallOver = true;
-        }
+            //站在平台上
+            if (this.standTarget) {
+                this.node.parent.y = Math.max(this.node.parent.y, this.standTarget.position.y + this.standTarget.height / 2 + this.node.height / 2);
+            }else{
+                this.currentSpeedY -= dt * this.gravity;
+                this.node.parent.y += dt * this.currentSpeedY;
+            }
 
-    },
-    updateState() {
-        switch (this.state) {
-            case State.Rise:
-                if (this.currentSpeedY < 0) {
-                    this.state = State.FreeFall;
-                    this.runFallAction(.6);
-                }
-                break;
+            //限制不能超出屏幕
+            this.node.parent.y = Math.min(this.node.parent.y, 640 / 2);
+
+            if (this.node.parent.y < -640 / 2) {
+                this.fallOver = true;
+            }
         }
     },
+
     detectCollision() {
 
         if (this.state === State.Ready || this.state === State.Drop || this.state === State.GAMEOVER) return;
@@ -143,53 +121,79 @@ cc.Class({
     setGameOver(){
         this.state = State.GAMEOVER;
     },
+    onCollisionStay(other,self){
+        if (other.node._name === "ground"){
+            this.standTarget = other.node;
+        }
+    },
+    onCollisionExit(other, self){
+        if (other.node._name === "ground"){
+            this.standTarget = null;
+            if(this.move_type == 1){ //行走 掉落
+                this.node.parent.stopAllActions();
+            }
+        }
+    },
     onCollisionEnter(other, self) {
 
         //碰到砖块就暂停一下
         if(other.node._name === 'block'){
             if(this.posId == globalData.gameMgr.posId) {
-                globalData.socketMgr.pauseOver();
+                var position = this.node.parent.position;
+                globalData.socketMgr.birdMove({type: 2,cur_x:position.x,cur_y:position.y});
             }
             other.node.getComponent("Effect").fadeOut();
         }
-        //碰到地板要弹起来
+        //碰到地板要站着
         if (other.node._name === "ground"){
-            if(this.posId == globalData.gameMgr.posId){
-                globalData.socketMgr.birdRise({type:1});
-            }
+            this.standTarget = other.node;
         }
         //碰到冰块 冰块会消失
         if(other.node._name === 'ice'){
-            if(this.posId == globalData.gameMgr.posId) {
-                globalData.socketMgr.birdRise({type: 2});
-            }
             other.node.getComponent("Effect").fadeOut();
         }
-    },
-    rise(data) {
-        this.state = State.Rise;
-        if(data.type == 1){
-            this.currentSpeedY = this.initRiseSpeed;
-        }else if(data.type == 2){
-            this.currentSpeedY = this.iceRiseSpeed;
+        //碰到怪物 就会死
+        if (other.node._name === "monster"){
+            this.fallOver = true;
         }
+    },
+    move(data) {
+        var that = this;
+        this.state = State.MOVE;
+        this.move_type = data.type;
+        if(data.type == 1){
+            var seq = cc.sequence([
+                cc.moveTo(0.5, cc.v2(data.cur_x + 100 ,data.cur_y)),
+                cc.callFunc(function(){
+                    that.anim.play();
+                },this)
+            ])
+            this.anim.play();
+            this.node.parent.stopAllActions();
+            this.node.parent.runAction(seq)
+        }else if(data.type == 2){
+            this.standTarget = null;
+            this.currentSpeedY = this.initRiseSpeed1;
+            var seq = cc.sequence([
+                cc.moveTo(0.7, cc.v2(data.cur_x + 100 ,data.cur_y)),
+                cc.callFunc(function(){
 
-        this.runRiseAction();
+                },this)
+            ])
+            this.node.parent.stopAllActions();
+            this.node.parent.runAction(seq)
+        }else if(data.type == 3){
+            this.standTarget = null;
+            this.currentSpeedY = this.initRiseSpeed2;
+            var seq = cc.sequence([
+                cc.moveTo(1, cc.v2(data.cur_x + 250 ,data.cur_y)),
+                cc.callFunc(function(){
+
+                },this)
+            ])
+            this.node.parent.stopAllActions();
+            this.node.parent.runAction(seq)
+        }
     },
-    // 上升动作
-    runRiseAction() {
-        if (this.tweenAction) {
-            this.tweenAction.stop();
-            this.tweenAction = null;
-        };
-        this.tweenAction = cc.tween(this.node).to(.3, { angle: 30 }, { easing: 'cubicOut' }).start()
-    },
-    // 下落动作
-    runFallAction(duration) {
-        if (this.tweenAction) {
-            this.tweenAction.stop();
-            this.tweenAction = null;
-        };
-        this.tweenAction = cc.tween(this.node).to(duration, { angle: -90 }, { easing: 'cubicIn' }).start()
-    },
+
 })
