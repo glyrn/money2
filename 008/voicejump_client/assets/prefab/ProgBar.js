@@ -24,10 +24,10 @@ cc.Class({
         that.node.active = true;
         for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
             this['avator' + i].node.active = true;
+            that['avator' + i].node.getChildByName("label").active = false;
             if(globalData.gameMgr.playerData[i].avatorUrl){
                 cc.loader.load(globalData.gameMgr.playerData[i].avatorUrl, function (err, img) {
                     if (!err) {
-                        that['avator' + i].node.getChildByName("label").active = false;
                         that['avator' + i].spriteFrame = new cc.SpriteFrame(img);
                         that['avator' + i].node.x = 0;
                     }

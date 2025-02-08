@@ -38,6 +38,7 @@ cc.Class({
         this.tweenAction = null;
         this._initPosX = this.node.parent.x;
         this._initPosY = this.node.parent.y;
+        this.anim = this.getComponent(cc.Animation);
     },
     render(data){
         if(data === null || (data && data.uid === 0)){
@@ -48,14 +49,12 @@ cc.Class({
         this.lab_name.string = data.name;
         if(data.posId == globalData.gameMgr.posId){
             this.lab_name.node.color = cc.Color.GREEN;
-            console.log(this.lab_name.color)
         }
         this.node.parent.active = true;
         this.fallOver = false;
         this.state = State.Ready;
         this.currentSpeedY = 0;
         // this.currentSpeedX = 0;
-        this.anim = this.getComponent(cc.Animation);
         this.anim.stop();
         this.node.angle = 0;
         this.node.parent.x = this._initPosX;
@@ -66,7 +65,6 @@ cc.Class({
     },
     startMove() {
         this.state = State.MOVE;
-        this.anim.stop();
     },
     update(dt) {
         if (this.state === State.Ready || this.state === State.Drop) return;
@@ -162,37 +160,51 @@ cc.Class({
         this.state = State.MOVE;
         this.move_type = data.type;
         if(data.type == 1){
-            var seq = cc.sequence([
-                cc.moveTo(0.5, cc.v2(data.cur_x + 100 ,data.cur_y)),
-                cc.callFunc(function(){
-                    that.anim.play();
-                },this)
-            ])
-            this.anim.play();
-            this.node.parent.stopAllActions();
-            this.node.parent.runAction(seq)
+            if(globalData.gameMgr.isRecover){
+                this.node.parent.position = cc.v2(data.cur_x + 100 ,data.cur_y);
+            }else{
+                var seq = cc.sequence([
+                    cc.moveTo(0.5, cc.v2(data.cur_x + 100 ,data.cur_y)),
+                    cc.callFunc(function(){
+                        that.anim.play();
+                    },this)
+                ])
+                this.anim.play();
+                this.node.parent.stopAllActions();
+                this.node.parent.runAction(seq)
+            }
         }else if(data.type == 2){
             this.standTarget = null;
-            this.currentSpeedY = this.initRiseSpeed1;
-            var seq = cc.sequence([
-                cc.moveTo(0.7, cc.v2(data.cur_x + 100 ,data.cur_y)),
-                cc.callFunc(function(){
 
-                },this)
-            ])
-            this.node.parent.stopAllActions();
-            this.node.parent.runAction(seq)
+            if(globalData.gameMgr.isRecover){
+                this.node.parent.position = cc.v2(data.cur_x + 100 ,data.cur_y);
+            }else{
+                this.currentSpeedY = this.initRiseSpeed1;
+                var seq = cc.sequence([
+                    cc.moveTo(0.7, cc.v2(data.cur_x + 100 ,data.cur_y)),
+                    cc.callFunc(function(){
+
+                    },this)
+                ])
+                this.node.parent.stopAllActions();
+                this.node.parent.runAction(seq)
+            }
         }else if(data.type == 3){
             this.standTarget = null;
-            this.currentSpeedY = this.initRiseSpeed2;
-            var seq = cc.sequence([
-                cc.moveTo(1, cc.v2(data.cur_x + 250 ,data.cur_y)),
-                cc.callFunc(function(){
 
-                },this)
-            ])
-            this.node.parent.stopAllActions();
-            this.node.parent.runAction(seq)
+            if(globalData.gameMgr.isRecover){
+                this.node.parent.position = cc.v2(data.cur_x + 250 ,data.cur_y);
+            }else{
+                this.currentSpeedY = this.initRiseSpeed2;
+                var seq = cc.sequence([
+                    cc.moveTo(1, cc.v2(data.cur_x + 250 ,data.cur_y)),
+                    cc.callFunc(function(){
+
+                    },this)
+                ])
+                this.node.parent.stopAllActions();
+                this.node.parent.runAction(seq)
+            }
         }
     },
 
