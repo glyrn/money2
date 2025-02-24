@@ -1,6 +1,6 @@
 const os = require('os');
 //本地调试
-var ioParam = {path:'/wzq_socket.io'};
+var ioParam = {path:'/hlddz_socket.io'};
 if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
 }
@@ -360,9 +360,8 @@ const proto = {
       var room = this.desks[i];
       for (let j = 0; j < room.positions.length; j++) {
         var userObj = room.positions[j];
-
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 10){
-          console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 10) {
+          console.log('用户 ' + userObj.name + " " + userObj.uid + ' 已确认断线，清除数据');
           userObj.disconnectTime = null;
           //清空断线重连缓存数据
           userObj.recover_disconnect_data = [];
@@ -374,29 +373,31 @@ const proto = {
           var socket = client.socket;
           this.removeClient(socket);
           //更新座位状态
-          this.updatePosStatus(deskId, posId, 0, '','',0,0);
+          this.updatePosStatus(deskId, posId, 0, '', '', 0, 0);
           //重置房间状态
           this.updateRoomStatus(deskId, posId, 0);
           //解绑座位号 桌号
           this.updateClientState(socket);
           //通知在房间里的其它客户端，更新座位息
-          this.broadCastRoom("POS_STATUS_CHANGE", deskId, { posId, state: 0 }, socket);
+          this.broadCastRoom("POS_STATUS_CHANGE", deskId, {posId, state: 0}, socket);
           //通知大厅其它客户端更新该座位信息
-          this.broadCastHouse('STATUS_CHANGE', { deskId, posId, state: 0 });
+          this.broadCastHouse('STATUS_CHANGE', {deskId, posId, state: 0});
 
           //如果在游戏中，则有玩家强行退出，重置此房间其它玩家的状态为未准备
-          //更新其它两位玩家的座位状态为未准备
-          this.updateOtherPosStatus(deskId, posId, 1);
+          // //更新其它两位玩家的座位状态为未准备
+          // this.updateOtherPosStatus(deskId, posId, 1);
           //获取其它两位玩家的座位信息
-          const otherPosInfo = this.getOtherPosInfo(deskId, posId);
-          //通知其它两位玩家重置自己的状态为未准备
-          this.broadCastRoom("POS_STATUS_RESET", deskId, { pos: otherPosInfo, state: 1 });
+          // const otherPosInfo = this.getOtherPosInfo(deskId, posId);
+          // //通知其它两位玩家重置自己的状态为未准备
+          // this.broadCastRoom("POS_STATUS_RESET", deskId, {pos: otherPosInfo, state: 1});
           //通知其它两位玩家重置房间状态
-          this.broadCastRoom('ROOM_STATUS_CHANGE', deskId, { state: 0 });
+          this.broadCastRoom('ROOM_STATUS_CHANGE', deskId, {state: 0});
           //通知其它两位玩家当前玩家逃跑
-          this.broadCastRoom('FORCE_EXIT_EV', deskId, { msg: '有玩家逃跑，游戏结束', posId });
+          // this.broadCastRoom('FORCE_EXIT_EV', deskId, {msg: '有玩家逃跑，游戏结束', posId});
           const game = this.gameDatas[deskId];
-          game.init();
+          if (game) {
+            game.init();
+          }
         }
       }
     }
@@ -721,43 +722,33 @@ const proto = {
         }
       });
 
-      socket.on('disconnect', data => {
-        const client = this.getClient(socket);
-        if (!client) {
-          return;
-        }
+      socket.on('disconnect', function(){
 
-        const { deskId, posId } = client;
-        if (deskId) {
+        for (let i = 0; i < self.desks.length; i++) {
+          for (let j = 0; j < self.desks[i].positions.length; j++) {
+            var userObj = self.desks[i].positions[j];
 
-          //获取此桌游戏数据
-          const game = this.gameDatas[deskId];
-          //判断是否在进行游戏
-          if (game) {
-            const status = game.getStatus();
-            if (status == 1 || status == 2 || status == 4) { //游戏中
-
-              //待删旁观uid
-              var del_ob_uid = [];
-              var userObj = this.getPositionByClient(client);
-              for (const ob_uid in userObj.ob_socket_map) {
-                if(userObj.ob_socket_map[ob_uid].id == socket.id){
-                  del_ob_uid.push(ob_uid);
-                }
+            //待删旁观uid
+            var del_ob_uid = [];
+            for (const ob_uid in userObj.ob_socket_map) {
+              if(userObj.ob_socket_map[ob_uid].id == socket.id){
+                del_ob_uid.push(ob_uid);
               }
-              for (let k = 0; k < del_ob_uid.length; k++) {
-                delete userObj.ob_socket_map[del_ob_uid[k]];
-              }
-              //记录断线时间
+            }
+            for (let k = 0; k < del_ob_uid.length; k++) {
+              delete userObj.ob_socket_map[del_ob_uid[k]];
+            }
+
+            var client = self.getClientByUid(userObj.uid);
+            if(userObj.state > 0 && client && client.socket && client.socket.id == socket.id){
+
+              console.log('用户 '+userObj.name+" "+userObj.uid+' 断线');
+              //记录掉线时间
               userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
             }
           }
-
-          console.log('有客户端退出房间，桌号：%s，座位：%s，时间：', deskId, posId, time());
         }
-
-        console.log('有客户端断开了连接 %s', time());
-      })
+      });
     });
 
 
