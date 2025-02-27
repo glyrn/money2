@@ -360,7 +360,7 @@ const proto = {
       var room = this.desks[i];
       for (let j = 0; j < room.positions.length; j++) {
         var userObj = room.positions[j];
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 10) {
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 180) {
           console.log('用户 ' + userObj.name + " " + userObj.uid + ' 已确认断线，清除数据');
           userObj.disconnectTime = null;
           //清空断线重连缓存数据

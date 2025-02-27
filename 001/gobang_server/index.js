@@ -272,7 +272,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 10){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 180){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           userObj.uid = 0;
           userObj.state = 0;

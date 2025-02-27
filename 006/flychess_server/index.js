@@ -1,6 +1,6 @@
 const os = require('os');
 //本地调试
-var ioParam = {path:'/uno_socket.io'};
+var ioParam = {path:'/fxq_socket.io'};
 if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
 }
@@ -204,7 +204,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 10){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 180){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           userObj.uid = 0;
           userObj.state = 0;
