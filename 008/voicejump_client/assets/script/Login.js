@@ -40,9 +40,7 @@ cc.Class({
 
             cc.director.preloadScene("Game",function() {
 
-
                 if (defines.isDebug) {
-                    console.log("gggggggg11")
                     globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
                         cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
                             cc.director.loadScene("Game");

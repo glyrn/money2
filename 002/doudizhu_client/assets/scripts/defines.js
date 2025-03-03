@@ -5,11 +5,12 @@ var host = window.location.host;
 if(host.indexOf('localhost')!=-1){
     defines.isDebug = true;
 }
+// defines.isDebug = false;
 
 if(defines.isDebug){
     defines.serverUrl = "localhost:9002";
 }else{
-    defines.serverUrl = "www.fsyctech.com";
+    defines.serverUrl = "42.194.141.209";
 }
 
 window.defines = defines;

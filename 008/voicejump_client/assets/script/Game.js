@@ -27,7 +27,11 @@ cc.Class({
         tips:cc.Node,
         prog_bar:ProgBar,
         _lastVoiceTime:0,
+        _lastJump1Time:0,
+        _lastJump2Time:0,
         _voiceCDTime:200,
+        _jump1CDTime:700,
+        _jump2CDTime:1000,
         slide_voice:cc.Slider,
     },
     onLoad() {
@@ -116,15 +120,7 @@ cc.Class({
 
         this.render();
         //初始化麦克风
-        navigator.mediaDevices.getUserMedia({audio:{
-                "mandatory": {
-                    "googEchoCancellation": "false",
-                    "googAutoGainControl": "false",
-                    "googNoiseSuppression": "false",
-                    "googHighpassFilter": "false"
-                },
-                "optional": []
-            }}).then(
+        navigator.mediaDevices.getUserMedia({audio:true}).then(
             stream => {
                 that.voiceSuccess(stream);
             }).catch(err => {
@@ -174,36 +170,35 @@ cc.Class({
     },
     voiceSuccess(stream){
 
+        var that = this;
         const audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(stream);
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2048;
+        // 将麦克风的声音输入这个对象
+        var mediaStreamSource = audioContext.createMediaStreamSource(stream);
+        // 创建一个音频分析对象，采样的缓冲区大小为4096，输入和输出都是单声道
+        var scriptProcessor = audioContext.createScriptProcessor(4096,1,1);
+        // 将该分析对象与麦克风音频进行连接
+        mediaStreamSource.connect(scriptProcessor);
+        // 此举无甚效果，仅仅是因为解决 Chrome 自身的 bug
+        scriptProcessor.connect(audioContext.destination);
+        // 开始处理音频
+        scriptProcessor.onaudioprocess = function(e) {
+            // 获得缓冲区的输入音频，转换为包含了PCM通道数据的32位浮点数组
+            let buffer = e.inputBuffer.getChannelData(0);
+            // 获取缓冲区中最大的音量值
+            let maxVal = Math.max.apply(Math, buffer);
+            // 显示音量值
+            // console.log(Math.round(maxVal * 100));
 
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
-
-        this.dataArray = new Uint8Array(analyser.frequencyBinCount);
-        this.analyser = analyser;
+            that._rms = Math.round(maxVal * 100);
+            that.slide_voice.progress = that._rms / 100;
+        };
 
     },
     update(){
 
         var that = this;
 
-        function getRMS(frequencyData) {
-            let sum = 0;
-            for (let i = 0; i < frequencyData.length; i++) {
-                sum += frequencyData[i];
-            }
-            let averageVolume = sum / frequencyData.length;
-            // let averageDecibels = 20 * Math.log10(averageVolume / 255);
-            return averageVolume;
-        }
-        if(!this.analyser) return;
-
-        this.analyser.getByteFrequencyData(this.dataArray);
-        const rms = Math.floor(getRMS(this.dataArray));
-        that.slide_voice.progress = (rms/100);
+        var rms = that._rms;
 
         if(cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1) {
 
@@ -216,9 +211,17 @@ cc.Class({
                 var position = this['player'+globalData.gameMgr.posId].node.parent.position;
                 if(rms > 10 && rms <= 30){ //向前走
                     globalData.socketMgr.birdMove({type: 1,cur_x:position.x,cur_y:position.y});
-                }else if(rms > 30 && rms <= 70){ //小跳
+                }else if(rms > 30 && rms <= 60){ //小跳
+                    if(that._lastJump1Time + that._jump1CDTime > Date.now()){
+                        return
+                    }
+                    that._lastJump1Time = Date.now();
                     globalData.socketMgr.birdMove({type: 2,cur_x:position.x,cur_y:position.y});
-                }else if(rms > 70) { //大跳
+                }else if(rms > 60) { //大跳
+                    if(that._lastJump2Time + that._jump2CDTime > Date.now()){
+                        return
+                    }
+                    that._lastJump2Time = Date.now();
                     globalData.socketMgr.birdMove({type: 3,cur_x:position.x,cur_y:position.y});
                 }
             }

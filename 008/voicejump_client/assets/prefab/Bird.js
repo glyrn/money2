@@ -10,7 +10,9 @@ const State = cc.Enum({
     //游戏结束
     GAMEOVER:-1,
 });
+
 cc.Class({
+    name:"Bird",
     statics: {
         State: State
     },
@@ -151,7 +153,7 @@ cc.Class({
             other.node.getComponent("Effect").fadeOut();
         }
         //碰到怪物 就会死
-        if (other.node._name === "monster"){
+        if (other.node._name === "obstacle" || other.node._name === 'monster'){
             this.fallOver = true;
         }
     },

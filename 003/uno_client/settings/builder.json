@@ -21,7 +21,7 @@
   "includeSDKBox": false,
   "inlineSpriteFrames": true,
   "inlineSpriteFrames_native": true,
-  "md5Cache": false,
+  "md5Cache": true,
   "mergeStartScene": false,
   "optimizeHotUpdate": false,
   "orientation": {
@@ -38,7 +38,7 @@
   },
   "startScene": "347f62d6-8f34-42dc-981d-a0459890e888",
   "title": "uno_client",
-  "webOrientation": "auto",
+  "webOrientation": "landscape",
   "wechatgame": {
     "REMOTE_SERVER_ROOT": "",
     "appid": "wx6ac3f5090a6b99c5",
