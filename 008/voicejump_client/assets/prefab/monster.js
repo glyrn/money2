@@ -30,7 +30,7 @@ cc.Class({
             }
         }
         //右边
-        if(nearBird.node.parent.x > this.node.x){
+        if(nearBird.node.parent.x >= this.node.x){
             this.currentSpeedX = 0.3 * dt;
         }else{ //左边
             this.currentSpeedX -= 0.3 * dt;
@@ -65,6 +65,11 @@ cc.Class({
     onCollisionExit(other, self){
         if (other.node._name === "ground"){
             this.standTarget = null;
+        }
+    },
+    onCollisionEnter(other, self) {
+        if (other.node._name === "ground"){
+            this.standTarget = other.node;
         }
     },
 });

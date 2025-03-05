@@ -29,7 +29,7 @@ cc.Class({
         _lastVoiceTime:0,
         _lastJump1Time:0,
         _lastJump2Time:0,
-        _voiceCDTime:200,
+        _voiceCDTime:100,
         _jump1CDTime:700,
         _jump2CDTime:1000,
         slide_voice:cc.Slider,
@@ -190,7 +190,7 @@ cc.Class({
             // console.log(Math.round(maxVal * 100));
 
             that._rms = Math.round(maxVal * 100);
-            that.slide_voice.progress = that._rms / 100;
+
         };
 
     },
@@ -208,21 +208,17 @@ cc.Class({
                 }
                 that._lastVoiceTime = Date.now();
 
-                var position = this['player'+globalData.gameMgr.posId].node.parent.position;
-                if(rms > 10 && rms <= 30){ //向前走
-                    globalData.socketMgr.birdMove({type: 1,cur_x:position.x,cur_y:position.y});
-                }else if(rms > 30 && rms <= 60){ //小跳
-                    if(that._lastJump1Time + that._jump1CDTime > Date.now()){
-                        return
+                that.slide_voice.progress = that._rms / 100;
+                var curPlayer = this['player'+globalData.gameMgr.posId];
+                var position = curPlayer.node.parent.position;
+                if(curPlayer.isStand()) {
+                    if (rms > 10 && rms <= 30) { //向前走
+                        globalData.socketMgr.birdMove({type: 1, cur_x: position.x, cur_y: position.y});
+                    } else if (rms > 30 && rms <= 60) { //小跳
+                        globalData.socketMgr.birdMove({type: 2, cur_x: position.x, cur_y: position.y});
+                    } else if (rms > 60) { //大跳
+                        globalData.socketMgr.birdMove({type: 3, cur_x: position.x, cur_y: position.y});
                     }
-                    that._lastJump1Time = Date.now();
-                    globalData.socketMgr.birdMove({type: 2,cur_x:position.x,cur_y:position.y});
-                }else if(rms > 60) { //大跳
-                    if(that._lastJump2Time + that._jump2CDTime > Date.now()){
-                        return
-                    }
-                    that._lastJump2Time = Date.now();
-                    globalData.socketMgr.birdMove({type: 3,cur_x:position.x,cur_y:position.y});
                 }
             }
         }

@@ -79,10 +79,10 @@ cc.Class({
         var flying = this.state === State.MOVE;
         if (flying) {
             if (this.posId == globalData.gameMgr.posId) {
-                this.main_camera.x = this.node.parent.x - this._initPosX;
+
                 var score = Math.floor((this.node.parent.x - this._initPosX) / 100);
                 if (this.last_score != score) {
-                    globalData.eventlister.fire("GAIN_SCORE", Math.floor((this.node.parent.x - this._initPosX) / 100));
+                    globalData.eventlister.fire("GAIN_SCORE", score);
                     this.last_score = score;
                 }
             }
@@ -164,6 +164,10 @@ cc.Class({
         if(data.type == 1){
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 100 ,data.cur_y);
+                //镜头跟随
+                if (this.posId == globalData.gameMgr.posId) {
+                    this.main_camera.x = this.node.parent.x - this._initPosX;
+                }
             }else{
                 var seq = cc.sequence([
                     cc.moveTo(0.5, cc.v2(data.cur_x + 100 ,data.cur_y)),
@@ -173,13 +177,20 @@ cc.Class({
                 ])
                 this.anim.play();
                 this.node.parent.stopAllActions();
-                this.node.parent.runAction(seq)
+                this.node.parent.runAction(seq);
+                //镜头跟随
+                this.main_camera.stopAllActions();
+                this.main_camera.runAction(cc.moveTo(1,cc.v2(data.cur_x + 100 - this._initPosX,this.main_camera.y)));
             }
         }else if(data.type == 2){
             this.standTarget = null;
 
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 100 ,data.cur_y);
+                //镜头跟随
+                if (this.posId == globalData.gameMgr.posId) {
+                    this.main_camera.x = this.node.parent.x - this._initPosX;
+                }
             }else{
                 this.currentSpeedY = this.initRiseSpeed1;
                 var seq = cc.sequence([
@@ -189,13 +200,20 @@ cc.Class({
                     },this)
                 ])
                 this.node.parent.stopAllActions();
-                this.node.parent.runAction(seq)
+                this.node.parent.runAction(seq);
+                //镜头跟随
+                this.main_camera.stopAllActions();
+                this.main_camera.runAction(cc.moveTo(1,cc.v2(data.cur_x + 100 - this._initPosX,this.main_camera.y)));
             }
         }else if(data.type == 3){
             this.standTarget = null;
 
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 250 ,data.cur_y);
+                //镜头跟随
+                if (this.posId == globalData.gameMgr.posId) {
+                    this.main_camera.x = this.node.parent.x - this._initPosX;
+                }
             }else{
                 this.currentSpeedY = this.initRiseSpeed2;
                 var seq = cc.sequence([
@@ -205,9 +223,14 @@ cc.Class({
                     },this)
                 ])
                 this.node.parent.stopAllActions();
-                this.node.parent.runAction(seq)
+                this.node.parent.runAction(seq);
+                //镜头跟随
+                this.main_camera.stopAllActions();
+                this.main_camera.runAction(cc.moveTo(1,cc.v2(data.cur_x + 250 - this._initPosX,this.main_camera.y)));
             }
         }
     },
-
+    isStand(){
+        return this.standTarget != null;
+    }
 })
