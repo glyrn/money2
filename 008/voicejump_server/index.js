@@ -247,6 +247,45 @@ const proto = {
       }
     }
   },
+  //切换房间
+  checkChangeRoom:function(curRoomId,uid){
+    for (let i = 0; i < this.desks.length; i++) {
+      var roomObj = this.desks[i];
+      for (let j = 0; j < roomObj.positions.length; j++) {
+        var userObj = roomObj.positions[j];
+        //房间号不同 要退出原来房间
+        if(userObj.uid == uid && roomObj.deskId != curRoomId){
+
+          console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
+          userObj.uid = 0;
+          userObj.state = 0;
+          userObj.name = '';
+          userObj.avatorUrl = '';
+          userObj.score = 0;
+          userObj.disconnectTime = null;
+          //清空断线重连信息
+          userObj.recover_disconnect_data = [];
+
+          this.broadCastRoom("MESSAGE",roomObj.deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
+          this.broadCastRoom("SIT_CHANGE",roomObj.deskId,{target:null},userObj.uid);
+
+          //检查是否全部掉线 是的话要重置房间
+          var isClean = true;
+          for (let k = 0; k < this.desks[i].positions.length; k++) {
+            if(this.desks[i].positions[k].uid > 0 ){
+              isClean = false;
+            }
+          }
+          if(isClean){
+            this.desks[i].name = '';
+            this.desks[i].state = 0;
+            this.desks[i].play_index = 0;
+            this.desks[i].play_mode = -1;
+          }
+        }
+      }
+    }
+  },
   checkRecover:function(socket,obj){
 
     for (let i = 0; i < this.desks.length; i++) {
@@ -306,6 +345,8 @@ const proto = {
             console.log(obj.name, '进入房间', room.name,room.deskId);
 
             var flag = false;
+            //检查是否换房间
+            self.checkChangeRoom(room.deskId,obj.uid);
             //检测是否重连玩家
             if(self.checkRecover(socket,obj)){
               //推送恢复数据

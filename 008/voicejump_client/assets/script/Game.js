@@ -203,10 +203,10 @@ cc.Class({
         if(cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1) {
 
             if (!that['player' + globalData.gameMgr.posId].fallOver) {
-                if(that._lastVoiceTime + that._voiceCDTime > Date.now()){
-                    return
-                }
-                that._lastVoiceTime = Date.now();
+                // if(that._lastVoiceTime + that._voiceCDTime > Date.now()){
+                //     return
+                // }
+                // that._lastVoiceTime = Date.now();
 
                 that.slide_voice.progress = that._rms / 100;
                 var curPlayer = this['player'+globalData.gameMgr.posId];

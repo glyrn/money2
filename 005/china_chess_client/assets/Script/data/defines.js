@@ -6,9 +6,10 @@ if(host.indexOf('localhost')!=-1){
     defines.isDebug = true;
 }
 
+
 if(defines.isDebug){
     defines.serverUrl = "localhost:9005";
 }else{
-    defines.serverUrl = "42.194.141.209";
+    defines.serverUrl = "sunday.playapi.cn";
 }
 window.defines = defines;
