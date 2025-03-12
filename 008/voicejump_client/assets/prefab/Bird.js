@@ -19,8 +19,8 @@ cc.Class({
     extends: cc.Component,
     properties: {
         //上抛初速度，单位：像素/秒
-        initRiseSpeed1: 500,
-        initRiseSpeed2: 700,
+        initRiseSpeed1: 400,
+        initRiseSpeed2: 600,
         iceRiseSpeed:300,
         //重力加速度，单位：像素/秒的平方
         gravity: 1000,
@@ -186,7 +186,7 @@ cc.Class({
             this.standTarget = null;
 
             if(globalData.gameMgr.isRecover){
-                this.node.parent.position = cc.v2(data.cur_x + 100 ,data.cur_y);
+                this.node.parent.position = cc.v2(data.cur_x + 200 ,data.cur_y);
                 //镜头跟随
                 if (this.posId == globalData.gameMgr.posId) {
                     this.main_camera.x = this.node.parent.x - this._initPosX;
@@ -194,7 +194,7 @@ cc.Class({
             }else{
                 this.currentSpeedY = this.initRiseSpeed1;
                 var seq = cc.sequence([
-                    cc.moveTo(0.7, cc.v2(data.cur_x + 100 ,data.cur_y)),
+                    cc.moveTo(1, cc.v2(data.cur_x + 200 ,data.cur_y)),
                     cc.callFunc(function(){
 
                     },this)
@@ -203,13 +203,13 @@ cc.Class({
                 this.node.parent.runAction(seq);
                 //镜头跟随
                 this.main_camera.stopAllActions();
-                this.main_camera.runAction(cc.moveTo(1,cc.v2(data.cur_x + 100 - this._initPosX,this.main_camera.y)));
+                this.main_camera.runAction(cc.moveTo(1,cc.v2(data.cur_x + 200 - this._initPosX,this.main_camera.y)));
             }
         }else if(data.type == 3){
             this.standTarget = null;
 
             if(globalData.gameMgr.isRecover){
-                this.node.parent.position = cc.v2(data.cur_x + 250 ,data.cur_y);
+                this.node.parent.position = cc.v2(data.cur_x + 350 ,data.cur_y);
                 //镜头跟随
                 if (this.posId == globalData.gameMgr.posId) {
                     this.main_camera.x = this.node.parent.x - this._initPosX;
@@ -217,7 +217,7 @@ cc.Class({
             }else{
                 this.currentSpeedY = this.initRiseSpeed2;
                 var seq = cc.sequence([
-                    cc.moveTo(1, cc.v2(data.cur_x + 250 ,data.cur_y)),
+                    cc.moveTo(1.5, cc.v2(data.cur_x + 350 ,data.cur_y)),
                     cc.callFunc(function(){
 
                     },this)
@@ -226,7 +226,7 @@ cc.Class({
                 this.node.parent.runAction(seq);
                 //镜头跟随
                 this.main_camera.stopAllActions();
-                this.main_camera.runAction(cc.moveTo(1,cc.v2(data.cur_x + 250 - this._initPosX,this.main_camera.y)));
+                this.main_camera.runAction(cc.moveTo(1.5,cc.v2(data.cur_x + 350 - this._initPosX,this.main_camera.y)));
             }
         }
     },
