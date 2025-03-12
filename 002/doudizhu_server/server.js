@@ -402,6 +402,40 @@ const proto = {
       }
     }
   },
+  //切换房间
+  checkChangeRoom:function(curRoomId,uid){
+    for (let i = 0; i < this.desks.length; i++) {
+      var roomObj = this.desks[i];
+      for (let j = 0; j < roomObj.positions.length; j++) {
+        var userObj = roomObj.positions[j];
+        //房间号不同 要退出原来房间
+        if(userObj.uid == uid && roomObj.deskId != curRoomId){
+
+          console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
+          userObj.disconnectTime = null;
+          //清空断线重连缓存数据
+          userObj.recover_disconnect_data = [];
+
+          var client = this.getClientByUid(userObj.uid);
+          var posId = userObj.posId;
+          var deskId = roomObj.deskId;
+
+          var socket = client.socket;
+          this.removeClient(socket);
+          //更新座位状态
+          this.updatePosStatus(deskId, posId, 0, '', '', 0, 0);
+          //重置房间状态
+          this.updateRoomStatus(deskId, posId, 0);
+          //解绑座位号 桌号
+          this.updateClientState(socket);
+          //通知在房间里的其它客户端，更新座位息
+          this.broadCastRoom("POS_STATUS_CHANGE", deskId, {posId, state: 0}, socket);
+          //通知大厅其它客户端更新该座位信息
+          this.broadCastHouse('STATUS_CHANGE', {deskId, posId, state: 0});
+        }
+      }
+    }
+  },
   checkRecover:function(socket,obj){
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
@@ -461,6 +495,9 @@ const proto = {
       console.log('有客户端接入，时间： %s', time());
       socket.on('LOGIN', data => {
 
+        //检查是否换房间
+        let room = this.getDeskByName(data.deskName);
+        self.checkChangeRoom(room.deskId,data.uid);
         //检测是否重连玩家
         if(self.checkRecover(socket,data)){
           //推送恢复数据

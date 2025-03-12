@@ -310,8 +310,8 @@ const socketMgr = function(){
         });
     }
 
-    that.login = function(uid,name,avatarUrl,score,ob_uid,cbFunc){
-        _socket.emit('LOGIN', {uid:uid,name:name,avatarUrl:avatarUrl,score:score,ob_uid:ob_uid});
+    that.login = function(uid,name,avatarUrl,score,ob_uid,room,cbFunc){
+        _socket.emit('LOGIN', {uid:uid,name:name,avatarUrl:avatarUrl,score:score,ob_uid:ob_uid,deskName:room});
         _cbLogin = cbFunc;
 
         //是否旁观

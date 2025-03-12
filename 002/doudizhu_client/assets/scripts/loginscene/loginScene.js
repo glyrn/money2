@@ -44,14 +44,14 @@ cc.Class({
             cc.director.preloadScene("gameScene",function(){
                 if(defines.isDebug){
                     //请求登录
-                    globalData.socketMgr.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'],field['ob_uid'],function(){
+                    globalData.socketMgr.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'],field['ob_uid'],field['room'],function(){
                         globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
                     })
                 }else{
                     globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
                         if (isOk) {
                             //请求登录
-                            globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, field['score'],field['ob_uid'], function () {
+                            globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, field['score'],field['ob_uid'],field['room'], function () {
                                 globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
                             });
                         }
