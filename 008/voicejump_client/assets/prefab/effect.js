@@ -18,24 +18,45 @@ cc.Class({
             }, that)
         ))
     },
-    start:function(){
+    update(){
+
+        var d = new Date();
+        var seconds = d.getSeconds();
+        if(seconds % 2 === 0){
+
+            if(this.last_seconds == seconds){
+                return;
+            }
+            this.last_seconds = seconds;
+
+            this.node.position = this.basePosition;
+            this.resetAction();
+        }
+    },
+    resetAction(){
         var that = this;
         if(this.isRepeatMoveX){
-            this.node.runAction(
-                cc.repeatForever(
-                    cc.sequence(
+            if(that.moveXAction){
+                that.node.stopAction(that.moveXAction);
+            }
+            that.moveXAction = that.node.runAction(cc.repeatForever(
+                cc.sequence(
                     cc.moveBy(1,that.moveOffset,0),
                     cc.moveBy(1,-that.moveOffset,0)
-                ))
-            )
+                )));
         }else if(this.isRepeatMoveY){
-            this.node.runAction(
-                cc.repeatForever(
-                    cc.sequence(
-                        cc.moveBy(1,0,that.moveOffset),
-                        cc.moveBy(1,0,-that.moveOffset)
-                    ))
-            )
+            if(that.moveYAction){
+                that.node.stopAction(that.moveYAction);
+            }
+            that.moveYAction = that.node.runAction(cc.repeatForever(
+                cc.sequence(
+                    cc.moveBy(1,0,that.moveOffset),
+                    cc.moveBy(1,0,-that.moveOffset)
+                )));
         }
+    },
+    start:function(){
+        var that = this;
+        that.basePosition = this.node.position;
     }
 });

@@ -18,8 +18,19 @@ cc.Class({
     },
     update:function(dt){
 
-        var nearBird = this['player'+0];
+        var d = new Date();
+        var seconds = d.getSeconds();
+        if(seconds % 5 === 0){
 
+            if(this.last_seconds == seconds){
+                return;
+            }
+            this.last_seconds = seconds;
+            this.node.position = this.basePosition;
+            this.currentSpeedX = 0;
+        }
+
+        var nearBird = this['player'+0];
         var distX =  Math.abs(nearBird.node.parent.x) - this.node.x;
         //选出最近的玩家
         for (let i = 1; i < 4; i++) {
@@ -40,13 +51,14 @@ cc.Class({
 
         //站在平台上
         if (this.standTarget) {
+            this.currentSpeedY = 0;
             this.node.y = Math.max(this.node.y, this.standTarget.position.y + this.standTarget.height / 2 + this.node.height / 2);
         }else{
             this.currentSpeedY -= dt * this.gravity;
             this.node.y += dt * this.currentSpeedY;
         }
 
-        if (this.node.y < -640 / 2) {
+        if (this.node.y < -cc.view.getCanvasSize().height / 2) {
             this.fallOver = true;
         }
 

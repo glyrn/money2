@@ -19,11 +19,10 @@ cc.Class({
     extends: cc.Component,
     properties: {
         //上抛初速度，单位：像素/秒
-        initRiseSpeed1: 400,
-        initRiseSpeed2: 600,
-        iceRiseSpeed:300,
+        _initRiseSpeed1: 14,
+        _initRiseSpeed2: 20,
         //重力加速度，单位：像素/秒的平方
-        gravity: 1000,
+        _gravity: 0.5,
         // speedX:0,
         main_camera:cc.Node,
         main_ui:cc.Node,
@@ -89,16 +88,19 @@ cc.Class({
 
             //站在平台上
             if (this.standTarget) {
+                this.currentSpeedY = 0;
                 this.node.parent.y = Math.max(this.node.parent.y, this.standTarget.position.y + this.standTarget.height / 2 + this.node.height / 2);
             }else{
-                this.currentSpeedY -= dt * this.gravity;
-                this.node.parent.y += dt * this.currentSpeedY;
+
+                this.currentSpeedY -= this._gravity ;
+                this.node.parent.y += this.currentSpeedY;
             }
 
-            //限制不能超出屏幕
-            this.node.parent.y = Math.min(this.node.parent.y, 640 / 2);
 
-            if (this.node.parent.y < -640 / 2) {
+            //限制不能超出屏幕
+            this.node.parent.y = Math.min(this.node.parent.y, cc.view.getCanvasSize().height / 2);
+
+            if (this.node.parent.y < -cc.view.getCanvasSize().height / 2) {
                 this.fallOver = true;
             }
         }
@@ -135,7 +137,6 @@ cc.Class({
         }
     },
     onCollisionEnter(other, self) {
-
         //碰到砖块就暂停一下
         if(other.node._name === 'block'){
             if(this.posId == globalData.gameMgr.posId) {
@@ -147,6 +148,7 @@ cc.Class({
         //碰到地板要站着
         if (other.node._name === "ground"){
             this.standTarget = other.node;
+            this.anim.stop();
         }
         //碰到冰块 冰块会消失
         if(other.node._name === 'ice'){
@@ -179,8 +181,10 @@ cc.Class({
                 this.node.parent.stopAllActions();
                 this.node.parent.runAction(seq);
                 //镜头跟随
-                this.main_camera.stopAllActions();
-                this.main_camera.runAction(cc.moveTo(1,cc.v2(data.cur_x + 100 - this._initPosX,this.main_camera.y)));
+                if (this.posId == globalData.gameMgr.posId) {
+                    this.main_camera.stopAllActions();
+                    this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 100 - this._initPosX, this.main_camera.y)));
+                }
             }
         }else if(data.type == 2){
             this.standTarget = null;
@@ -192,7 +196,7 @@ cc.Class({
                     this.main_camera.x = this.node.parent.x - this._initPosX;
                 }
             }else{
-                this.currentSpeedY = this.initRiseSpeed1;
+                this.currentSpeedY = this._initRiseSpeed1;
                 var seq = cc.sequence([
                     cc.moveTo(1, cc.v2(data.cur_x + 200 ,data.cur_y)),
                     cc.callFunc(function(){
@@ -202,8 +206,10 @@ cc.Class({
                 this.node.parent.stopAllActions();
                 this.node.parent.runAction(seq);
                 //镜头跟随
-                this.main_camera.stopAllActions();
-                this.main_camera.runAction(cc.moveTo(1,cc.v2(data.cur_x + 200 - this._initPosX,this.main_camera.y)));
+                if (this.posId == globalData.gameMgr.posId) {
+                    this.main_camera.stopAllActions();
+                    this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 200 - this._initPosX, this.main_camera.y)));
+                }
             }
         }else if(data.type == 3){
             this.standTarget = null;
@@ -215,7 +221,7 @@ cc.Class({
                     this.main_camera.x = this.node.parent.x - this._initPosX;
                 }
             }else{
-                this.currentSpeedY = this.initRiseSpeed2;
+                this.currentSpeedY = this._initRiseSpeed2;
                 var seq = cc.sequence([
                     cc.moveTo(1.5, cc.v2(data.cur_x + 350 ,data.cur_y)),
                     cc.callFunc(function(){
@@ -225,8 +231,10 @@ cc.Class({
                 this.node.parent.stopAllActions();
                 this.node.parent.runAction(seq);
                 //镜头跟随
-                this.main_camera.stopAllActions();
-                this.main_camera.runAction(cc.moveTo(1.5,cc.v2(data.cur_x + 350 - this._initPosX,this.main_camera.y)));
+                if (this.posId == globalData.gameMgr.posId) {
+                    this.main_camera.stopAllActions();
+                    this.main_camera.runAction(cc.moveTo(1.5, cc.v2(data.cur_x + 350 - this._initPosX, this.main_camera.y)));
+                }
             }
         }
     },

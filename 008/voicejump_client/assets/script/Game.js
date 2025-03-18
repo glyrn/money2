@@ -38,13 +38,10 @@ cc.Class({
 
         var that = this;
 
+        cc.game.setFrameRate(60);
         const manager = cc.director.getCollisionManager();
         manager.enabled = true;
         manager.enabledDebugDraw = false;
-        //进入后台继续动画
-        that.handleMainLoopTimer=setInterval(()=>{
-            cc.director.mainLoop();
-        }, 1000 / 60);
 
         for (let i = 0; i < 4; i++) {
             that['avator'+i].node.active = false;
