@@ -1030,10 +1030,9 @@
       "__id__": 24
     },
     "_enabled": true,
-    "initRiseSpeed1": 500,
-    "initRiseSpeed2": 800,
-    "iceRiseSpeed": 300,
-    "gravity": 1000,
+    "_initRiseSpeed1": 14,
+    "_initRiseSpeed2": 20,
+    "_gravity": 0.5,
     "main_camera": {
       "__id__": 31
     },
@@ -3216,10 +3215,9 @@
       "__id__": 78
     },
     "_enabled": true,
-    "initRiseSpeed1": 500,
-    "initRiseSpeed2": 800,
-    "iceRiseSpeed": 300,
-    "gravity": 1000,
+    "_initRiseSpeed1": 14,
+    "_initRiseSpeed2": 20,
+    "_gravity": 0.5,
     "main_camera": {
       "__id__": 31
     },
@@ -4303,10 +4301,9 @@
       "__id__": 107
     },
     "_enabled": true,
-    "initRiseSpeed1": 500,
-    "initRiseSpeed2": 800,
-    "iceRiseSpeed": 300,
-    "gravity": 1000,
+    "_initRiseSpeed1": 14,
+    "_initRiseSpeed2": 20,
+    "_gravity": 0.5,
     "main_camera": {
       "__id__": 31
     },
@@ -5390,10 +5387,9 @@
       "__id__": 136
     },
     "_enabled": true,
-    "initRiseSpeed1": 500,
-    "initRiseSpeed2": 800,
-    "iceRiseSpeed": 300,
-    "gravity": 1000,
+    "_initRiseSpeed1": 14,
+    "_initRiseSpeed2": 20,
+    "_gravity": 0.5,
     "main_camera": {
       "__id__": 31
     },
@@ -10880,7 +10876,7 @@
         "__id__": 270
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 275
@@ -11264,7 +11260,7 @@
         "__id__": 278
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 283
@@ -11648,7 +11644,7 @@
         "__id__": 286
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 291
