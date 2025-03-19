@@ -1,8 +1,10 @@
 const os = require('os');
 //本地调试
 var ioParam = {path:'/wzq_socket.io'};
+var isDebug = false;
 if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
+  isDebug = true;
 }
 const express = require('express'),
     app = express(),
@@ -275,7 +277,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 180){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           userObj.uid = 0;
           userObj.state = 0;
@@ -288,14 +290,17 @@ const proto = {
 
           this.broadCastRoom("MESSAGE",this.desks[i].deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
           this.broadCastRoom("SIT_CHANGE",this.desks[i].deskId,{target:null},userObj.uid);
-
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
+          var winerPosId = 0;
+
           for (let k = 0; k < this.desks[i].positions.length; k++) {
              if(this.desks[i].positions[k].uid > 0 ){
                isClean = false;
+               winerPosId = this.desks[i].positions[k].posId;
              }
           }
+
           if(isClean){
               for (let k = 0; k < this.desks[i].chequer.length; k++) {
                 this.desks[i].chequer[k].state = -1;
@@ -305,6 +310,9 @@ const proto = {
               this.desks[i].state = 0;
               this.desks[i].play_index = 0;
               this.desks[i].play_mode = -1;
+          }else{
+            // 还剩一个
+            this.broadCastRoom('GAME_OVER',this.desks[i].deskId,{winer:winerPosId,score:10});
           }
         }
       }

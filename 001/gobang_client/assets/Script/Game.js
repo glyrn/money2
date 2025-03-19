@@ -480,7 +480,11 @@ cc.Class({
             append2 = "+" + data.score;
         }
         this.lab_player1.string = globalData.gameMgr.playerData.self.name +" "+append1;
-        this.lab_player2.string = globalData.gameMgr.playerData.target.name +" "+append2;
+        if(globalData.gameMgr.playerData.target) {
+            this.lab_player2.string = globalData.gameMgr.playerData.target.name + " " + append2;
+        }else{
+            this.lab_player2.string = "";
+        }
     },
     gameOver:function(data){
 
@@ -493,14 +497,20 @@ cc.Class({
             globalData.gameMgr.playerData.target = globalData.gameMgr.playerData.pc;
         }
 
-        globalData.gameMgr.playerData.target.score = parseInt(globalData.gameMgr.playerData.target.score);
+        if(globalData.gameMgr.playerData.target) {
+            globalData.gameMgr.playerData.target.score = parseInt(globalData.gameMgr.playerData.target.score);
+        }
         data.score = parseInt(data.score);
         if(data.winer == globalData.gameMgr.playerData.self.posId){
             globalData.gameMgr.playerData.self.score += data.score;
-            globalData.gameMgr.playerData.target.score -= data.score;
+            if(globalData.gameMgr.playerData.target) {
+                globalData.gameMgr.playerData.target.score -= data.score;
+            }
         }else{
             globalData.gameMgr.playerData.self.score -= data.score;
-            globalData.gameMgr.playerData.target.score += data.score;
+            if(globalData.gameMgr.playerData.target) {
+                globalData.gameMgr.playerData.target.score += data.score;
+            }
         }
 
         this._cur_score_idx = globalData.gameMgr.score_list.length -1;
