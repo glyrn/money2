@@ -146,9 +146,13 @@ cc.Class({
         this.panel_gameover.active = true;
         let data = this.score_list[index-1];
 
-        //播放音效
-        var isWin = data.winner.indexOf(globalData.gameMgr.posId) > -1;
-        this.lab_title.string = '第'+index+'局：'+ (isWin ? '恭喜你，你赢了' : '很遗憾，你输了');
+        //有人逃跑 无效局
+        if(data.invalid == 1){
+            this.lab_title.string = '第'+index+'局：'+ "本局有玩家逃跑，请重新开始";
+        }else{
+            var isWin = data.winner.indexOf(globalData.gameMgr.posId) > -1;
+            this.lab_title.string = '第'+index+'局：'+ (isWin ? '恭喜你，你赢了' : '很遗憾，你输了');
+        }
         var score = data.score * data.ratio * globalData.gameMgr.base_score;
 
         var lab_names = [this.lab_player1,this.lab_player2,this.lab_player3];

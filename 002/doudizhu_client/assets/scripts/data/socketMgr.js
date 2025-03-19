@@ -276,11 +276,15 @@ const socketMgr = function(){
             _gameMgr.startTimer(false);//停止计时器
             _gameMgr.roomState.state = 3;
 
-            _gameMgr.posState.left.state = 1;
+            if(_gameMgr.posState.left.state != 0) {
+                _gameMgr.posState.left.state = 1;
+            }
             _gameMgr.posState.left.callScore = -1;
             _gameMgr.posState.left.isPass = false;
 
-            _gameMgr.posState.right.state = 1;
+            if(_gameMgr.posState.right.state != 0) {
+                _gameMgr.posState.right.state = 1;
+            }
             _gameMgr.posState.right.callScore = -1;
             _gameMgr.posState.right.isPass = false;
 

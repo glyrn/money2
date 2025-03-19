@@ -1,8 +1,10 @@
 const os = require('os');
 //本地调试
 var ioParam = {path:'/hlddz_socket.io'};
+var isDebug = false;
 if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
+  isDebug = true;
 }
 const express = require('express'),
     app = express(),
@@ -208,6 +210,17 @@ const proto = {
     }
     return null;
   },
+  getPositionByPosId(desk,posId){
+    if(desk) {
+      for (let i = 0, len = desk.positions.length; i < len; i++) {
+        let position = desk.positions[i];
+        if (position.posId == posId) {
+          return position;
+        }
+      }
+    }
+    return null;
+  },
   isEmptyPos(deskName, posId) {
     const desk = this.getDeskByName(deskName);
     if (!desk) {
@@ -360,7 +373,7 @@ const proto = {
       var room = this.desks[i];
       for (let j = 0; j < room.positions.length; j++) {
         var userObj = room.positions[j];
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 180) {
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)) {
           console.log('用户 ' + userObj.name + " " + userObj.uid + ' 已确认断线，清除数据');
           userObj.disconnectTime = null;
           //清空断线重连缓存数据
@@ -396,8 +409,12 @@ const proto = {
           // this.broadCastRoom('FORCE_EXIT_EV', deskId, {msg: '有玩家逃跑，游戏结束', posId});
           const game = this.gameDatas[deskId];
           if (game) {
+            //强制结束游戏
+            this.broadCastRoom('GAME_OVER', deskId, {invalid:1,winner:[], loser:[], score: 0, ratio:0});
             game.init();
           }
+
+
         }
       }
     }
@@ -737,7 +754,25 @@ const proto = {
               timeout: 15,
               isPass:isPass,
             })
-            this.socketEmit(this.getClient(socket),'PLAY_CARD_SUCCESS', data)
+            this.socketEmit(this.getClient(socket),'PLAY_CARD_SUCCESS', data);
+            //玩家如果掉线中 自动出pass
+            var nextUserObj = this.getPositionByPosId(desk,game.getContextPosId());
+            if(nextUserObj.disconnectTime > 0){
+              game.next(nextUserObj.posId, [],desk.islaizi);
+              self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
+                ctxData: {
+                  len: 0,
+                  key: '',
+                  type: '',
+                  cards: [],
+                  posId:nextUserObj.posId,
+                },
+                posId: game.getContextPosId(),
+                timeout: 15,
+                isPass:true,
+              })
+            }
+
             if (game.getStatus() === 3) {
 
               this.broadCastRoom('GAME_OVER', deskId, game.getResult());
@@ -751,7 +786,6 @@ const proto = {
               this.updatePosStatus(deskId, 2, 1);
               game.init();
             }
-
 
           } else {
             this.socketEmit(this.getClient(socket),'PLAY_CARD_ERROR', '你的牌不符合规则')
@@ -782,6 +816,27 @@ const proto = {
               console.log('用户 '+userObj.name+" "+userObj.uid+' 断线');
               //记录掉线时间
               userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
+
+              const game = self.gameDatas[self.desks[i].deskId];
+              if (game) {
+                //如果刚好轮到的人掉线，自动pass处理
+                if(game.getContextPosId() == userObj.posId){
+                  game.next(userObj.posId, [],self.desks[i].islaizi);
+                  self.broadCastRoom('CTX_PLAY_CHANGE', self.desks[i].deskId, {
+                    ctxData: {
+                      len: 0,
+                      key: '',
+                      type: '',
+                      cards: [],
+                      posId:userObj.posId,
+                    },
+                    posId: game.getContextPosId(),
+                    timeout: 15,
+                    isPass:true,
+                  })
+                }
+              }
+
             }
           }
         }
