@@ -1,3 +1,5 @@
+import globalData from "./globalData";
+
 const socketMgr = function(){
     var that = {}
 
@@ -76,7 +78,11 @@ const socketMgr = function(){
                 _gameMgr.roomState.state = 0;
                 _gameMgr.play_index = 0;
             }
-            _eventMgr.fire("SIT_CHANGE",data)
+            _eventMgr.fire("SIT_CHANGE",data);
+            //对手逃跑 游戏结束
+            if(data.target == null){
+                globalData.eventlister.fire('GAME_OVER',{score:100,winer:globalData.gameMgr.playerData.self.posId});
+            }
         })
 
         _socket.on('GAME_START',function(data){

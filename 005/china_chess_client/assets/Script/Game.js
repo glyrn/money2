@@ -265,17 +265,25 @@ cc.Class({
 
         globalData.gameMgr.playerData.self.score = parseInt(globalData.gameMgr.playerData.self.score);
         if(globalData.gameMgr.play_mode == 0){ //人机
-            globalData.gameMgr.playerData.target = globalData.gameMgr.playerData.pc;
+            if(globalData.gameMgr.playerData.target){
+                globalData.gameMgr.playerData.target = globalData.gameMgr.playerData.pc;
+            }
         }
 
-        globalData.gameMgr.playerData.target.score = parseInt(globalData.gameMgr.playerData.target.score);
+        if(globalData.gameMgr.playerData.target) {
+            globalData.gameMgr.playerData.target.score = parseInt(globalData.gameMgr.playerData.target.score);
+        }
         data.score = parseInt(data.score);
         if(data.winer == globalData.gameMgr.playerData.self.posId){
             globalData.gameMgr.playerData.self.score += data.score;
-            globalData.gameMgr.playerData.target.score -= data.score;
+            if(globalData.gameMgr.playerData.target) {
+                globalData.gameMgr.playerData.target.score -= data.score;
+            }
         }else{
             globalData.gameMgr.playerData.self.score -= data.score;
-            globalData.gameMgr.playerData.target.score += data.score;
+            if(globalData.gameMgr.playerData.target) {
+                globalData.gameMgr.playerData.target.score += data.score;
+            }
         }
 
         this._cur_score_idx = globalData.gameMgr.score_list.length -1;
