@@ -156,16 +156,20 @@ cc.Class({
     renderScorePanel(){
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
         var lab_title = this.panel_game_over.getChildByName('lab_title').getComponent(cc.Label);
-        if(data.winer == globalData.gameMgr.posId){
-            lab_title.string = "恭喜，你赢了！";
+        if(data.invalid == 1){
+            lab_title.string = "有玩家逃跑，本局无效";
         }else{
-            lab_title.string = "你输了，加油~";
+            if(data.winer == globalData.gameMgr.posId){
+                lab_title.string = "恭喜，你赢了！";
+            }else{
+                lab_title.string = "你输了，加油~";
+            }
         }
 
         for (let i = 0; i < 4; i++) {
             var item = this.panel_game_over.getChildByName('container').getChildByName('player'+(i+1))
             var playerData = globalData.gameMgr.playerData[i];
-            if(playerData){
+            if(playerData && data.invalid != 1){
                 item.active = true;
                 item.getComponent(cc.Label).string = playerData.name + " " + "+"+data.score_list[playerData.posId]+"分";
             }else{

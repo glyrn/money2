@@ -1,7 +1,7 @@
 const os = require('os');
 //本地调试
-var ioParam = {path:'/uno_socket.io'};
 var isDebug = false;
+var ioParam = {path:'/uno_socket.io'};
 if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
   isDebug = true;

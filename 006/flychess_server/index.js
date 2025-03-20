@@ -1,8 +1,10 @@
 const os = require('os');
 //本地调试
+var isDebug = false;
 var ioParam = {path:'/fxq_socket.io'};
 if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
+  isDebug = true;
 }
 const express = require('express'),
     app = express(),
@@ -128,6 +130,17 @@ const proto = {
       }
     }
   },
+  getPositionByPosId(desk, posId) {
+    if(desk) {
+      for (let i = 0, len = desk.positions.length; i < len; i++) {
+        let position = desk.positions[i];
+        if (position.posId == posId) {
+          return position;
+        }
+      }
+    }
+    return null;
+  },
   getDeskByName:function(deskName) {
     let findDesk;
     for (let i = 0, len = this.desks.length; i < len; i++) {
@@ -178,7 +191,30 @@ const proto = {
 
     return finish_count == win_num;
   },
+  makeNextPlayerDice:function(desk) {
+    //游戏中
+    if (desk.state == 1) {
+      if (desk.cur_dice_num != 6) {
+        desk.cur_posId++;
+      }
+      var count = 0;
+      for (let i = 0; i < desk.positions.length; i++) {
+        if (desk.positions[i].state == 2) { //游戏中
+          count++;
+        }
+      }
+      if (desk.cur_posId >= count) {
+        desk.cur_posId = 0;
+      }
+      this.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS", desk.deskId, {posId: desk.cur_posId});
 
+      //如果下一个是掉线ing 则继续跳下一个
+      var nextUserObj = this.getPositionByPosId(desk, desk.cur_posId);
+      if (nextUserObj.disconnectTime > 0) {
+        this.makeNextPlayerDice(desk);
+      }
+    }
+  },
   broadCastRoom:function(event,roomId,data,except){
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
@@ -204,7 +240,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 180){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           userObj.uid = 0;
           userObj.state = 0;
@@ -230,6 +266,8 @@ const proto = {
             this.desks[i].state = 0;
             this.desks[i].play_index = 0;
             this.desks[i].play_mode = -1;
+          }else{
+            this.broadCastRoom("GAME_OVER", this.desks[i].deskId, {invalid:1,winer: -1, score_list: []});
           }
         }
       }
@@ -443,19 +481,7 @@ const proto = {
       });
       socket.on('NEXT_PLAYER_DICE',function(){
         var desk = self.getDesk(socket);
-        if(desk.cur_dice_num != 6){
-          desk.cur_posId++;
-        }
-        var count = 0;
-        for (let i = 0; i < desk.positions.length; i++) {
-          if(desk.positions[i].state == 2){ //游戏中
-            count++;
-          }
-        }
-        if(desk.cur_posId >= count){
-          desk.cur_posId = 0;
-        }
-        self.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS",self.getDeskId(socket),{posId:desk.cur_posId});
+        self.makeNextPlayerDice(desk);
       })
     });
 
