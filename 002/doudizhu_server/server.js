@@ -413,8 +413,6 @@ const proto = {
             this.broadCastRoom('GAME_OVER', deskId, {invalid:1,winner:[], loser:[], score: 0, ratio:0});
             game.init();
           }
-
-
         }
       }
     }
@@ -755,23 +753,7 @@ const proto = {
               isPass:isPass,
             })
             this.socketEmit(this.getClient(socket),'PLAY_CARD_SUCCESS', data);
-            //玩家如果掉线中 自动出pass
-            var nextUserObj = this.getPositionByPosId(desk,game.getContextPosId());
-            if(nextUserObj.disconnectTime > 0){
-              game.next(nextUserObj.posId, [],desk.islaizi);
-              self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
-                ctxData: {
-                  len: 0,
-                  key: '',
-                  type: '',
-                  cards: [],
-                  posId:nextUserObj.posId,
-                },
-                posId: game.getContextPosId(),
-                timeout: 15,
-                isPass:true,
-              })
-            }
+
 
             if (game.getStatus() === 3) {
 
@@ -785,6 +767,24 @@ const proto = {
               this.updatePosStatus(deskId, 1, 1);
               this.updatePosStatus(deskId, 2, 1);
               game.init();
+            }else{
+              //玩家如果掉线中 自动出pass
+              var nextUserObj = this.getPositionByPosId(desk,game.getContextPosId());
+              if(nextUserObj.disconnectTime > 0){
+                game.next(nextUserObj.posId, [],desk.islaizi);
+                self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
+                  ctxData: {
+                    len: 0,
+                    key: '',
+                    type: '',
+                    cards: [],
+                    posId:nextUserObj.posId,
+                  },
+                  posId: game.getContextPosId(),
+                  timeout: 15,
+                  isPass:true,
+                })
+              }
             }
 
           } else {

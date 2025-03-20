@@ -1,8 +1,10 @@
 const os = require('os');
 //本地调试
 var ioParam = {path:'/uno_socket.io'};
+var isDebug = false;
 if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
+  isDebug = true;
 }
 const express = require('express'),
     app = express(),
@@ -174,8 +176,18 @@ const proto = {
       }
     }
   },
-  getNextPosId:function(socket,curPosId){
-    var desk = this.getDesk(socket)
+  getPositionByPosId(desk, posId) {
+    if(desk) {
+      for (let i = 0, len = desk.positions.length; i < len; i++) {
+        let position = desk.positions[i];
+        if (position.posId == posId) {
+          return position;
+        }
+      }
+    }
+    return null;
+  },
+  getNextPosId:function(desk,curPosId){
     var nextPosId;
     if(desk.direct == 1){ //顺时针方向
       if(curPosId + 1 >= desk.ready_count){
@@ -222,7 +234,9 @@ const proto = {
       userObj.ob_socket_map[ob_uid].emit(event,saveData);
     }
     userObj.recover_disconnect_data.push({event:event,data:saveData});
-    userObj.socket.emit(event,saveData);
+    if(userObj.socket){
+      userObj.socket.emit(event,saveData);
+    }
   },
   //判断游戏结束
   checkTimeGameOver:function(){
@@ -300,13 +314,55 @@ const proto = {
       }
     }
   },
+  makePass:function(desk,curPosId){
+
+    var plusNum = 0;
+    var last_card = desk.out_cards[desk.out_cards.length - 1];
+    if(last_card.value == 'plus2' || last_card.value == 'plus4'){
+
+      for (let i = desk.out_cards.length - 1; i >= 0; i--) {
+        var v = desk.out_cards[i];
+        if(v.value == 'plus2' ){
+          if(!v.mark){
+            plusNum += 2;
+            v.mark = true;
+          }
+        }else if (v.value == 'plus4'){
+          if(!v.mark){
+            plusNum += 4;
+            v.mark = true;
+          }
+        }else{
+          break;
+        }
+      }
+      if(plusNum == 0){
+        plusNum = 1;
+      }
+    }else{
+      plusNum = 1;
+    }
+
+    var userObj = desk.positions[curPosId];
+    var nextPosId = this.getNextPosId(desk,curPosId);
+    var plus_cards = [];
+    for (let i = 0; i < plusNum; i++) {
+      var card = desk.cards.shift();
+      plus_cards.push(card);
+      userObj.cards.push(card);
+    }
+
+    console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
+    this.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
+    this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId});
+  },
   checkDisconnect:function(){
     for (let i = 0; i < this.desks.length; i++) {
       for (let j = 0; j < this.desks[i].positions.length; j++) {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= 180){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           userObj.uid = 0;
           userObj.state = 0;
@@ -332,6 +388,8 @@ const proto = {
             this.desks[i].state = 0;
             this.desks[i].play_index = 0;
             this.desks[i].play_mode = -1;
+          }else{
+            this.broadCastRoom("GAME_OVER", this.desks[i].deskId, {invalid:1,winer: -1, score_list: [],cards_list:[]});
           }
         }
       }
@@ -552,12 +610,12 @@ const proto = {
           var nextPosId;
 
           if(obj.value == 'stop'){
-              nextPosId = self.getNextPosId(socket,self.getNextPosId(socket,curPosId));
+              nextPosId = self.getNextPosId(desk,self.getNextPosId(desk,curPosId));
           }else if(obj.value == 'turn'){
               desk.direct = desk.direct == 1 ? 0 : 1;
-              nextPosId = self.getNextPosId(socket,curPosId);
+              nextPosId = self.getNextPosId(desk,curPosId);
           }else{
-              nextPosId = self.getNextPosId(socket,curPosId);
+              nextPosId = self.getNextPosId(desk,curPosId);
           }
           desk.out_cards.push(obj);
           var new_cards = [];
@@ -617,6 +675,12 @@ const proto = {
             score_list[winer] = score_total;
 
             self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list});
+          }else{
+            //轮到的玩家刚好掉线
+            var nextUserObj = self.getPositionByPosId(desk,nextPosId);
+            if(nextUserObj.disconnectTime > 0){
+              self.makePass(desk,nextPosId);
+            }
           }
         }else{
           socket.emit("MESSAGE",'不能出这张牌~');
@@ -628,46 +692,8 @@ const proto = {
         if(desk.state != 1){
           return;
         }
-
-        var plusNum = 0;
-        var last_card = desk.out_cards[desk.out_cards.length - 1];
-        if(last_card.value == 'plus2' || last_card.value == 'plus4'){
-
-          for (let i = desk.out_cards.length - 1; i >= 0; i--) {
-            var v = desk.out_cards[i];
-            if(v.value == 'plus2' ){
-              if(!v.mark){
-                plusNum += 2;
-                v.mark = true;
-              }
-            }else if (v.value == 'plus4'){
-              if(!v.mark){
-                plusNum += 4;
-                v.mark = true;
-              }
-            }else{
-              break;
-            }
-          }
-          if(plusNum == 0){
-            plusNum = 1;
-          }
-        }else{
-          plusNum = 1;
-        }
         var curPosId = self.getPosId(socket);
-        var userObj = desk.positions[curPosId];
-        var nextPosId = self.getNextPosId(socket,curPosId);
-        var plus_cards = [];
-        for (let i = 0; i < plusNum; i++) {
-          var card = desk.cards.shift();
-          plus_cards.push(card);
-          userObj.cards.push(card);
-        }
-
-        console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
-        self.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
-        self.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId});
+        self.makePass(desk,curPosId);
       });
 
       socket.on("PREPARE",function(){
@@ -733,6 +759,10 @@ const proto = {
               delete self.clients[userObj.uid];
               userObj.socket = null;
               userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
+              // 刚好轮到的时候掉线 自动pass处理
+              if(self.desks[i].cur_posId == userObj.posId){
+                self.makePass(self.desks[i],userObj.posId);
+              }
             }
           }
         }

@@ -14,7 +14,7 @@ if (host.indexOf('localhost') != -1) {
 if (defines.isDebug) {
   defines.serverUrl = "localhost:9003";
 } else {
-  defines.serverUrl = "www.fsyctech.com";
+  defines.serverUrl = "42.194.141.209";
 }
 
 window.defines = defines;

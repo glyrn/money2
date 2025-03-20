@@ -78,7 +78,7 @@ cc.Class({
             that.renderUI();
             that.renderRoom();
             that.renderPlayer();
-            if(globalData.gameMgr.is_quit){
+            if(globalData.gameMgr.is_quit || data.invalid == 1){ //有人逃跑
                 that.onBtnCurScore();
             }
         });
@@ -352,12 +352,17 @@ cc.Class({
     },
     renderScorePanel(){
         this.panel_score.active = true;
-
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
-        if(data.winer == globalData.gameMgr.playerData.self.posId){
-            this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "恭喜，你赢了！";
+
+        //有玩家逃跑 无效回合
+        if(data.invalid == 1){
+            this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "有玩家逃跑，本局无效";
         }else{
-            this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "你输了，加油~";
+            if(data.winer == globalData.gameMgr.playerData.self.posId){
+                this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "恭喜，你赢了！";
+            }else{
+                this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "你输了，加油~";
+            }
         }
 
         for (let i = 0; i < 4; i++) {
