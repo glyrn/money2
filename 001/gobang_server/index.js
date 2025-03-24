@@ -311,6 +311,10 @@ const proto = {
               this.desks[i].play_index = 0;
               this.desks[i].play_mode = -1;
           }else{
+            for (let k = 0; k < this.desks[i].chequer.length; k++) {
+              this.desks[i].chequer[k].state = -1;
+              this.desks[i].chequer[k].idx = -1;
+            }
             // 还剩一个
             this.broadCastRoom('GAME_OVER',this.desks[i].deskId,{winer:winerPosId,score:10});
           }
