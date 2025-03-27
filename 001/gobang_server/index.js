@@ -21,9 +21,6 @@ app.all('*', function(req, res, next) {
   next();
 });
 
-app.get('/', function (req, res) {
-  res.sendFile(`${__dirname}/index.html`);
-});
 function GameServer() {
 
   this.desks = this.createDeskList(50);
@@ -446,11 +443,6 @@ const proto = {
             }
             if(flag){// 坐下成功
 
-              if(self.checkUserLogin(obj.uid)){
-                self.socketEmit(userObj,"MESSAGE",'玩家'+obj.name+'已登录');
-                return;
-              }
-
               self.clients[obj.uid] = socket;
 
               if(room.play_mode == -1){
@@ -651,9 +643,15 @@ const proto = {
       console.log('listening on :9001');
     });
   }
-
 }
 
 Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer()
 gameServer.init()
+
+app.get('/quit',function(req,res){
+  const uid = req.query.uid;
+  res.send({state:0,msg:"退出成功",uid:uid});
+  //踢出房间
+  gameServer.checkChangeRoom(-1,uid);
+})

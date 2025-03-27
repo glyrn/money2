@@ -21,10 +21,6 @@ app.all('*', function(req, res, next) {
   next();
 });
 
-app.get('/', function (req, res) {
-  res.sendFile(`${__dirname}/index.html`);
-});
-
 const Game = require('./game.js');
 function createDeskList(n) {
   n = n || 50;
@@ -853,3 +849,10 @@ const proto = {
 Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer(9002);
 gameServer.init();
+
+app.get('/quit',function(req,res){
+  const uid = req.query.uid;
+  res.send({state:0,msg:"退出成功",uid:uid});
+  //踢出房间
+  gameServer.checkChangeRoom(-1,uid);
+})
