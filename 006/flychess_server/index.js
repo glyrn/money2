@@ -347,11 +347,6 @@ const proto = {
             }
             if(flag){// 坐下成功
 
-              if(self.checkUserLogin(obj.uid)){
-                socket.emit("MESSAGE",'玩家'+obj.name+'已登录');
-                return;
-              }
-
               self.clients[obj.uid] = socket;
 
               if(room.play_mode == -1){

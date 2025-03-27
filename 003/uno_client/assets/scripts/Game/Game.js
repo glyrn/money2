@@ -203,6 +203,12 @@ cc.Class({
             && globalData.gameMgr.roomState.state == 2;
 
         this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+
+        //发送退出游戏事件
+        if(this.btn_quit.active){
+            window.parent.postMessage({'quitGame':1}, "*");
+            console.log("发送退出事件")
+        }
     },
     renderPlayer(){
         // 刷新玩家头像

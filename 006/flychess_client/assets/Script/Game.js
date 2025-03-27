@@ -152,6 +152,12 @@ cc.Class({
 
         this.btn_score.active = globalData.gameMgr.score_list.length > 0;
         this.lab_room.string = "版本:v0.0.3.3 房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+
+        //发送退出游戏事件
+        if(this.btn_quit.active){
+            window.parent.postMessage({'quitGame':1}, "*");
+            console.log("发送退出事件")
+        }
     },
     renderScorePanel(){
         var data = globalData.gameMgr.score_list[this._cur_score_idx];

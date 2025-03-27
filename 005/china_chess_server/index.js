@@ -335,11 +335,6 @@ const proto = {
 
               console.log(obj.name, '进入房间', room.name,room.deskId,obj.posId);
 
-              if(self.checkUserLogin(obj.uid)){
-                socket.emit("MESSAGE",'玩家'+obj.name+'已登录');
-                return;
-              }
-
               self.clients[obj.uid] = socket;
 
               if(room.play_mode == -1){

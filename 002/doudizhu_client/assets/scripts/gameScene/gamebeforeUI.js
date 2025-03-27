@@ -30,6 +30,12 @@ cc.Class({
         this.btn_quit.active = globalData.gameMgr.roomState.state == 3 &&
             globalData.gameMgr.play_index >= globalData.gameMgr.play_count &&
             globalData.gameMgr.posState.self.state < 2;
+
+        //发送退出游戏事件
+        if(this.btn_quit.active){
+            window.parent.postMessage({'quitGame':1}, "*");
+            console.log("发送退出事件")
+        }
     },
     onBtnPrepare(){
         globalData.socketMgr.prepare();

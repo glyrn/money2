@@ -110,6 +110,9 @@ cc.Class({
             that.panel_score.onBtnCur();
             that.btn_score.active = true;
             that.render()
+
+            window.parent.postMessage({'quitGame':1}, "*");
+            console.log("发送退出事件")
         });
         globalData.eventlister.on("MESSAGE",function(msg){
             that.onShowTips(msg)
