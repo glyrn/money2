@@ -94,12 +94,14 @@ cc.Class({
                         card.node.position = cc.v2(basePos.x , basePos.y + 105 - i * gap);
                     }
 
-                    if(data.cards[i] == 0){
+                    if(data.cards[i] == 0){//旁观者不能看牌
                         //牌背
                     }else{
-                        card.setTouchEnable(true);
-                        card.setPlayer(this);
-                        card.render(data.cards[i]);
+                        if(this._flag == 'self' && !globalData.gameMgr.is_ob) { //围观不能看牌
+                            card.setTouchEnable(true);
+                            card.setPlayer(this);
+                            card.render(data.cards[i]);
+                        }
                     }
                 }
 

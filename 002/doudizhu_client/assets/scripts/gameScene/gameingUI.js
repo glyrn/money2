@@ -108,7 +108,7 @@ cc.Class({
 
         let roomState = globalData.gameMgr.roomState;
 
-        if (roomState.state > 0 && roomState.state < 3 && roomState.ctxPos === 'self'){
+        if (roomState.state > 0 && roomState.state < 3 && roomState.ctxPos === 'self' && !globalData.gameMgr.is_ob){
             this.playingUI_node.active = true;
         }else{
             this.playingUI_node.active = false;

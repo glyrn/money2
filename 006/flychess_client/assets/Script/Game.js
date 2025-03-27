@@ -141,8 +141,8 @@ cc.Class({
     },
     render(){
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 ;
-        this.btn_quit.active = globalData.gameMgr.play_index >= globalData.gameMgr.play_count;
+            globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 && !globalData.gameMgr.is_ob;
+        this.btn_quit.active = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
 
         for (let i = 0; i < this.playerNodes.length; i++) {
             if(globalData.gameMgr.playerData[i]){

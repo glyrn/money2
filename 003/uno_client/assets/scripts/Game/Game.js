@@ -182,6 +182,7 @@ cc.Class({
     },
     renderUI(){
         this.panel_ctrl.active = globalData.gameMgr.roomState.state == 1 &&
+            !globalData.gameMgr.is_ob &&
             (globalData.gameMgr.playerData.self.posId == globalData.gameMgr.playerData.turn);
     },
     renderRoomTitle(){
@@ -198,9 +199,9 @@ cc.Class({
     renderRoom(){
         this.renderRoomTitle();
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData.self.state < 2 ;
+            globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
         this.btn_quit.active = globalData.gameMgr.is_quit
-            && globalData.gameMgr.roomState.state == 2;
+            && globalData.gameMgr.roomState.state == 2 && !globalData.gameMgr.is_ob;
 
         this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 

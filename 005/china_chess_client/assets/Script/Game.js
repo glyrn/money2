@@ -214,7 +214,7 @@ cc.Class({
     render(){
 
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData.self.state < 2 ;
+            globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
         this.btn_quit.active = false;
         this.avator_my.active = true;
         this.avator_target.active = true;
@@ -297,7 +297,7 @@ cc.Class({
         // this.select_icon.active = false;
         this.touchChess = null;
         this.render()
-        this.btn_quit.active = globalData.gameMgr.play_index >= globalData.gameMgr.play_count;
+        this.btn_quit.active = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
 
         globalData.socketMgr.reqGameOver();
 

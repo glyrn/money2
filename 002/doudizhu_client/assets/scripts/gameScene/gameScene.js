@@ -180,12 +180,4 @@ cc.Class({
     renderBeforeUI() {
         this.gameBeforeUI.getComponent('GameBeforeUI').render();
     },
-    renderRecoverData(data) {
-        console.log("renderRecoverData")
-        this.renderPlayerNode();
-        this.renderCard();
-        this.renderTopCard();
-        this.renderBeforeUI();
-        this.gameUI.getComponent("GameUI").render()
-    }
 });

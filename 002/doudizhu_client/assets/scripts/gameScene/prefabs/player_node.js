@@ -300,7 +300,12 @@ cc.Class({
             if(flag == "self")
             {
                 active = !(roomState.state === 3 && playerData.state === 2);
-                this._cardNodeList[i].getComponent('Card').render(flag,card,playerData.isPass);
+                //旁观者不能看自身牌
+                if(globalData.gameMgr.is_ob){
+                    this._cardNodeList[i].getComponent('Card').render(flag,{value:0,type:0},playerData.isPass);
+                }else{
+                    this._cardNodeList[i].getComponent('Card').render(flag,card,playerData.isPass);
+                }
             }else{
                 active = true;
                 this._cardNodeList[i].getComponent('Card').render(flag,roomState.state === 3 ? card : {value:0,type:0});

@@ -201,7 +201,7 @@ cc.Class({
     _globalData["default"].gameMgr.playerData.curSelectColor = parseInt(customEventData);
   },
   renderUI: function renderUI() {
-    this.panel_ctrl.active = _globalData["default"].gameMgr.roomState.state == 1 && _globalData["default"].gameMgr.playerData.self.posId == _globalData["default"].gameMgr.playerData.turn;
+    this.panel_ctrl.active = _globalData["default"].gameMgr.roomState.state == 1 && !_globalData["default"].gameMgr.is_ob && _globalData["default"].gameMgr.playerData.self.posId == _globalData["default"].gameMgr.playerData.turn;
   },
   renderRoomTitle: function renderRoomTitle() {
     var distance = _globalData["default"].gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
@@ -215,9 +215,16 @@ cc.Class({
   },
   renderRoom: function renderRoom() {
     this.renderRoomTitle();
-    this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2;
-    this.btn_quit.active = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2;
-    this.btn_score.active = _globalData["default"].gameMgr.score_list.length > 0;
+    this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2 && !_globalData["default"].gameMgr.is_ob;
+    this.btn_quit.active = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2 && !_globalData["default"].gameMgr.is_ob;
+    this.btn_score.active = _globalData["default"].gameMgr.score_list.length > 0; //发送退出游戏事件
+
+    if (this.btn_quit.active) {
+      window.parent.postMessage({
+        'quitGame': 1
+      }, "*");
+      console.log("发送退出事件");
+    }
   },
   renderPlayer: function renderPlayer() {
     // 刷新玩家头像

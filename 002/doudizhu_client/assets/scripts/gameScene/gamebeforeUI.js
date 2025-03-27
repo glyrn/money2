@@ -26,10 +26,11 @@ cc.Class({
     },
     render(){
 
-        this.btn_ready.active = globalData.gameMgr.posState.self.state < 2;
+        this.btn_ready.active = globalData.gameMgr.posState.self.state < 2 && !globalData.gameMgr.is_ob;
         this.btn_quit.active = globalData.gameMgr.roomState.state == 3 &&
             globalData.gameMgr.play_index >= globalData.gameMgr.play_count &&
-            globalData.gameMgr.posState.self.state < 2;
+            globalData.gameMgr.posState.self.state < 2 &&
+            !globalData.gameMgr.is_ob;
 
         //发送退出游戏事件
         if(this.btn_quit.active){
