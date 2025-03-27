@@ -89,13 +89,12 @@ cc.Class({
             //站在平台上
             if (this.standTarget) {
                 this.currentSpeedY = 0;
-                this.node.parent.y = Math.max(this.node.parent.y, this.standTarget.position.y + this.standTarget.height / 2 + this.node.height / 2);
-            }else{
+                this.node.parent.y = Math.floor(Math.max(this.node.parent.y, this.standTarget.position.y + this.standTarget.height / 2 + this.node.height / 2));
 
+            }else{
                 this.currentSpeedY -= this._gravity ;
                 this.node.parent.y += this.currentSpeedY;
             }
-
 
             //限制不能超出屏幕
             this.node.parent.y = Math.min(this.node.parent.y, cc.view.getCanvasSize().height / 2);
@@ -124,12 +123,12 @@ cc.Class({
         this.state = State.GAMEOVER;
     },
     onCollisionStay(other,self){
-        if (other.node._name === "ground"){
+        if (other.node._name === "ground" || other.node._name === "block"){
             this.standTarget = other.node;
         }
     },
     onCollisionExit(other, self){
-        if (other.node._name === "ground"){
+        if (other.node._name === "ground" || other.node._name === "block"){
             this.standTarget = null;
             if(this.move_type == 1){ //行走 掉落
                 this.node.parent.stopAllActions();
@@ -139,10 +138,8 @@ cc.Class({
     onCollisionEnter(other, self) {
         //碰到砖块就暂停一下
         if(other.node._name === 'block'){
-            if(this.posId == globalData.gameMgr.posId) {
-                var position = this.node.parent.position;
-                globalData.socketMgr.birdMove({type: 2,cur_x:position.x,cur_y:position.y});
-            }
+            this.standTarget = other.node;
+            this.anim.stop();
             other.node.getComponent("Effect").fadeOut();
         }
         //碰到地板要站着
