@@ -244,13 +244,12 @@ cc.Class({
         for (let i = 0; i < this.playerNodes.length; i++) {
             this.playerNodes[i].cleanDice();
         }
-        console.log("cc.gameInBackgroud ",cc.gameInBackgroud)
+
         if(globalData.gameMgr.isRecover){
             this.dice.getComponent("Dice").showNum(num,cbFunc)
         }else{
             this.dice.getComponent("Dice").playNum(num,cbFunc)
         }
-
     },
 
     nextPlayerDice(data){
@@ -263,7 +262,7 @@ cc.Class({
 
         console.log("nextPlayerDice",globalData.gameMgr.posId,data.posId)
 
-        this.dice.active = globalData.gameMgr.posId == data.posId;
+        this.dice.active = globalData.gameMgr.posId == data.posId && !globalData.gameMgr.is_ob;
         if(this.dice.active){
             this.dice.getComponent(cc.Button).interactable = true;
         }
