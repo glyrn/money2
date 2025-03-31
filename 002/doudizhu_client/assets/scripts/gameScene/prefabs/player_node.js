@@ -107,49 +107,69 @@ cc.Class({
                                     }
                                 }
                             } // 3带2
-                        }else if(globalData.gameMgr.roomState.ctxCard.type == 'AAABB'){
+                        }else if(globalData.gameMgr.roomState.ctxCard.type == 'AAABB') {
 
-                                if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
-                                    find_count++;
-                                    select_card_list.push(card);
+                            if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
+                                find_count++;
+                                select_card_list.push(card);
 
-                                    if (find_count == 3) {
-                                        var checkCards = [];
-                                        playerData.cards.forEach(card=>{
-                                            //跳过AAA牌
-                                            var isSkipCard = false;
-                                            select_card_list.forEach(_card=>{
-                                                if(_card.value == card){
-                                                    isSkipCard = true;
-                                                }
-                                            });
-                                            if(!isSkipCard){
-                                                checkCards.push(card);
+                                if (find_count == 3) {
+                                    var checkCards = [];
+                                    playerData.cards.forEach(card => {
+                                        //跳过AAA牌
+                                        var isSkipCard = false;
+                                        select_card_list.forEach(_card => {
+                                            if (_card.value == card) {
+                                                isSkipCard = true;
                                             }
-                                        })
-                                        var elementsCount = {};
-                                        checkCards.forEach(_card=> {
-                                            var element = elementsCount[_card.value];
-                                            if (element) {
-                                                element.push(_card);
-                                            }else{
-                                                element = [_card];
-                                            }
-                                            elementsCount[_card.value] = element;
                                         });
+                                        if (!isSkipCard) {
+                                            checkCards.push(card);
+                                        }
+                                    })
+                                    var elementsCount = {};
+                                    checkCards.forEach(_card => {
+                                        var element = elementsCount[_card.value];
+                                        if (element) {
+                                            element.push(_card);
+                                        } else {
+                                            element = [_card];
+                                        }
+                                        elementsCount[_card.value] = element;
+                                    });
 
-                                        for (const k in elementsCount) {
-                                            var element = elementsCount[k];
-                                            if(element.length > 1){
-                                                for (let l = 0; l < 2; l++) {
-                                                    select_card_list.push(element[l]);
-                                                }
-                                                is_find = true;
-                                                break;
+                                    for (const k in elementsCount) {
+                                        var element = elementsCount[k];
+                                        if (element.length > 1) {
+                                            for (let l = 0; l < 2; l++) {
+                                                select_card_list.push(element[l]);
                                             }
+                                            is_find = true;
+                                            break;
                                         }
                                     }
                                 }
+                            }
+                        //顺子
+                        }else if(globalData.gameMgr.roomState.ctxCard.type == "ABCDE"){
+
+                            for (let k = 1; k <= globalData.gameMgr.roomState.ctxCard.len; k++) {
+                                if(card.value == globalData.gameMgr.roomState.ctxCard.key + i + k){
+                                    var isExist = false;
+                                    select_card_list.forEach(_card => {
+                                        if(_card.value == card.value ){
+                                            isExist = true;
+                                        }
+                                    });
+                                    if(isExist == false && card.value != 15){//2不能顺子
+                                        select_card_list.push(card);
+                                    }
+                                }
+                            }
+                            if(select_card_list.length == globalData.gameMgr.roomState.ctxCard.len){
+                                is_find = true;
+                                break;
+                            }
                         //多张
                         }else if(globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                                 globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
