@@ -102,7 +102,7 @@ const proto = {
         deskId: i,
         state: 0,
         positions: [],
-        play_mode:-1,
+        ready_count:-1,
         play_count:0,
         base_score:100,
         play_index:1,
@@ -384,7 +384,7 @@ const proto = {
             this.desks[i].name = '';
             this.desks[i].state = 0;
             this.desks[i].play_index = 0;
-            this.desks[i].play_mode = -1;
+            this.desks[i].ready_count = -1;
           }else{
             this.broadCastRoom("GAME_OVER", this.desks[i].deskId, {invalid:1,winer: -1, score_list: [],cards_list:[]});
           }
@@ -424,7 +424,7 @@ const proto = {
             this.desks[i].name = '';
             this.desks[i].state = 0;
             this.desks[i].play_index = 0;
-            this.desks[i].play_mode = -1;
+            this.desks[i].ready_count = -1;
           }
         }
       }
@@ -514,9 +514,9 @@ const proto = {
 
               self.clients[obj.uid] = socket;
 
-              if(room.play_mode == -1){
+              if(room.ready_count == -1){
                 room.game_time = obj.game_time ?? 4;
-                room.play_mode = obj.play_mode;
+                room.ready_count = obj.ready_count;
                 room.specific_score = obj.specific_score ?? 1000;
               }
 
@@ -537,7 +537,7 @@ const proto = {
               self.socketEmit(userObj,"LOGIN_SUCCESS",{
                 roomId:room.name,
                 posId:obj.posId,
-                play_mode:room.play_mode,
+                ready_count:room.ready_count,
                 playerData:playerData,
               });
               self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
@@ -703,8 +703,8 @@ const proto = {
           }
         }
 
-        if(desk.play_mode == 1 && ready_count == 2 ||
-            desk.play_mode == 2 && ready_count == 4 ){
+        if(desk.ready_count == 2 && ready_count == 2 ||
+            desk.ready_count == 4 && ready_count == 4 ){
           desk.ready_count = ready_count;
           desk.state = 1;//开始游戏
           isStartGame = true;
