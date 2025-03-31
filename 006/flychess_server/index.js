@@ -401,7 +401,7 @@ const proto = {
           }
         }
 
-        if(desk.ready_count >= 2 && desk.ready_count >= 4 && desk.ready_count == ready_count){
+        if(desk.ready_count == ready_count){
           desk.state = 1;//开始游戏
           isStartGame = true;
         }
