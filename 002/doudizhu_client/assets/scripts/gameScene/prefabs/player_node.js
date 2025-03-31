@@ -85,28 +85,71 @@ cc.Class({
                     var card = playerData.cards[j];
                     if(!is_find) {
                         // 3带1
-                        if(globalData.gameMgr.roomState.ctxCard.type == 'AAAB'){
+                        if(globalData.gameMgr.roomState.ctxCard.type == 'AAAB') {
 
                             if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
                                 find_count++;
                                 select_card_list.push(card);
 
-                                if (find_count == globalData.gameMgr.roomState.ctxCard.len-1) {
+                                if (find_count == 3) {
                                     var singleCard;
-                                    playerData.cards.forEach(card=>{
+                                    playerData.cards.forEach(card => {
 
-                                        select_card_list.forEach(_card=>{
-                                            if(card.value != _card.value){
+                                        select_card_list.forEach(_card => {
+                                            if (card.value != _card.value) {
                                                 singleCard = card;
                                             }
                                         })
                                     })
-                                    if(singleCard){
+                                    if (singleCard) {
                                         select_card_list.push(singleCard);
                                         is_find = true;
                                     }
                                 }
-                            }
+                            } // 3带2
+                        }else if(globalData.gameMgr.roomState.ctxCard.type == 'AAABB'){
+                            console.log(globalData.gameMgr.roomState.ctxCard.type,globalData.gameMgr.roomState.ctxCard.key + i)
+                                if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
+                                    find_count++;
+                                    select_card_list.push(card);
+
+                                    if (find_count == 3) {
+                                        var checkCards = [];
+                                        playerData.cards.forEach(card=>{
+                                            //跳过AAA牌
+                                            var isSkipCard = false;
+                                            select_card_list.forEach(_card=>{
+                                                if(_card.value == card){
+                                                    isSkipCard = true;
+                                                }
+                                            });
+                                            if(!isSkipCard){
+                                                checkCards.push(card);
+                                            }
+                                        })
+                                        var elementsCount = {};
+                                        checkCards.forEach(_card=> {
+                                            var element = elementsCount[_card.value];
+                                            if (element) {
+                                                element.push(_card);
+                                            }else{
+                                                element = [_card];
+                                            }
+                                            elementsCount[_card.value] = element;
+                                        });
+
+                                        for (const k in elementsCount) {
+                                            var element = elementsCount[k];
+                                            if(element.length > 1){
+                                                for (let l = 0; l < 2; l++) {
+                                                    select_card_list.push(element[l]);
+                                                }
+                                                is_find = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                         //多张
                         }else if(globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                                 globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
