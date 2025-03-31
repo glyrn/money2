@@ -108,7 +108,7 @@ cc.Class({
                                 }
                             } // 3带2
                         }else if(globalData.gameMgr.roomState.ctxCard.type == 'AAABB'){
-                            console.log(globalData.gameMgr.roomState.ctxCard.type,globalData.gameMgr.roomState.ctxCard.key + i)
+
                                 if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
                                     find_count++;
                                     select_card_list.push(card);
