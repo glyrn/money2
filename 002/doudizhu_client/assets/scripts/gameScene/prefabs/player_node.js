@@ -142,6 +142,26 @@ cc.Class({
                     return true;
                 }
             }
+            // 都找不到就找一下王炸
+            var select_card_list = [];
+            playerData.cards.forEach(card=>{
+                if (card.value == 16 || card.value == 17){
+                    select_card_list.push(card);
+                }
+            })
+            if(select_card_list.length == 2){
+                playerData.cards.forEach(card=>{
+                    card.selected = false;
+                });
+                select_card_list.forEach(card=>{
+                    card.selected = true;
+                });
+                for (let i = 0; i < playerData.cards.length; i++) {
+                    this._cardNodeList[i].getComponent('Card').renderSelectCard()
+                }
+                return true;
+            }
+
         }else{ // 刚开始
             this.selectLastOne(playerData);
             return true;
