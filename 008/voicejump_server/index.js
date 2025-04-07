@@ -421,10 +421,7 @@ const proto = {
           }
         }
 
-        if(desk.play_mode == 1 && ready_count == 1 ||
-            desk.play_mode == 2 && ready_count == 2 ||
-            desk.play_mode == 3 && ready_count == 3 ||
-            desk.play_mode == 4 && ready_count == 4 ){
+        if(desk.ready_count == ready_count ){
           desk.ready_count = ready_count;
           desk.state = 1;//开始游戏
           isStartGame = true;
