@@ -142,8 +142,8 @@ cc.Class({
     render(){
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
             globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 && !globalData.gameMgr.is_ob;
-        this.btn_quit.active = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
-
+        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
+        this.btn_quit.active = false;
         for (let i = 0; i < this.playerNodes.length; i++) {
             if(globalData.gameMgr.playerData[i]){
                 this.playerNodes[i].render()
@@ -154,7 +154,7 @@ cc.Class({
         this.lab_room.string = "版本:v0.0.3.3 房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
 
         //发送退出游戏事件
-        if(this.btn_quit.active){
+        if(isQuit){
             window.parent.postMessage({'quitGame':1}, "*");
             console.log("发送退出事件")
         }

@@ -200,13 +200,14 @@ cc.Class({
         this.renderRoomTitle();
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
             globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
-        this.btn_quit.active = globalData.gameMgr.is_quit
+        var isQuit = globalData.gameMgr.is_quit
             && globalData.gameMgr.roomState.state == 2 && !globalData.gameMgr.is_ob;
+        this.btn_quit.active = false;
 
         this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 
         //发送退出游戏事件
-        if(this.btn_quit.active){
+        if(isQuit){
             window.parent.postMessage({'quitGame':1}, "*");
             console.log("发送退出事件")
         }

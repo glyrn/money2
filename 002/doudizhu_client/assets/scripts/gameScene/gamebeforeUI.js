@@ -27,13 +27,13 @@ cc.Class({
     render(){
 
         this.btn_ready.active = globalData.gameMgr.posState.self.state < 2 && !globalData.gameMgr.is_ob;
-        this.btn_quit.active = globalData.gameMgr.roomState.state == 3 &&
+        var isQuit = globalData.gameMgr.roomState.state == 3 &&
             globalData.gameMgr.play_index >= globalData.gameMgr.play_count &&
             globalData.gameMgr.posState.self.state < 2 &&
             !globalData.gameMgr.is_ob;
-
+        this.btn_quit.active = false;
         //发送退出游戏事件
-        if(this.btn_quit.active){
+        if(isQuit){
             window.parent.postMessage({'quitGame':1}, "*");
             console.log("发送退出事件")
         }
