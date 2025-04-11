@@ -718,7 +718,6 @@ const proto = {
 Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer()
 gameServer.init();
-// gameServer.sendYcGameOver({test:123});
 
 app.get('/quit',function(req,res){
   const uid = req.query.uid;
