@@ -11,5 +11,7 @@ if(defines.isDebug){
 }else{
     defines.serverUrl = "sunday.playapi.cn";
 }
+//云村域名
+defines.yc_domain = "https://www.fsyctech.com";
 
 window.defines = defines;

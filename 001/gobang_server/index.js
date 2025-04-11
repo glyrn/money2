@@ -1,4 +1,8 @@
+const https = require('https');
+const querystring = require('querystring');
+const crypto = require('crypto');
 const os = require('os');
+
 //本地调试
 var ioParam = {path:'/wzq_socket.io'};
 var isDebug = false;
@@ -6,6 +10,8 @@ if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
   isDebug = true;
 }
+const yc_domain = 'www.fsyctech.com';
+
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
@@ -242,12 +248,69 @@ const proto = {
         desk.positions[i].state = 1;
       }
     }
+    var score_list = [];
+    for (let i = 0; i < desk.positions.length; i++) {
+      var score = 0;
+      var is_win = 0;
+      //胜利得10分
+      if(posId == desk.positions[i].posId){
+        score = 10;
+        is_win = 1;
+      }else{
+        score = 0;
+        is_win = 0;
+      }
+      score_list.push({
+        uid:desk.positions[i].uid,
+        name:desk.positions[i].name,
+        score:score,
+        is_win:is_win
+      })
+      desk.positions[i].state = 1;
+    }
     for (let i = 0; i < desk.chequer.length; i++) {
       desk.chequer[i].state = -1;
     }
     this.broadCastRoom('GAME_OVER',desk.deskId,{winer:posId,score:10});
-  },
+    //发送给云村数据
+    this.sendYcGameOver({
+      room_id:desk.name,
+      game_id:1,
+      play_index:desk.play_index,
+      score_list:score_list
+    });
 
+  },
+  //发送给云村数据
+  sendYcGameOver:function(data){
+    function md5(text) {
+      return crypto.createHash('md5').update(text).digest('hex');
+    }
+
+    data.sign = md5(JSON.stringify(data) + "6498612990a59aefb6ad6aa1ca5f7bbb");
+    const postData = querystring.stringify(data);
+    const options = {
+      hostname: yc_domain,
+      port: 443,
+      path: '/client/alchemy/callback/gameOver',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    console.log("通知云村游戏结束，统计成绩");
+    const req = https.request(options, (res) => {
+      res.on('data', (chunk) => {
+        console.log(`响应: ${chunk}`);
+      });
+    });
+    req.on('error', (e) => {
+      console.error(`请求遇到问题: ${e.message}`);
+    });
+
+    req.write(postData);
+    req.end();
+  },
   broadCastRoom:function(event,roomId,data,except){
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
@@ -290,11 +353,12 @@ const proto = {
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
           var winerPosId = 0;
-
+          var winerUserObj = null;
           for (let k = 0; k < this.desks[i].positions.length; k++) {
              if(this.desks[i].positions[k].uid > 0 ){
                isClean = false;
-               winerPosId = this.desks[i].positions[k].posId;
+               winerUserObj = this.desks[i].positions[k];
+               winerPosId = winerUserObj.posId;
              }
           }
 
@@ -314,6 +378,12 @@ const proto = {
             }
             // 还剩一个
             this.broadCastRoom('GAME_OVER',this.desks[i].deskId,{winer:winerPosId,score:10});
+            this.sendYcGameOver({
+              room_id:this.desks[i].name,
+              game_id:1,
+              play_index:this.desks[i].play_index,
+              score_list:[{uid:winerUserObj.uid,name:winerUserObj.name,score:10}]
+            });
           }
         }
       }
@@ -647,7 +717,8 @@ const proto = {
 
 Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer()
-gameServer.init()
+gameServer.init();
+// gameServer.sendYcGameOver({test:123});
 
 app.get('/quit',function(req,res){
   const uid = req.query.uid;
