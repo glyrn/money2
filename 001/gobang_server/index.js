@@ -1,5 +1,4 @@
 const https = require('https');
-const querystring = require('querystring');
 const crypto = require('crypto');
 const os = require('os');
 
@@ -283,13 +282,15 @@ const proto = {
   },
   //发送给云村数据
   sendYcGameOver:function(data){
-    function md5(text) {
-      return crypto.createHash('md5').update(text).digest('hex');
-    }
+    // function md5(text) {
+    //   return crypto.createHash('md5').update(text).digest('hex');
+    // }
 
-    // data.sign = md5(JSON.stringify(data) + "6498612990a59aefb6ad6aa1ca5f7bbb");
-    data.sign = "6498612990a59aefb6ad6aa1ca5f7bbb";
-    const postData = querystring.stringify(data);
+    const postData = JSON.stringify({
+      data:JSON.stringify(data),
+      sign:"6498612990a59aefb6ad6aa1ca5f7bbb",
+    });
+    console.log(postData)
     const options = {
       hostname: yc_domain,
       port: 443,
