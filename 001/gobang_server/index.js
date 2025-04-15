@@ -288,7 +288,8 @@ const proto = {
 
     const postData = JSON.stringify({
       data:JSON.stringify(data),
-      sign:md5(JSON.stringify(data)+"6498612990a59aefb6ad6aa1ca5f7bbb"),
+      // sign:md5(JSON.stringify(data)+"6498612990a59aefb6ad6aa1ca5f7bbb"),
+      sign:"6498612990a59aefb6ad6aa1ca5f7bbb"
     });
     const options = {
       hostname: yc_domain,
