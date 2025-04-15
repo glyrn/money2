@@ -1,4 +1,6 @@
+const crypto = require('crypto');
 const os = require('os');
+const https = require('https');
 //本地调试
 var ioParam = {path:'/zgxq_socket.io'};
 var isDebug = false;
@@ -6,6 +8,8 @@ if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
   isDebug = true;
 }
+const yc_domain = 'www.fsyctech.com';
+
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
@@ -212,6 +216,12 @@ const proto = {
           }else{
             // 还剩一个
             this.broadCastRoom('GAME_OVER',this.desks[i].deskId,{winer:winerPosId,score:10});
+            this.sendYcGameOver({
+              room_id:this.desks[i].name,
+              game_id:5,
+              play_index:this.desks[i].play_index,
+              score_list:[{uid:this.desks[i].positions[winerPosId].uid,name:this.desks[i].positions[winerPosId].name,score:10,is_win:1}]
+            });
           }
         }
       }
@@ -282,6 +292,39 @@ const proto = {
       }
     }
     return false;
+  },
+  //发送给云村数据
+  sendYcGameOver:function(data){
+    function md5(text) {
+      return crypto.createHash('md5').update(text).digest('hex');
+    }
+
+    const postData = JSON.stringify({
+      data:JSON.stringify(data),
+      sign:md5(JSON.stringify(data)+"6498612990a59aefb6ad6aa1ca5f7bbb"),
+    });
+    console.log(postData)
+    const options = {
+      hostname: yc_domain,
+      port: 443,
+      path: '/client/alchemy/callback/gameOver',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    console.log("通知云村游戏结束，统计成绩");
+    const req = https.request(options, (res) => {
+      res.on('data', (chunk) => {
+        console.log(`响应: ${chunk}`);
+      });
+    });
+    req.on('error', (e) => {
+      console.error(`请求遇到问题: ${e.message}`);
+    });
+
+    req.write(postData);
+    req.end();
   },
   init:function () {
 
@@ -466,11 +509,17 @@ const proto = {
         }
       });
 
-      socket.on('REQ_GAME_OVER',function(){
+      socket.on('REQ_GAME_OVER',function(data){
         var room = self.getDesk(socket);
         for (let i = 0; i < room.positions.length; i++) {
           room.positions[i].state = 1;
         }
+        this.sendYcGameOver({
+          room_id:room.name,
+          game_id:5,
+          play_index:room.play_index,
+          score_list:[{uid:room.positions[data.winer].uid,name:room.positions[data.winer].name,score:data.score,is_win:1}]
+        });
       })
 
     });

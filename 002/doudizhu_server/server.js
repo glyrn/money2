@@ -1,4 +1,6 @@
+const crypto = require('crypto');
 const os = require('os');
+const https = require('https');
 //本地调试
 var ioParam = {path:'/hlddz_socket.io'};
 var isDebug = false;
@@ -6,6 +8,9 @@ if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
   isDebug = true;
 }
+
+const yc_domain = 'www.fsyctech.com';
+
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
@@ -483,6 +488,39 @@ const proto = {
     this.broadCastRoom('GAME_START', deskId, { cards });
     this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos: game.getContextPosId(), ctxScore: game.getContextScore(), timeout: 15 });
   },
+  //发送给云村数据
+  sendYcGameOver:function(data){
+    function md5(text) {
+      return crypto.createHash('md5').update(text).digest('hex');
+    }
+
+    const postData = JSON.stringify({
+      data:JSON.stringify(data),
+      sign:md5(JSON.stringify(data)+"6498612990a59aefb6ad6aa1ca5f7bbb"),
+    });
+    console.log(postData)
+    const options = {
+      hostname: yc_domain,
+      port: 443,
+      path: '/client/alchemy/callback/gameOver',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    console.log("通知云村游戏结束，统计成绩");
+    const req = https.request(options, (res) => {
+      res.on('data', (chunk) => {
+        console.log(`响应: ${chunk}`);
+      });
+    });
+    req.on('error', (e) => {
+      console.error(`请求遇到问题: ${e.message}`);
+    });
+
+    req.write(postData);
+    req.end();
+  },
   init() {
 
     const self = this;
@@ -752,9 +790,31 @@ const proto = {
 
 
             if (game.getStatus() === 3) {
+              var gameResult = game.getResult();
+              this.broadCastRoom('GAME_OVER', deskId, gameResult);
 
-              this.broadCastRoom('GAME_OVER', deskId, game.getResult());
-
+              var score = desk.base_score * gameResult.score * gameResult.ratio;
+              var score_list = [];
+              for (let j = 0; j < gameResult.winner.length; j++) {
+                for (let i = 0; i < desk.positions.length; i++) {
+                  if(desk.positions[i].posId == gameResult.winner[j]){
+                    score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.winner.length,is_win:1})
+                  }
+                }
+              }
+              for (let j = 0; j < gameResult.loser.length; j++) {
+                for (let i = 0; i < desk.positions.length; i++) {
+                  if(desk.positions[i].posId == gameResult.loser[j]){
+                    score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.loser.length,is_win:0})
+                  }
+                }
+              }
+              this.sendYcGameOver({
+                room_id:desk.name,
+                game_id:2,
+                play_index:desk.play_index,
+                score_list:score_list
+              })
               desk.play_index++;
               if(desk.play_count < desk.play_index){ //剩余局数为0
                 desk.play_index = 1;

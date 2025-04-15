@@ -288,8 +288,8 @@ const proto = {
 
     const postData = JSON.stringify({
       data:JSON.stringify(data),
-      // sign:md5(JSON.stringify(data)+"6498612990a59aefb6ad6aa1ca5f7bbb"),
-      sign:"6498612990a59aefb6ad6aa1ca5f7bbb"
+      sign:md5(JSON.stringify(data)+"6498612990a59aefb6ad6aa1ca5f7bbb"),
+      // sign:"6498612990a59aefb6ad6aa1ca5f7bbb"
     });
     const options = {
       hostname: yc_domain,
@@ -384,7 +384,7 @@ const proto = {
               room_id:this.desks[i].name,
               game_id:1,
               play_index:this.desks[i].play_index,
-              score_list:[{uid:winerUserObj.uid,name:winerUserObj.name,score:10}]
+              score_list:[{uid:winerUserObj.uid,name:winerUserObj.name,score:10,is_win:1}]
             });
           }
         }

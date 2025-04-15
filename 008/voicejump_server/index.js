@@ -1,9 +1,13 @@
+const crypto = require('crypto');
 const os = require('os');
+const https = require('https');
 //本地调试
 var ioParam = {path:'/voice_socket.io'};
 if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
 }
+const yc_domain = 'www.fsyctech.com';
+
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
@@ -193,6 +197,7 @@ const proto = {
   },
   gameOver:function(desk){
     var score_list = [];
+
     for (let j = 0; j < desk.positions.length; j++) {
       var userObj = desk.positions[j];
       if(userObj.uid > 0) {
@@ -200,12 +205,27 @@ const proto = {
       }
     }
     score_list.sort((a, b) => b.score - a.score);
-
+    var winer = score_list[0].posId;
+    var _score_list = [];
     for (let i = 0; i < desk.positions.length; i++) {
       desk.positions[i].state = 1;
+      if(desk.positions[i].uid >0) {
+        _score_list.push({
+          uid: desk.positions[i].uid,
+          name: desk.positions[i].name,
+          score: desk.positions[i].gain_score,
+          is_win: winer == i ? 1 : 0
+        })
+      }
     }
     desk.state = 0;
     this.broadCastRoom("GAME_OVER",desk.deskId,score_list);
+    this.sendYcGameOver({
+      room_id:desk.name,
+      game_id:6,
+      play_index:desk.play_index,
+      score_list:_score_list,
+    });
   },
   checkDisconnect:function(){
     for (let i = 0; i < this.desks.length; i++) {
@@ -311,6 +331,39 @@ const proto = {
       }
     }
     return false;
+  },
+  //发送给云村数据
+  sendYcGameOver:function(data){
+    function md5(text) {
+      return crypto.createHash('md5').update(text).digest('hex');
+    }
+
+    const postData = JSON.stringify({
+      data:JSON.stringify(data),
+      sign:md5(JSON.stringify(data)+"6498612990a59aefb6ad6aa1ca5f7bbb"),
+    });
+    console.log(postData)
+    const options = {
+      hostname: yc_domain,
+      port: 443,
+      path: '/client/alchemy/callback/gameOver',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    console.log("通知云村游戏结束，统计成绩");
+    const req = https.request(options, (res) => {
+      res.on('data', (chunk) => {
+        console.log(`响应: ${chunk}`);
+      });
+    });
+    req.on('error', (e) => {
+      console.error(`请求遇到问题: ${e.message}`);
+    });
+
+    req.write(postData);
+    req.end();
   },
   init:function () {
 

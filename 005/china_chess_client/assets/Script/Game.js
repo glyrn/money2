@@ -300,7 +300,7 @@ cc.Class({
         var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
         this.btn_quit.active = false;
 
-        globalData.socketMgr.reqGameOver();
+        globalData.socketMgr.reqGameOver(data.winer);
 
         //发送退出游戏事件
         if(isQuit){

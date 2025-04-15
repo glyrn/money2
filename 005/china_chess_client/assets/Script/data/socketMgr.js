@@ -139,9 +139,9 @@ const socketMgr = function(){
         if(that.checkIsObserve()) return;
         _socket.emit('RETRACK_CHESS_RSP',option);
     }
-    that.reqGameOver = function(){
+    that.reqGameOver = function(data){
         if(that.checkIsObserve()) return;
-        _socket.emit("REQ_GAME_OVER");
+        _socket.emit("REQ_GAME_OVER", data);
     }
     that.checkIsObserve = function(){
         if(_gameMgr.is_ob){

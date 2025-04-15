@@ -1,4 +1,6 @@
+const crypto = require('crypto');
 const os = require('os');
+const https = require('https');
 //本地调试
 var isDebug = false;
 var ioParam = {path:'/uno_socket.io'};
@@ -6,6 +8,8 @@ if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
   isDebug = true;
 }
+const yc_domain = 'www.fsyctech.com';
+
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
@@ -288,6 +292,12 @@ const proto = {
           score_list[winer] = score_total;
 
           this.broadCastRoom("GAME_OVER", desk.deskId, {winer: winer, score_list: score_list,cards_list:cards_list});
+          this.sendYcGameOver({
+            room_id:desk.name,
+            game_id:3,
+            play_index:desk.play_index,
+            score_list:[{uid:desk.positions[winer].uid,name:desk.positions[winer].name,score:score_total,is_win:1}]
+          });
         }
       }
     }
@@ -456,6 +466,39 @@ const proto = {
       }
     }
     return false;
+  },
+  //发送给云村数据
+  sendYcGameOver:function(data){
+    function md5(text) {
+      return crypto.createHash('md5').update(text).digest('hex');
+    }
+
+    const postData = JSON.stringify({
+      data:JSON.stringify(data),
+      sign:md5(JSON.stringify(data)+"6498612990a59aefb6ad6aa1ca5f7bbb"),
+    });
+    console.log(postData)
+    const options = {
+      hostname: yc_domain,
+      port: 443,
+      path: '/client/alchemy/callback/gameOver',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    console.log("通知云村游戏结束，统计成绩");
+    const req = https.request(options, (res) => {
+      res.on('data', (chunk) => {
+        console.log(`响应: ${chunk}`);
+      });
+    });
+    req.on('error', (e) => {
+      console.error(`请求遇到问题: ${e.message}`);
+    });
+
+    req.write(postData);
+    req.end();
   },
   init:function () {
 
@@ -667,6 +710,12 @@ const proto = {
             score_list[winer] = score_total;
 
             self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list});
+            self.sendYcGameOver({
+              room_id:desk.name,
+              game_id:3,
+              play_index:desk.play_index,
+              score_list:[{uid:desk.positions[winer].uid,name:desk.positions[winer].name,score:score_total,is_win:1}]
+            });
           }else{
             //轮到的玩家刚好掉线
             var nextUserObj = self.getPositionByPosId(desk,nextPosId);
@@ -771,7 +820,7 @@ const proto = {
 
 Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer()
-gameServer.init()
+gameServer.init();
 
 app.get('/quit',function(req,res){
   const uid = req.query.uid;
