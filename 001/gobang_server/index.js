@@ -287,7 +287,8 @@ const proto = {
       return crypto.createHash('md5').update(text).digest('hex');
     }
 
-    data.sign = md5(JSON.stringify(data) + "6498612990a59aefb6ad6aa1ca5f7bbb");
+    // data.sign = md5(JSON.stringify(data) + "6498612990a59aefb6ad6aa1ca5f7bbb");
+    data.sign = "6498612990a59aefb6ad6aa1ca5f7bbb";
     const postData = querystring.stringify(data);
     const options = {
       hostname: yc_domain,
