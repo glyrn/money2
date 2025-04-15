@@ -1,6 +1,6 @@
-const https = require('https');
 const crypto = require('crypto');
 const os = require('os');
+const https = require('https');
 
 //本地调试
 var ioParam = {path:'/wzq_socket.io'};
@@ -282,15 +282,14 @@ const proto = {
   },
   //发送给云村数据
   sendYcGameOver:function(data){
-    // function md5(text) {
-    //   return crypto.createHash('md5').update(text).digest('hex');
-    // }
+    function md5(text) {
+      return crypto.createHash('md5').update(text).digest('hex');
+    }
 
     const postData = JSON.stringify({
       data:JSON.stringify(data),
-      sign:"6498612990a59aefb6ad6aa1ca5f7bbb",
+      sign:md5(JSON.stringify(data)+"6498612990a59aefb6ad6aa1ca5f7bbb"),
     });
-    console.log(postData)
     const options = {
       hostname: yc_domain,
       port: 443,
