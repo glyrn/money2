@@ -9,7 +9,7 @@ if(host.indexOf('localhost')!=-1){
 if(defines.isDebug){
     defines.serverUrl = "localhost:9007";
 }else{
-    defines.serverUrl = "sunday.playapi.cn";
+    defines.serverUrl = "www.fsyctech.com";
 }
 
 window.defines = defines;

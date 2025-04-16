@@ -5,12 +5,13 @@ var host = window.location.host;
 if(host.indexOf('localhost')!=-1){
     defines.isDebug = true;
 }
-// defines.isDebug = false;
-
+defines.isDebug = false;
 if(defines.isDebug){
-    defines.serverUrl = "localhost:9002";
+    defines.serverUrl = "localhost:9001";
 }else{
     defines.serverUrl = "www.fsyctech.com";
 }
+//云村域名
+defines.yc_domain = "https://www.fsyctech.com";
 
 window.defines = defines;
