@@ -1,6 +1,7 @@
 import globalData from "./data/globalData.js"
 import chessLogic from "./data/chessLogic.js"
 import playLogic from "./data/playLogic.js"
+import AvatorMini from "../Prefab/AvatorMini";
 
 cc.Class({
     extends: cc.Component,
@@ -11,11 +12,7 @@ cc.Class({
             type: cc.Button
         },
         panel_over:cc.Node,
-        
-        overLabel:{
-          default:null,
-          type:cc.Label
-        },
+
     
         chessPrefab:{//棋子的预制资源
             default:null,
@@ -26,8 +23,21 @@ cc.Class({
         btn_ready:cc.Node,
         btn_score:cc.Node,
         btn_quit:cc.Node,
+
+        target_node:cc.Node,
+        avator_mini1:AvatorMini,
+        avator_mini2:AvatorMini,
         lab_player1:cc.Label,
         lab_player2:cc.Label,
+        icon_player1:cc.Sprite,
+        icon_player2:cc.Sprite,
+        icon_win:cc.SpriteFrame,
+        icon_lost:cc.SpriteFrame,
+        img_yuanbao1:cc.Sprite,
+        img_yuanbao2:cc.Sprite,
+        yuanbao_win:cc.SpriteFrame,
+        yuanbao_lost:cc.SpriteFrame,
+
         dialog_retrack:cc.Node,
 
         avator_target:cc.Node,
@@ -36,6 +46,8 @@ cc.Class({
         img_jiangjun:cc.Node,
         lab_tips:cc.Label,
         tips:cc.Node,
+
+
     },
     //退出游戏
     onBtnQuit(){
@@ -102,7 +114,7 @@ cc.Class({
         this.game_start.active = false;
         this.panel_over.active = false;
         this.btn_quit.active = false;
-        this.btn_score.active = false;
+        // this.btn_score.active = false;
         this.dialog_retrack.active = false;
         var that = this;
 
@@ -288,7 +300,7 @@ cc.Class({
 
         this._cur_score_idx = globalData.gameMgr.score_list.length -1;
         this.renderScorePanel()
-        this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+        // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 
         globalData.gameMgr.playerData.self.state = 1;
         if(globalData.gameMgr.playerData.target){
@@ -300,7 +312,7 @@ cc.Class({
         var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
         this.btn_quit.active = false;
 
-        globalData.socketMgr.reqGameOver(data.winer);
+        globalData.socketMgr.reqGameOver(data);
 
         //发送退出游戏事件
         if(isQuit){
@@ -312,24 +324,37 @@ cc.Class({
 
         this.panel_over.active = true;
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
-        console.log(data);
-        if(data.winer == globalData.gameMgr.playerData.self.posId){
-            this.overLabel.string = "恭喜，你赢了！";
+        this.avator_mini1.setData(globalData.gameMgr.playerData.self,"self");
+        var flag = "target"
+        if(globalData.gameMgr.play_mode == 0){ //人机
+            flag = "pc"
+        }
+        if(globalData.gameMgr.playerData.target){
+            this.target_node.active = true;
+            this.avator_mini2.setData(globalData.gameMgr.playerData.target,flag);
         }else{
-            this.overLabel.string = "你输了，加油~";
+            this.target_node.active = false;
         }
 
-        var append1;
-        var append2;
         if(data.winer == globalData.gameMgr.playerData.self.posId){
-            append1 = "+" + data.score;
-            append2 = "-" + data.score;
+            this.lab_player1.string = "+" + data.score;
+            this.lab_player2.string = "-" + data.score;
+            this.lab_player1.color = cc.color(253,223,0);
+            this.lab_player2.color = cc.color(213,213,213);
+            this.icon_player1.spriteFrame = this.icon_win;
+            this.icon_player2.spriteFrame = this.icon_lost;
+            this.img_yuanbao1.spriteFrame = this.yuanbao_win;
+            this.img_yuanbao2.spriteFrame = this.yuanbao_lost;
         }else{
-            append1 = "-" + data.score;
-            append2 = "+" + data.score;
+            this.lab_player1.string = "-" + data.score;
+            this.lab_player2.string = "+" + data.score;
+            this.lab_player1.color = cc.color(213,213,213);
+            this.lab_player2.color =  cc.color(253,223,0);
+            this.icon_player1.spriteFrame = this.icon_lost;
+            this.icon_player2.spriteFrame = this.icon_win;
+            this.img_yuanbao1.spriteFrame = this.yuanbao_lost;
+            this.img_yuanbao2.spriteFrame = this.yuanbao_win;
         }
-        this.lab_player1.string = globalData.gameMgr.playerData.self.name +" "+append1;
-        this.lab_player2.string = globalData.gameMgr.playerData.target.name +" "+append2;
     },
     showTips:function(msg){
 

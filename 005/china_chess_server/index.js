@@ -514,7 +514,7 @@ const proto = {
         for (let i = 0; i < room.positions.length; i++) {
           room.positions[i].state = 1;
         }
-        this.sendYcGameOver({
+        self.sendYcGameOver({
           room_id:room.name,
           game_id:5,
           play_index:room.play_index,
