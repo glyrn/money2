@@ -5,6 +5,7 @@ var host = window.location.host;
 if(host.indexOf('localhost')!=-1){
     defines.isDebug = true;
 }
+defines.isDebug = false；
 if(defines.isDebug){
     defines.serverUrl = "localhost:9001";
 }else{
