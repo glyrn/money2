@@ -1,7 +1,7 @@
 import globalData from "./data/globalData";
 
 const Bird = require('../prefab/Bird');
-const Map = require('./Map');
+// const Map = require('./Map');
 const Avator = require('../prefab/Avator');
 const PanelScore = require('PanelScore');
 const ProgBar = require("../prefab/ProgBar")
@@ -17,7 +17,8 @@ cc.Class({
         avator2:Avator,
         avator3:Avator,
         lab_score: cc.Label,
-        map:Map,
+        // map:Map,
+        panel_avators:cc.Node,
         panel_score: PanelScore,
         panel_drop:cc.Node,
         lab_room:cc.Label,
@@ -32,7 +33,7 @@ cc.Class({
         _voiceCDTime:100,
         _jump1CDTime:700,
         _jump2CDTime:1000,
-        slide_voice:cc.Slider,
+        prog_voice:cc.Node,
     },
     onLoad() {
 
@@ -52,6 +53,10 @@ cc.Class({
         this.lab_score.node.active = false;
         this.btn_score.active = false;
         this.panel_score.node.active = false;
+
+        if(!globalData.gameMgr.isAllReady()){
+            this.panel_avators.active = true;
+        }
 
         this.enableInput(false);
         //刷新玩家
@@ -91,6 +96,9 @@ cc.Class({
                 that['player'+i].startMove();
             }
             that.panel_score.node.active = false;
+            that.panel_avators.active = false;
+            that.prog_bar.node.active = true;
+            that.prog_bar.init();
         });
         globalData.eventlister.on("FALL_OVER_SUCCESS",function(posId){
             if(posId == globalData.gameMgr.posId) {
@@ -108,7 +116,9 @@ cc.Class({
             that.panel_drop.active = false;
             that.panel_score.node.active = true;
             that.panel_score.onBtnCur();
-            that.btn_score.active = true;
+            // that.btn_score.active = true;
+            that.panel_avators.active = true;
+            that.prog_bar.node.active = false;
             that.render()
 
             window.parent.postMessage({'quitGame':1}, "*");
@@ -151,15 +161,13 @@ cc.Class({
             globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 && !globalData.gameMgr.is_ob;
 
         this.lab_score.node.active = globalData.gameMgr.roomState.state == 1;//游戏进行中
-        this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+        // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
         for (const i in globalData.gameMgr.playerData) {
             this['avator'+i].render(globalData.gameMgr.playerData[i]);
-            if(globalData.gameMgr.playerData[i].state == 2){
+            if(globalData.gameMgr.playerData[i] && globalData.gameMgr.playerData[i].state == 2){
                 this['player'+i].render(globalData.gameMgr.playerData[i]);
             }
         }
-
-        this.prog_bar.init();
     },
     // 事件控制
     enableInput(enable) {
@@ -208,7 +216,9 @@ cc.Class({
                 // }
                 // that._lastVoiceTime = Date.now();
 
-                that.slide_voice.progress = that._rms / 100;
+                // that.slide_voice.progress = that._rms / 100;
+
+                that.prog_voice.height = that._rms / 100 * 200;
                 var curPlayer = this['player'+globalData.gameMgr.posId];
                 var position = curPlayer.node.parent.position;
                 if(curPlayer.isStand()) {

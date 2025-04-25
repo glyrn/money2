@@ -21,7 +21,7 @@ cc.Class({
     },
     init: function () {
         var that = this;
-        that.node.active = true;
+        // that.node.active = true;
         for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
             this['avator' + i].node.active = true;
             that['avator' + i].node.getChildByName("label").active = false;
@@ -43,7 +43,7 @@ cc.Class({
                 if(data.game_type == 'fall'){
                     that['avator' + i].node.getChildByName("label").active = true;
                 }else{
-                    that['avator' + i].node.x = data.gain_score / 100 * 450;
+                    that['avator' + i].node.x = data.gain_score / 150 * 450;
                 }
 
             }else{

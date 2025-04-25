@@ -31,24 +31,31 @@ cc.Class({
         }
 
         var nearBird = this['player'+0];
-        var distX =  Math.abs(nearBird.node.parent.x) - this.node.x;
+
+        var p_monster = this.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        var p_bird = nearBird.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+
+        var distX =  Math.abs(p_bird.x) - p_monster.x;
         //选出最近的玩家
         for (let i = 1; i < 4; i++) {
             if(!this['player'+i].fallOver && this['player'+i].state == 1){
-                if(Math.abs(this['player'+i].node.parent.x) - this.node.x < distX){
+                p_bird = this['player'+i].node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+                if(Math.abs(p_bird.x) - p_monster.x < distX){
                     nearBird = this['player'+i];
                 }
             }
         }
+
+        p_bird = nearBird.node.convertToWorldSpaceAR(cc.Vec2.ZERO)
+
         //右边
-        if(nearBird.node.parent.x >= this.node.x){
-            this.currentSpeedX = 0.3 * dt;
+        if(p_bird.x >= p_monster.x){
+            this.currentSpeedX = 2;
         }else{ //左边
-            this.currentSpeedX -= 0.3 * dt;
+            this.currentSpeedX = -2;
         }
 
         this.node.x += this.currentSpeedX;
-
         //站在平台上
         if (this.standTarget) {
             this.currentSpeedY = 0;
@@ -68,6 +75,7 @@ cc.Class({
             this.fallOver = false;
             this.currentSpeedX = 0;
         }
+
     },
     onCollisionStay(other,self){
         if (other.node._name === "ground"){

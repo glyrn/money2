@@ -32,6 +32,6 @@ cc.Class({
 
         this.lab_name.string = data.name;
         this.img_ready.active = data.state == 2 && globalData.gameMgr.roomState.state != 1;
-        this.img_dead.active = data.game_type == 'fall';
+        // this.img_dead.active = data.game_type == 'fall';
     },
 });

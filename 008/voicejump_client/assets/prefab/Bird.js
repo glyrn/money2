@@ -27,6 +27,8 @@ cc.Class({
         main_camera:cc.Node,
         main_ui:cc.Node,
         lab_name:cc.Label,
+        img_glass:cc.Node,
+        img_dead:cc.Node,
         //小鸟的状态
         state: {
             default: State.Ready,
@@ -53,6 +55,7 @@ cc.Class({
         }
         this.node.parent.active = true;
         this.fallOver = false;
+        this.img_dead.active = false;
         this.state = State.Ready;
         this.currentSpeedY = 0;
         // this.currentSpeedX = 0;
@@ -73,6 +76,8 @@ cc.Class({
         this.updatePosition(dt);
         // 碰撞检测 处理
         this.detectCollision();
+
+        this.refresh();
     },
     updatePosition(dt) {
         var flying = this.state === State.MOVE;
@@ -111,6 +116,7 @@ cc.Class({
 
         // 掉落地板下面
         if (this.fallOver) {
+            this.img_dead.active = true;
             this.state = State.Drop;
             this.anim.stop();
 
@@ -118,6 +124,19 @@ cc.Class({
                 globalData.socketMgr.fallOver();
             }
         }
+    },
+    refresh(){
+        //第一名要戴眼镜
+        var maxScore = 0;
+        var maxPosId = 0;
+        for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
+            var data = globalData.gameMgr.playerData[i];
+            if(data && data.gain_score >= maxScore) {
+                maxPosId = data.posId;
+                maxScore = data.gain_score;
+            }
+        }
+        this.img_glass.active = maxPosId === this.posId;
     },
     setGameOver(){
         this.state = State.GAMEOVER;

@@ -63,6 +63,15 @@ const gameMgr = function(){
     that.checkBeat = function(){
         setTimeout(that.beatCount,5000);
     }
+    that.isAllReady = function(){
+        var isAllReady = true;
+        for (const i in this.playerData) {
+            if(this.playerData[i] && this.playerData[i].state != 2){
+                isAllReady = false;
+            }
+        }
+        return isAllReady;
+    }
     return that;
 }
 

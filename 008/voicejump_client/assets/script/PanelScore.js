@@ -7,7 +7,7 @@ cc.Class({
         lab_score_1:cc.Label,
         lab_score_2:cc.Label,
         lab_score_3:cc.Label,
-        lab_title:cc.Label,
+        // lab_title:cc.Label,
     },
     onLoad(){
         this.cur_idx = 0;
@@ -33,12 +33,12 @@ cc.Class({
         for (let i = 0; i < score_list.length; i++) {
             var info = score_list[i];
             this['lab_score_'+i].node.active = true;
-            this['lab_score_'+i].string = "第"+(i+1)+"名："+info.name+"："+info.score+"分";
+            this['lab_score_'+i].string = "Top"+(i+1)+"："+info.name+"："+info.score;
 
             if(info.posId == globalData.gameMgr.posId){
                 cur_sort = i+1;
             }
         }
-        this.lab_title.string = "太棒了，您获得了第"+cur_sort+"名！";
+        // this.lab_title.string = "太棒了，您获得了第"+cur_sort+"名！";
     },
 });
