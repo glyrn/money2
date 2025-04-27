@@ -216,10 +216,11 @@ cc.Class({
   renderRoom: function renderRoom() {
     this.renderRoomTitle();
     this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2 && !_globalData["default"].gameMgr.is_ob;
-    this.btn_quit.active = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2 && !_globalData["default"].gameMgr.is_ob;
+    var isQuit = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2 && !_globalData["default"].gameMgr.is_ob;
+    this.btn_quit.active = false;
     this.btn_score.active = _globalData["default"].gameMgr.score_list.length > 0; //发送退出游戏事件
 
-    if (this.btn_quit.active) {
+    if (isQuit) {
       window.parent.postMessage({
         'quitGame': 1
       }, "*");

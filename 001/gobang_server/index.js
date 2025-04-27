@@ -712,7 +712,7 @@ const proto = {
     });
 
     http.listen(9001, function(){
-      console.log('listening on :9001');
+      console.log('listening on '+getCurrentIP()+':9001');
     });
   }
 }

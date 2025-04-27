@@ -181,14 +181,14 @@ cc.Class({
         this.move_type = data.type;
         if(data.type == 1){
             if(globalData.gameMgr.isRecover){
-                this.node.parent.position = cc.v2(data.cur_x + 100 ,data.cur_y);
+                this.node.parent.position = cc.v2(data.cur_x + 50 ,data.cur_y);
                 //镜头跟随
                 if (this.posId == globalData.gameMgr.posId) {
                     this.main_camera.x = this.node.parent.x - this._initPosX;
                 }
             }else{
                 var seq = cc.sequence([
-                    cc.moveTo(0.5, cc.v2(data.cur_x + 100 ,data.cur_y)),
+                    cc.moveTo(0.5, cc.v2(data.cur_x + 50 ,data.cur_y)),
                     cc.callFunc(function(){
                         that.anim.play();
                     },this)
@@ -199,7 +199,7 @@ cc.Class({
                 //镜头跟随
                 if (this.posId == globalData.gameMgr.posId) {
                     this.main_camera.stopAllActions();
-                    this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 100 - this._initPosX, this.main_camera.y)));
+                    this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 50 - this._initPosX, this.main_camera.y)));
                 }
             }
         }else if(data.type == 2){

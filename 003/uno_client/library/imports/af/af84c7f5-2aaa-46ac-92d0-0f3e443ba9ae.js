@@ -236,14 +236,14 @@ var socketMgr = function socketMgr() {
     });
   };
 
-  that.login = function (uid, name, avatorUrl, score, room, play_mode, game_time, specific_score, ob_uid, cbFunc) {
+  that.login = function (uid, name, avatorUrl, score, room, ready_count, game_time, specific_score, ob_uid, cbFunc) {
     _socket.emit('LOGIN', {
       uid: uid,
       room: room,
       name: name,
       avatorUrl: avatorUrl,
       score: score,
-      play_mode: play_mode,
+      ready_count: ready_count,
       game_time: game_time,
       specific_score: specific_score,
       ob_uid: ob_uid

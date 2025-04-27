@@ -634,7 +634,9 @@ const proto = {
         if (!client) {
           return;
         }
-        const { deskId, posId } = client;
+        // const { deskId, posId } = client;
+        let deskId = client.deskId;
+        let posId = client.posId;
         if (!deskId) {
           return;
         }
@@ -681,7 +683,9 @@ const proto = {
         if (!client) {
           return;
         }
-        const { deskId, posId } = client;
+        // const { deskId, posId } = client;
+        let deskId = client.deskId;
+        let posId = client.posId;
         if (!deskId) {
           return;
         }
@@ -709,7 +713,9 @@ const proto = {
         if (!client) {
           return;
         }
-        const { deskId, posId } = client;
+        // const { deskId, posId } = client;
+        let deskId = client.deskId;
+        let posId = client.posId;
         const game = this.gameDatas[deskId];
         if (!game || !deskId) {
           return;
@@ -758,7 +764,10 @@ const proto = {
         if (!client) {
           return;
         }
-        const { deskId, posId } = client;
+        // const { deskId, posId } = client;
+        let deskId = client.deskId;
+        let posId = client.posId;
+
         const game = this.gameDatas[deskId];
         if (game && deskId) {
           let desk = this.getDesk(deskId);

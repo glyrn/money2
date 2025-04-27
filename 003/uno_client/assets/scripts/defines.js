@@ -9,7 +9,10 @@ if(host.indexOf('localhost')!=-1){
 if(defines.isDebug){
     defines.serverUrl = "localhost:9003";
 }else{
-    defines.serverUrl = "www.fsyctech.com";
+    // defines.serverUrl = "www.fsyctech.com";
+    defines.serverUrl = "www.g-xinyi1313.cn";
 }
+//云村域名
+defines.yc_domain = "https://www.fsyctech.com";
 
 window.defines = defines;

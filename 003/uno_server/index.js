@@ -111,6 +111,7 @@ const proto = {
         base_score:100,
         play_index:1,
         cur_posId:0,
+        out_cards:[],
       }
       for (let j = 0; j < 4; j++) {
         desk.positions.push({
@@ -325,6 +326,7 @@ const proto = {
 
     var plusNum = 0;
     var last_card = desk.out_cards[desk.out_cards.length - 1];
+    if(!last_card) return;
     if(last_card.value == 'plus2' || last_card.value == 'plus4'){
 
       for (let i = desk.out_cards.length - 1; i >= 0; i--) {

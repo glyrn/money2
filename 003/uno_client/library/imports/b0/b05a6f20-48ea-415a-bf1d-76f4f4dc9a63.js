@@ -45,21 +45,20 @@ cc.Class({
 
       cc.args = field;
       cc.director.preloadScene("Game", function () {
-        if (defines.isDebug) {
-          _globalData["default"].socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['play_mode'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
-            cc.director.loadScene("Game");
-          });
-        } else {
-          _globalData["default"].utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign", {
-            sign: cc.args['sign']
-          }, function (isOk, data) {
-            if (isOk) {
-              _globalData["default"].socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'], cc.args['play_mode'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
-                cc.director.loadScene("Game");
-              });
-            }
-          });
-        }
+        // if (defines.isDebug) {
+        _globalData["default"].socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
+          cc.director.loadScene("Game");
+        }); // } else {
+        //     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+        //         if (isOk) {
+        //             globalData.socketMgr.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
+        //                 cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
+        //                     cc.director.loadScene("Game");
+        //                 });
+        //         }
+        //     });
+        // }
+
       });
     }
   }

@@ -119,7 +119,7 @@ cc.Class({
 
         this.btn_buchu.active = roomState.ctxCard.ctxPos !== roomState.ctxPos
 
-        this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+        // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 
         //叫分按钮
         for (let i = 0; i < this.btn_scores.length; i++) {
@@ -176,7 +176,7 @@ cc.Class({
         globalData.gameMgr.score_list.push(data);
         this.score_list =  globalData.gameMgr.score_list;
 
-        this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+        // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 
         var score_append = Number(data.score * data.ratio * globalData.gameMgr.base_score);
         data.winner.forEach(function (id) {
