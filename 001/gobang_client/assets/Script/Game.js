@@ -61,7 +61,7 @@ cc.Class({
         target_box:cc.Node,
         avator_target:cc.Node,
         avator_my:cc.Node,
-        game_start:cc.Node,
+        game_start:cc.Animation,
         fiveGroup:[],//五元组
         
         fiveGroupScore:[],//五元组分数
@@ -95,10 +95,21 @@ cc.Class({
     },
     onBtnRetrack(){
         if(globalData.gameMgr.play_mode == 1) { //人人
-            if(globalData.gameMgr.roomState.state == 1){
-                var target = globalData.gameMgr.playerData.turn == 1 ? '白棋' : "黑棋";
-                this.pushNoteMsg(target+"请求[悔棋]")
-                globalData.socketMgr.retrackChess()
+            if(globalData.gameMgr.roomState.state == 1 ){
+                if(!this.retrack_lock) {
+                    this.retrack_lock = true;
+                    if (globalData.gameMgr.playerData.self.retrack_num > 0) {
+                        var target = globalData.gameMgr.playerData.turn == 1 ? '白棋' : "黑棋";
+                        this.pushNoteMsg(target + "请求[悔棋]")
+                        globalData.socketMgr.retrackChess();
+                        globalData.gameMgr.playerData.self.retrack_num--;
+                        globalData.eventlister.fire("MESSAGE", "请求悔棋中,剩余" + globalData.gameMgr.playerData.self.retrack_num + "次");
+                    } else {
+                        globalData.eventlister.fire("MESSAGE", "本回合悔棋次数已用完");
+                    }
+                }else{
+                    globalData.eventlister.fire("MESSAGE", "本回合已使用过悔棋");
+                }
             }else{
                 globalData.eventlister.fire("MESSAGE","请等待玩家就位");
             }
@@ -125,7 +136,7 @@ cc.Class({
     },
     onLoad: function () {
 
-        this.game_start.active = false;
+        this.game_start.node.active = false;
         this.select_icon.active = false;
         this.overSprite.active = false;
         this.btn_quit.active = false;
@@ -232,6 +243,7 @@ cc.Class({
         })
         //刷新棋子
         globalData.eventlister.on("PLAY_CHESS_SUCCESS",function(data){
+            self.retrack_lock = false;
             var sf;
             if(data.posId == 0){
                 sf = self.whiteSpriteFrame;
@@ -276,15 +288,17 @@ cc.Class({
         });
 
         globalData.eventlister.on("GAME_START",function(){
-            self.game_start.active = true;
+            self.retrack_lock = false;
+            self.game_start.node.active = true;
+            self.game_start.play()
             self.pushNoteMsg("游戏开始 第"+globalData.gameMgr.play_index+"局");
             for (let i = 0; i < self.chessList.length; i++) {
                 self.chessList[i].getComponent(cc.Sprite).spriteFrame = null;
             }
 
             self.scheduleOnce(function () {
-                self.game_start.active = false;
-            },1)
+                self.game_start.node.active = false;
+            },1.5)
 
             if(globalData.gameMgr.play_mode == 0) { //人机
                 var min = 1;
@@ -313,6 +327,7 @@ cc.Class({
         });
 
         globalData.eventlister.on("RETRACK_CHESS_RSP_SUCCESS",function(data){
+            self.retrack_lock = false;
             for (let i = 0; i < data.del_list.length; i++) {
                 self.chessList[data.del_list[i]].getComponent(cc.Sprite).spriteFrame = null;
             }
@@ -326,8 +341,8 @@ cc.Class({
             self.renderTurn();
         })
 
-        globalData.eventlister.on("RETRACK_CHESS_REQ",function(){
-            self.dialog_retrack.active = true;
+        globalData.eventlister.on("RETRACK_CHESS_REQ",function(data){
+            self.dialog_retrack.active = data.posId == globalData.gameMgr.playerData.self.posId;
         })
 
         this.render();

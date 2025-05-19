@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "57ca0e78-fabb-46f6-99a6-13175e13d84f",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1620,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "对弈开始-五子棋版_00017": {
+      "ver": "1.0.4",
+      "uuid": "39ae3372-2998-4461-abbd-335008485d7e",
+      "rawTextureUuid": "57ca0e78-fabb-46f6-99a6-13175e13d84f",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 37,
+      "offsetY": -24.5,
+      "trimX": 402,
+      "trimY": 225,
+      "width": 890,
+      "height": 399,
+      "rawWidth": 1620,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

@@ -737,7 +737,7 @@ const proto = {
           const laiziCards = islaizi > 0 ? game.getLaiziCards(islaizi) : [];
           game.contextLaiziCards = laiziCards;
           this.socketEmit(this.getClient(socket),'CALL_SCORE_SUCCESS',score);
-          this.broadCastRoom('SHOW_TOP_CARD', deskId, { topCards,laiziCards, dizhuPosId, timeout: 15 });
+          this.broadCastRoom('SHOW_TOP_CARD', deskId, { topCards,laiziCards, dizhuPosId, timeout: 15,score:game.getMaxScoreInfo().score });
           this.broadCastRoom('CTX_PLAY_CHANGE', deskId, {
             ctxData: {
               len: 0,
@@ -833,22 +833,25 @@ const proto = {
               this.updatePosStatus(deskId, 2, 1);
               game.init();
             }else{
-              //玩家如果掉线中 自动出pass
-              var nextUserObj = this.getPositionByPosId(desk,game.getContextPosId());
-              if(nextUserObj.disconnectTime > 0){
-                game.next(nextUserObj.posId, [],desk.islaizi);
-                self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
-                  ctxData: {
-                    len: 0,
-                    key: '',
-                    type: '',
-                    cards: [],
-                    posId:nextUserObj.posId,
-                  },
-                  posId: game.getContextPosId(),
-                  timeout: 15,
-                  isPass:true,
-                })
+              //游戏中
+              if(game.getStatus() == 2) {
+                //玩家如果掉线中 自动出pass
+                var nextUserObj = this.getPositionByPosId(desk, game.getContextPosId());
+                if (nextUserObj.disconnectTime > 0) {
+                  game.next(nextUserObj.posId, [], desk.islaizi);
+                  self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
+                    ctxData: {
+                      len: 0,
+                      key: '',
+                      type: '',
+                      cards: [],
+                      posId: nextUserObj.posId,
+                    },
+                    posId: game.getContextPosId(),
+                    timeout: 15,
+                    isPass: true,
+                  })
+                }
               }
             }
 
@@ -883,7 +886,7 @@ const proto = {
               userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
 
               const game = self.gameDatas[self.desks[i].deskId];
-              if (game) {
+              if (game && game.getStatus() == 2) {
                 //如果刚好轮到的人掉线，自动pass处理
                 if(game.getContextPosId() == userObj.posId){
                   game.next(userObj.posId, [],self.desks[i].islaizi);

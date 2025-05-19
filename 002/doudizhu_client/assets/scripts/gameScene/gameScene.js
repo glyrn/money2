@@ -20,6 +20,7 @@ cc.Class({
             default:[],
             type:[cc.Node]
         },
+        labTopCardScore:cc.Label
     },
     onLoad () {
 
@@ -56,10 +57,11 @@ cc.Class({
             that.renderRoom();
             cc.playEffect("sound/wash_card",false,1);
         });
-        globalData.eventlister.on("SHOW_TOP_CARD",function(){
+        globalData.eventlister.on("SHOW_TOP_CARD",function(data){
+
             that.renderPlayerNode();
             that.renderCard();
-            that.renderTopCard();
+            that.renderTopCard(data);
         })
 
         globalData.eventlister.on("PLAY_CARD_SUCCESS",function(){
@@ -139,6 +141,7 @@ cc.Class({
         this.lab_roomid.string = "房号:"+globalData.gameMgr.deskName +
             "  底分:"+globalData.gameMgr.base_score +
             "  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.labTopCardScore.string = '';
     },
     renderPlayerNode(){
         // 刷新玩家头像
@@ -161,7 +164,7 @@ cc.Class({
         this._player_node_list[2].getComponent('PlayerNode').renderCard('right',globalData.gameMgr.posState.right,roomState);
     },
 
-    renderTopCard(){
+    renderTopCard(data){
 
         let roomState = globalData.gameMgr.roomState
         for(var i=0;i<3;i++){
@@ -174,6 +177,11 @@ cc.Class({
             var card = globalData.gameMgr.posState.laizi.cards[i];
             this.laiziCardNodeList[i].active = roomState.state > 1 && globalData.gameMgr.isLaizi == 1;
             this.laiziCardNodeList[i].getComponent('Card').render('laizi',roomState.state >= 2 ? card : {value:0,type:0})
+        }
+
+        console.log(data)
+        if(data){
+            this.labTopCardScore.string = data.score + "倍";
         }
     },
 

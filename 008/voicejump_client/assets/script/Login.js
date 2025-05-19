@@ -45,7 +45,7 @@ cc.Class({
                         cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
                             cc.director.loadScene("Game");
                         });
-                    console.log("test")
+
                 // } else {
                 //     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign", {sign: cc.args['sign']}, function (isOk, data) {
                 //         if (isOk) {

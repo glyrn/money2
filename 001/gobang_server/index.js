@@ -703,7 +703,7 @@ const proto = {
             if (room.positions[i].state > 0 && room.positions[i].uid != uid) {
               var room_target = room.positions[i];
               if(room_target.socket){
-                self.socketEmit(room_target,'RETRACK_CHESS_REQ')
+                self.socketEmit(room_target,'RETRACK_CHESS_REQ',{posId:room_target.posId})
               }
             }
           }

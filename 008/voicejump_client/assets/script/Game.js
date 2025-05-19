@@ -100,11 +100,12 @@ cc.Class({
             that.prog_bar.node.active = true;
             that.prog_bar.init();
         });
-        globalData.eventlister.on("FALL_OVER_SUCCESS",function(posId){
-            if(posId == globalData.gameMgr.posId) {
+        globalData.eventlister.on("FALL_OVER_SUCCESS",function(data){
+            if(data.posId == globalData.gameMgr.posId) {
                 that.panel_drop.active = true;
             }
-            that['avator'+posId].render(globalData.gameMgr.playerData[posId]);
+            that['player' + data.posId].move(data);
+            that['avator'+data.posId].render(globalData.gameMgr.playerData[data.posId]);
             that.prog_bar.refresh();
         });
         globalData.eventlister.on("GAME_OVER",function(data){
@@ -208,7 +209,7 @@ cc.Class({
 
         var rms = that._rms;
 
-        if(cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1) {
+        if(cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1 && !globalData.gameMgr.is_ob) {
 
             if (!that['player' + globalData.gameMgr.posId].fallOver) {
                 // if(that._lastVoiceTime + that._voiceCDTime > Date.now()){

@@ -499,11 +499,11 @@ const proto = {
         }
       });
 
-      socket.on("FALL_OVER",function(){
+      socket.on("FALL_OVER",function(data){
         const desk = self.getDesk(socket);
         var posId = self.getPosId(socket);
         desk.positions[posId].refreshData.game_type = 'fall';
-        self.broadCastRoom("FALL_OVER_SUCCESS",self.getDeskId(socket),posId);
+        self.broadCastRoom("FALL_OVER_SUCCESS",self.getDeskId(socket),{type:4,posId:posId,x:data.cur_x,y:data.cur_y});
 
         var fall_num = 0;
         var player_num = 0;

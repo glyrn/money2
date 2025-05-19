@@ -374,29 +374,27 @@ Object.assign(
       // console.log(posId, this.contextPosId)
 
       if (posId == this.contextPosId) {
+        //叫地主时候
         if (this.status === 1) {
           this.userScore[posId] = data;
           const maxScoreInfo = this.getMaxScoreInfo();
+          console.log(data)
+           // 是否有人叫了3分或者都叫完
+          if(this.checkAllUserCalledScore()){
+            //全部pass
+            if (maxScoreInfo.score <= 0) {
+              //需要重新发牌
+              this.status = 4;
 
-          //不叫地主 并且 已有人叫过分
-          if(data == 0 && maxScoreInfo.score > 0){
-            this.status = 2;
-            this.contextPosId = Number(maxScoreInfo.posId);
-            this.lastCardInfo.posId = this.contextPosId;
-            this.mergeCardsByPosId(this.contextPosId);
-
-          }else if (this.checkAllUserCalledScore()) {
-            if (maxScoreInfo.score > 0) {
+            }else{
               this.status = 2;
               this.contextPosId = Number(maxScoreInfo.posId);
               this.lastCardInfo.posId = this.contextPosId;
               this.mergeCardsByPosId(this.contextPosId);
-            } else {
-              //需要重新发牌
-              this.status = 4;
             }
+            //不叫地主 并且还有人没叫分
+          }else  {
 
-          } else {
             if (posId == 0) {
               this.contextPosId = 1;
             }
@@ -418,7 +416,7 @@ Object.assign(
             }
 
           }
-
+        //游戏中
         } else if (this.status === 2) {
           if (posId == 0) {
             this.contextPosId = 1;

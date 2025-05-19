@@ -87,9 +87,9 @@ const socketMgr = function(){
             _gameMgr.playerData[data.posId].gain_score = data.gain_score;
             _eventMgr.fire("GAIN_SCORE_SUCCESS",data)
         })
-        _socket.on("FALL_OVER_SUCCESS",function(posId){
-            _gameMgr.playerData[posId].game_type = 'fall';
-            _eventMgr.fire("FALL_OVER_SUCCESS",posId)
+        _socket.on("FALL_OVER_SUCCESS",function(data){
+            _gameMgr.playerData[data.posId].game_type = 'fall';
+            _eventMgr.fire("FALL_OVER_SUCCESS",data)
         });
 
         _socket.on("PAUSE_OVER_SUCCESS",function(data){
@@ -132,7 +132,7 @@ const socketMgr = function(){
     }
     that.checkIsObserve = function(){
         if(_gameMgr.is_ob){
-            _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
+            // _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
         }
         return _gameMgr.is_ob;
     }
@@ -144,9 +144,9 @@ const socketMgr = function(){
         if(that.checkIsObserve()) return;
         _socket.emit('BIRD_MOVE',data);
     }
-    that.fallOver = function(){
+    that.fallOver = function(data){
         if(that.checkIsObserve()) return;
-        _socket.emit('FALL_OVER');
+        _socket.emit('FALL_OVER',data);
     }
     that.gainScore = function(data){
         if(that.checkIsObserve()) return;

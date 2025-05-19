@@ -113,15 +113,16 @@ cc.Class({
     detectCollision() {
 
         if (this.state === State.Ready || this.state === State.Drop || this.state === State.GAMEOVER) return;
-
         // 掉落地板下面
         if (this.fallOver) {
             this.img_dead.active = true;
-            this.state = State.Drop;
-            this.anim.stop();
+            if(this.state !== State.Drop){
+                this.state = State.Drop;
+                this.anim.stop();
 
-            if(this.posId == globalData.gameMgr.posId){
-                globalData.socketMgr.fallOver();
+                if(this.posId == globalData.gameMgr.posId){
+                    globalData.socketMgr.fallOver({cur_x:this.node.parent.position.x,cur_y:this.node.parent.position.y});
+                }
             }
         }
     },
@@ -177,8 +178,7 @@ cc.Class({
     },
     move(data) {
         var that = this;
-        this.state = State.MOVE;
-        this.move_type = data.type;
+
         if(data.type == 1){
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 50 ,data.cur_y);
@@ -202,6 +202,10 @@ cc.Class({
                     this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 50 - this._initPosX, this.main_camera.y)));
                 }
             }
+
+            this.state = State.MOVE;
+            this.move_type = data.type;
+
         }else if(data.type == 2){
             this.standTarget = null;
 
@@ -227,6 +231,10 @@ cc.Class({
                     this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 200 - this._initPosX, this.main_camera.y)));
                 }
             }
+
+            this.state = State.MOVE;
+            this.move_type = data.type;
+
         }else if(data.type == 3){
             this.standTarget = null;
 
@@ -252,6 +260,23 @@ cc.Class({
                     this.main_camera.runAction(cc.moveTo(1.5, cc.v2(data.cur_x + 350 - this._initPosX, this.main_camera.y)));
                 }
             }
+
+            this.state = State.MOVE;
+            this.move_type = data.type;
+
+        }else if(data.type == 4){ //同步掉落点
+
+            this.standTarget = null;
+            this.node.parent.stopAllActions();
+            this.node.parent.position = cc.v2(data.x ,data.y);
+            //镜头跟随
+            if (this.posId == globalData.gameMgr.posId) {
+                this.main_camera.x = this.node.parent.x - this._initPosX;
+            }
+
+            this.state = State.Drop;
+            this.move_type = data.type;
+            this.img_dead.active = true;
         }
     },
     isStand(){

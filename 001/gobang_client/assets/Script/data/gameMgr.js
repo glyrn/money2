@@ -25,6 +25,7 @@ const gameMgr = function(){
             avatorUrl:''
         },
         self:{
+            retrack_num:5,
             posId:-1,
             uid:0,
             name:'',
@@ -33,6 +34,7 @@ const gameMgr = function(){
             state:1,
         },
         target:{
+            retrack_num:5,
             posId:-1,
             uid:0,
             name:'',

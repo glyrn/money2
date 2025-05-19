@@ -197,8 +197,8 @@ const socketMgr = function(){
             _gameMgr.roomState.timeout = data.timeout;
 
             _gameMgr.posState.laizi.cards = data.laiziCards;
-
-            _eventMgr.fire('SHOW_TOP_CARD');
+            console.log("sssssx",data)
+            _eventMgr.fire('SHOW_TOP_CARD',data);
         });
 
         _socket.on('CTX_PLAY_CHANGE', function (data) {

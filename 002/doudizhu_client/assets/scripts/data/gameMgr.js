@@ -189,6 +189,9 @@ const gameMgr = function(){
                     clearInterval(that._timer);
                     if (that.roomState.state == 2 && that.roomState.ctxPos === 'self') {
                         _eventMgr.fire('auto_play_card')
+                    }else if(that.roomState.state == 1 && that.roomState.ctxPos === 'self'){
+                        //不抢
+                        _socketMgr.call_score(0);
                     }
                 }
             }

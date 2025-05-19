@@ -92,6 +92,9 @@ const socketMgr = function(){
             if(_gameMgr.play_index > _gameMgr.play_count){
                 _gameMgr.play_index = 1;
             }
+            //重置 悔棋次数
+            _gameMgr.playerData.self.retrack_num = 5;
+            _gameMgr.playerData.target.retrack_num = 5;
 
             _eventMgr.fire("GAME_START");
             _eventMgr.fire('CHANGE_TURN');
@@ -101,8 +104,8 @@ const socketMgr = function(){
             _eventMgr.fire("GAME_OVER",data);
         });
 
-        _socket.on("RETRACK_CHESS_REQ",function(){
-            _eventMgr.fire('RETRACK_CHESS_REQ');
+        _socket.on("RETRACK_CHESS_REQ",function(data){
+            _eventMgr.fire('RETRACK_CHESS_REQ',data);
         });
         _socket.on("RETRACK_CHESS_RSP_SUCCESS",function(data){
             _eventMgr.fire('RETRACK_CHESS_RSP_SUCCESS',data);

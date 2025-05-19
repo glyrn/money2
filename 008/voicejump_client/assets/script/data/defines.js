@@ -13,7 +13,6 @@ if(defines.isDebug){
     defines.serverUrl = "www.g-xinyi1313.cn";
 }
 
-console.log("test")
 //云村域名
 defines.yc_domain = "https://www.fsyctech.com";
 
