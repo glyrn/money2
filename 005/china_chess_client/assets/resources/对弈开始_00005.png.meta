@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "d062ec7a-5168-4e10-ae74-efe3595a5504",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1620,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "对弈开始_00005": {
+      "ver": "1.0.4",
+      "uuid": "82f7e9b5-01a1-4a4b-b22c-280dc7e38f26",
+      "rawTextureUuid": "d062ec7a-5168-4e10-ae74-efe3595a5504",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 37,
+      "offsetY": -24.5,
+      "trimX": 402,
+      "trimY": 225,
+      "width": 890,
+      "height": 399,
+      "rawWidth": 1620,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

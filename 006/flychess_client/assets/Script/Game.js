@@ -107,7 +107,7 @@ cc.Class({
         globalData.gameMgr.roomState.state = 2; //结束
         globalData.gameMgr.score_list.push(data);
         this.panel_game_over.active = true;
-        this.btn_score.active = true;
+        // this.btn_score.active = true;
         this.dice.active = false;
         this.dice.getComponent('Dice').isShow = false;
 
@@ -150,7 +150,7 @@ cc.Class({
             }
         }
 
-        this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+        // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
         this.lab_room.string = "版本:v0.0.3.3 房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
 
         //发送退出游戏事件
@@ -232,10 +232,12 @@ cc.Class({
             this.playerNodes[i].node.active = false;
         }
         for (const i in globalData.gameMgr.playerData) {
-            this.playerNodes[globalData.gameMgr.playerData[i].posId].node.active = true;
-            this.playerNodes[globalData.gameMgr.playerData[i].posId].render();
+            if(globalData.gameMgr.playerData[i]) {
+                this.playerNodes[globalData.gameMgr.playerData[i].posId].node.active = true;
+                this.playerNodes[globalData.gameMgr.playerData[i].posId].render();
+            }
         }
-        this.btn_score.active = false;
+        // this.btn_score.active = false;
         this.render()
     },
 

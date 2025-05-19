@@ -117,11 +117,10 @@ cc.Class({
 
     _globalData["default"].eventlister.on("HIDE_CARD_COLOR", function () {
       that.hideCardColor();
-    });
+    }); // globalData.eventlister.on("SHOW_UNO",function(){
+    //     that.showUno();
+    // })
 
-    _globalData["default"].eventlister.on("SHOW_UNO", function () {
-      that.showUno();
-    });
   },
   start: function start() {
     this.renderPlayer();
@@ -132,6 +131,7 @@ cc.Class({
 
     if (timer_value >= 0) {
       if (_globalData["default"].gameMgr.roomState.state == 1) {
+        this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
         this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
 
         if (timer_value == 0) {
@@ -217,8 +217,9 @@ cc.Class({
     this.renderRoomTitle();
     this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2 && !_globalData["default"].gameMgr.is_ob;
     var isQuit = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2 && !_globalData["default"].gameMgr.is_ob;
-    this.btn_quit.active = false;
-    this.btn_score.active = _globalData["default"].gameMgr.score_list.length > 0; //发送退出游戏事件
+    this.btn_quit.active = false; // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+
+    this.btn_score.active = false; //发送退出游戏事件
 
     if (isQuit) {
       window.parent.postMessage({

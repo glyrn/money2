@@ -167,7 +167,8 @@ cc.Class({
         })
         globalData.eventlister.on("RETRACK_CHESS_REQ",function(){
             that.retrack_lock = true;
-            that.dialog_retrack.active = true;
+            //非观众
+            that.dialog_retrack.active = !globalData.gameMgr.is_ob;
         });
         //刷新对手
         globalData.eventlister.on("SIT_CHANGE",function(data){
@@ -258,11 +259,12 @@ cc.Class({
 
         var that = this;
         this.game_start.active = true;
+        this.game_start.getComponent(cc.Animation).play()
         this.retrack_lock = true;
 
         this.scheduleOnce(function () {
             that.game_start.active = false;
-        },1)
+        },1.5)
 
         playLogic.isPlay=true ;
         chessLogic.reset();
@@ -369,8 +371,9 @@ cc.Class({
         cc.playEffect('jiangjun',false,1);
 
         this.img_jiangjun.active = true;
+        this.img_jiangjun.getComponent(cc.Animation).play();
         this.scheduleOnce(function () {
             this.img_jiangjun.active = false;
-        },1);
+        },2.5);
     }
 });

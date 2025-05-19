@@ -105,9 +105,9 @@ cc.Class({
         globalData.eventlister.on("HIDE_CARD_COLOR",function(){
             that.hideCardColor()
         });
-        globalData.eventlister.on("SHOW_UNO",function(){
-            that.showUno();
-        })
+        // globalData.eventlister.on("SHOW_UNO",function(){
+        //     that.showUno();
+        // })
     },
 
     start(){
@@ -119,6 +119,7 @@ cc.Class({
         var timer_value = globalData.gameMgr.playerData.self.target_timer_value - now;
         if (timer_value >= 0) {
             if(globalData.gameMgr.roomState.state == 1) {
+                this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
                 this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
 
                 if (timer_value == 0) {
@@ -204,7 +205,8 @@ cc.Class({
             && globalData.gameMgr.roomState.state == 2 && !globalData.gameMgr.is_ob;
         this.btn_quit.active = false;
 
-        this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+        // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+        this.btn_score.active = false;
 
         //发送退出游戏事件
         if(isQuit){

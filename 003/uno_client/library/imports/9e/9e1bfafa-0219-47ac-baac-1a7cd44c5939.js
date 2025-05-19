@@ -21,6 +21,7 @@ cc.Class({
     var timer_value = this._data.target_timer_value - now;
 
     if (this._data && timer_value >= 0) {
+      this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
       this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
 
       if (timer_value == 0) {
@@ -107,13 +108,16 @@ cc.Class({
           }
         }
 
-        var isShowUno = data.cards.length == 1;
-
-        if (this.lab_uno.active == false && isShowUno) {
-          _globalData["default"].eventlister.fire("SHOW_UNO");
-        }
+        var isShowUno = data.cards.length == 1; // if(this.lab_uno.active == false && isShowUno){
+        // globalData.eventlister.fire("SHOW_UNO");
+        // }
 
         this.lab_uno.active = isShowUno;
+        var that = this;
+        that.lab_uno.getComponent(cc.Animation).play();
+        this.scheduleOnce(function () {
+          that.lab_uno.active = false;
+        }, 1.5);
       }
 
       if (data.posId == _globalData["default"].gameMgr.playerData.turn && _globalData["default"].gameMgr.roomState.state == 1 && data.posId != _globalData["default"].gameMgr.playerData.self.posId) {

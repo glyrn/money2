@@ -211,10 +211,10 @@ const proto = {
       this.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS", desk.deskId, {posId: desk.cur_posId});
 
       //如果下一个是掉线ing 则继续跳下一个
-      var nextUserObj = this.getPositionByPosId(desk, desk.cur_posId);
-      if (nextUserObj.disconnectTime > 0) {
-        this.makeNextPlayerDice(desk);
-      }
+      // var nextUserObj = this.getPositionByPosId(desk, desk.cur_posId);
+      // if (nextUserObj.disconnectTime > 0) {
+      //   this.makeNextPlayerDice(desk);
+      // }
     }
   },
   broadCastRoom:function(event,roomId,data,except){
@@ -271,6 +271,45 @@ const proto = {
             this.desks[i].ready_count = -1;
           }else{
             this.broadCastRoom("GAME_OVER", this.desks[i].deskId, {invalid:1,winer: -1, score_list: []});
+          }
+        }
+      }
+    }
+  },
+  //切换房间
+  checkChangeRoom:function(curRoomId,uid){
+    for (let i = 0; i < this.desks.length; i++) {
+      var roomObj = this.desks[i];
+      for (let j = 0; j < roomObj.positions.length; j++) {
+        var userObj = roomObj.positions[j];
+        //房间号不同 要退出原来房间
+        if(userObj.uid == uid && roomObj.deskId != curRoomId){
+
+          console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
+          userObj.uid = 0;
+          userObj.state = 0;
+          userObj.name = '';
+          userObj.avatorUrl = '';
+          userObj.score = 0;
+          userObj.disconnectTime = null;
+          //清空断线重连信息
+          userObj.recover_disconnect_data = [];
+
+          this.broadCastRoom("MESSAGE",roomObj.deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
+          this.broadCastRoom("SIT_CHANGE",roomObj.deskId,{target:null},userObj.uid);
+
+          //检查是否全部掉线 是的话要重置房间
+          var isClean = true;
+          for (let k = 0; k < this.desks[i].positions.length; k++) {
+            if(this.desks[i].positions[k].uid > 0 ){
+              isClean = false;
+            }
+          }
+          if(isClean){
+            this.desks[i].name = '';
+            this.desks[i].state = 0;
+            this.desks[i].play_index = 0;
+            this.desks[i].play_mode = -1;
           }
         }
       }
@@ -363,6 +402,8 @@ const proto = {
             console.log(obj.name, '进入房间', room.name, room.deskId);
 
             var flag = false;
+            //检查是否换房间
+            self.checkChangeRoom(room.deskId,obj.uid);
             //检测是否重连玩家
             if(self.checkRecover(socket,obj)){
               //推送恢复数据
@@ -448,9 +489,10 @@ const proto = {
         {
           desk.cur_posId = self.getRandomNumForRange(ready_count-1);
           var bomb_idxs = {};
-          for (let i = 0; i < 6; i++) {
-            bomb_idxs[self.getRandomNumForRange(51)] = 1;
-          }
+          //不要炸弹了
+          // for (let i = 0; i < 6; i++) {
+          //   bomb_idxs[self.getRandomNumForRange(51)] = 1;
+          // }
           self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:desk.cur_posId,bomb_idxs:bomb_idxs});
         }
       });
