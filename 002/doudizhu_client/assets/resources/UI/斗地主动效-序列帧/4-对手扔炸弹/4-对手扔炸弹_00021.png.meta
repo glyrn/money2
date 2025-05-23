@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "3162a448-fd64-4e9b-9f42-e121cab7f4a4",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1620,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "4-对手扔炸弹_00021": {
+      "ver": "1.0.4",
+      "uuid": "91de36bd-3b25-4adb-8bd1-bb3fa6e16d72",
+      "rawTextureUuid": "3162a448-fd64-4e9b-9f42-e121cab7f4a4",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 22,
+      "offsetY": 11,
+      "trimX": 776,
+      "trimY": 296,
+      "width": 112,
+      "height": 186,
+      "rawWidth": 1620,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

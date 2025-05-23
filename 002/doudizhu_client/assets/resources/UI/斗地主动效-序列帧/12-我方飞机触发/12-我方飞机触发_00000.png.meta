@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "f4a57a44-0adc-4976-9d27-619226fbe851",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1620,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "12-我方飞机触发_00000": {
+      "ver": "1.0.4",
+      "uuid": "e2f29a2d-2330-4750-8dd3-8264bda020c6",
+      "rawTextureUuid": "f4a57a44-0adc-4976-9d27-619226fbe851",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 809.5,
+      "offsetY": -399.5,
+      "trimX": 1619,
+      "trimY": 799,
+      "width": 1,
+      "height": 1,
+      "rawWidth": 1620,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

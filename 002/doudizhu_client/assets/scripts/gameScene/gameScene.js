@@ -20,7 +20,8 @@ cc.Class({
             default:[],
             type:[cc.Node]
         },
-        labTopCardScore:cc.Label
+        labTopCardScore:cc.Label,
+        global_effect:cc.Animation,
     },
     onLoad () {
 
@@ -56,6 +57,7 @@ cc.Class({
             that.renderTopCard();
             that.renderRoom();
             cc.playEffect("sound/wash_card",false,1);
+            that.global_effect.node.active = false;
         });
         globalData.eventlister.on("SHOW_TOP_CARD",function(data){
 
@@ -103,6 +105,15 @@ cc.Class({
                     globalData.gameMgr.playCards();
                 }
             }
+        });
+        globalData.eventlister.on('show_global_effect',function(data){
+            that.global_effect.node.active = true;
+            that.global_effect.play(data);
+
+            that.scheduleOnce(function () {
+                that.global_effect.node.active = false;
+            }, 1.2);
+
         });
 
         this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);

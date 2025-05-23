@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "991717eb-845b-484a-a509-50a4809ede49",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 800,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "11-飞机本体_00015": {
+      "ver": "1.0.4",
+      "uuid": "2c79aa1f-df1e-4be2-97bc-3ed5f3c235f2",
+      "rawTextureUuid": "991717eb-845b-484a-a509-50a4809ede49",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": -0.5,
+      "offsetY": -61,
+      "trimX": 70,
+      "trimY": 122,
+      "width": 659,
+      "height": 678,
+      "rawWidth": 800,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "79502f74-9d94-4074-8f4f-155f3fcb2f90",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1620,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "15-飞机横向飞跃_00014": {
+      "ver": "1.0.4",
+      "uuid": "df31ce4d-af41-4580-9839-585e0b9f8a48",
+      "rawTextureUuid": "79502f74-9d94-4074-8f4f-155f3fcb2f90",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 355.5,
+      "offsetY": 73.5,
+      "trimX": 945,
+      "trimY": 182,
+      "width": 441,
+      "height": 289,
+      "rawWidth": 1620,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

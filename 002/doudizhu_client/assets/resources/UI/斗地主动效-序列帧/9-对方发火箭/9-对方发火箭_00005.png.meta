@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "af356e64-06b4-457d-ab78-db39fae7b7f2",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1620,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "9-对方发火箭_00005": {
+      "ver": "1.0.4",
+      "uuid": "1598dd7d-519b-4e48-8982-b06bcaaebba9",
+      "rawTextureUuid": "af356e64-06b4-457d-ab78-db39fae7b7f2",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 689,
+      "offsetY": 240,
+      "trimX": 1409,
+      "trimY": 87,
+      "width": 180,
+      "height": 146,
+      "rawWidth": 1620,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

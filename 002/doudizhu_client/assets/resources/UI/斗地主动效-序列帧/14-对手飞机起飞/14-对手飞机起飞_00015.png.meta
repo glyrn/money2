@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "f7d4413e-9ba1-4b26-bb5c-df22aa08ab26",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1620,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "14-对手飞机起飞_00015": {
+      "ver": "1.0.4",
+      "uuid": "6aca74fa-e6dc-49bf-a824-ca18347492c9",
+      "rawTextureUuid": "f7d4413e-9ba1-4b26-bb5c-df22aa08ab26",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 110.5,
+      "offsetY": 376.5,
+      "trimX": 830,
+      "trimY": 0,
+      "width": 181,
+      "height": 47,
+      "rawWidth": 1620,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

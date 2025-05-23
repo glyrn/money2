@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "3015a8c3-c31d-496f-9a7d-b4c7406a3b0b",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1620,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "8-我方发火箭_00021": {
+      "ver": "1.0.4",
+      "uuid": "a6d0a23b-ac19-4dca-9f54-d336d0b0cf52",
+      "rawTextureUuid": "3015a8c3-c31d-496f-9a7d-b4c7406a3b0b",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 127,
+      "trimX": 764,
+      "trimY": 65,
+      "width": 92,
+      "height": 416,
+      "rawWidth": 1620,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

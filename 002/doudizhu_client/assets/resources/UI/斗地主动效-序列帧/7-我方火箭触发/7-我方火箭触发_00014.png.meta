@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "3010196a-c6bf-46e0-bf67-cd305750dee6",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1620,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "7-我方火箭触发_00014": {
+      "ver": "1.0.4",
+      "uuid": "758b5f64-6f2b-4dce-8e1b-c6489a2f2b66",
+      "rawTextureUuid": "3010196a-c6bf-46e0-bf67-cd305750dee6",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 3,
+      "offsetY": -331,
+      "trimX": 750,
+      "trimY": 662,
+      "width": 126,
+      "height": 138,
+      "rawWidth": 1620,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

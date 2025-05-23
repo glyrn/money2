@@ -197,7 +197,7 @@ const socketMgr = function(){
             _gameMgr.roomState.timeout = data.timeout;
 
             _gameMgr.posState.laizi.cards = data.laiziCards;
-            console.log("sssssx",data)
+
             _eventMgr.fire('SHOW_TOP_CARD',data);
         });
 
@@ -222,12 +222,14 @@ const socketMgr = function(){
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 2;
                     }
+                    _eventMgr.fire("show_global_effect","anim05");
                 }else if(card_type == 'KING'){
                     cc.playEffect('sound/king_bomb',false,1);
 
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 4;
                     }
+                    _eventMgr.fire("show_global_effect","anim10");
                 }else if(card_type == 'AAABBB' && card_len == 6 ||
                     card_type == 'AAABBB' && card_len == 9 ||
                     card_type == 'AAAB' && card_len == 8 ||
@@ -242,6 +244,8 @@ const socketMgr = function(){
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 2;
                     }
+
+                    _eventMgr.fire("show_global_effect","anim15");
                 }
             }
             _gameMgr.removeCards(direct, data.ctxData.cards);

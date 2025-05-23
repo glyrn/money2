@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "4fea6ed2-c80a-439e-88d3-8775c38a879b",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 800,
+  "height": 800,
+  "platformSettings": {},
+  "subMetas": {
+    "6-火箭本体_00021": {
+      "ver": "1.0.4",
+      "uuid": "1aad4c2b-1286-4441-afcd-e03ba2c1e639",
+      "rawTextureUuid": "4fea6ed2-c80a-439e-88d3-8775c38a879b",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 5.5,
+      "offsetY": -25,
+      "trimX": 288,
+      "trimY": 50,
+      "width": 235,
+      "height": 750,
+      "rawWidth": 800,
+      "rawHeight": 800,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}
