@@ -474,6 +474,8 @@ cc.Class({
         if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
             this.my_box.active = true;
             this.target_box.active = false;
+
+            globalData.eventlister.fire("MESSAGE", "到你了，请落子");
         }else{
             this.my_box.active = false;
             this.target_box.active = true;

@@ -21,7 +21,7 @@ cc.Class({
             type:[cc.Node]
         },
         labTopCardScore:cc.Label,
-        global_effect:cc.Animation,
+        globalSelfAnim:cc.Animation,
     },
     onLoad () {
 
@@ -57,7 +57,8 @@ cc.Class({
             that.renderTopCard();
             that.renderRoom();
             cc.playEffect("sound/wash_card",false,1);
-            that.global_effect.node.active = false;
+            that.globalSelfAnim.node.active = false;
+
         });
         globalData.eventlister.on("SHOW_TOP_CARD",function(data){
 
@@ -107,19 +108,19 @@ cc.Class({
             }
         });
         globalData.eventlister.on('show_global_effect',function(data){
-            that.global_effect.node.active = true;
-            that.global_effect.play(data);
+            that.globalSelfAnim.node.active = true;
+            that.globalSelfAnim.play(data);
 
             that.scheduleOnce(function () {
-                that.global_effect.node.active = false;
-            }, 1.2);
-
+                that.globalSelfAnim.node.active = false;
+            }, 2);
         });
 
         this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
         this.node.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+
     },
 
     onTouchStart(event){

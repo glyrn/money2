@@ -5,6 +5,7 @@ cc.Class({
     properties: {
         lab_tips:cc.Label,
         img_loading:cc.Node,
+        lab_debug:cc.Label,
     },
 
     onLoad () {
@@ -32,7 +33,11 @@ cc.Class({
     
     start () {
 
-        var url = decodeURI(window.location.href); 
+
+        console.log("启动参数："+window.location.href);
+        this.lab_debug.string = "启动参数："+window.location.href;
+
+        var url = decodeURI(window.location.href);
         if(url.split('?').length > 1){
             var params = url.split('?')[1].split('&');
             var field = {};
@@ -40,23 +45,28 @@ cc.Class({
                 var obj = params[paramsKey].split('=');
                 field[obj[0]] = obj[1];
             }
+            var that = this;
             cc.args = field;
             cc.director.preloadScene("gameScene",function(){
-                // if(defines.isDebug){
+                if(defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn'){
                     //请求登录
                     globalData.socketMgr.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'],field['ob_uid'],field['room'],function(){
                         globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
                     })
-                // }else{
-                //     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
-                //         if (isOk) {
-                //             //请求登录
-                //             globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, field['score'],field['ob_uid'],field['room'], function () {
-                //                 globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
-                //             });
-                //         }
-                //     });
-                // }
+                }else{
+                    console.log("开始请求用户信息：")
+                    globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                        console.log("用户信息：",data)
+                        if (isOk) {
+                            //请求登录
+                            globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, field['score'],field['ob_uid'],field['room'], function () {
+                                globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
+                            });
+                        }else{
+                            that.lab_debug.string += JSON.stringify(data);
+                        }
+                    });
+                }
             });
         }
     },
@@ -70,5 +80,7 @@ cc.Class({
         this.scheduleOnce(function () {
             this.lab_tips.node.active = false;
         }, 2);
+
+        this.lab_debug.string += msg;
     },
 });

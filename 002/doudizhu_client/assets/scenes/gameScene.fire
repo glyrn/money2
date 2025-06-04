@@ -292,7 +292,7 @@
       "array": [
         0,
         0,
-        418.2902700278839,
+        299.7891448960451,
         0,
         0,
         0,
@@ -7817,8 +7817,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 0,
-      "height": 0
+      "width": 200,
+      "height": 200
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7892,16 +7892,33 @@
       "__id__": 170
     },
     "_enabled": true,
-    "_defaultClip": null,
+    "_defaultClip": {
+      "__uuid__": "9e1bcdd0-0c7a-4fd2-8f5b-57d132922622"
+    },
     "_clips": [
       {
-        "__uuid__": "eb7f4c05-b305-4296-b792-236c3e5bba60"
+        "__uuid__": "07361ca1-dd50-4e9b-98e0-ef5334167855"
       },
       {
-        "__uuid__": "de287f25-dc22-42d3-bfd6-1f320def6f3e"
+        "__uuid__": "3cd3d021-c074-44ca-bc37-8cce5434c44b"
       },
       {
-        "__uuid__": "9e1bcdd0-0c7a-4fd2-8f5b-57d132922622"
+        "__uuid__": "c39f0808-4e74-4ff7-be61-92c9875a8847"
+      },
+      {
+        "__uuid__": "50e5ff37-e900-408e-ba4c-7ed70abc3c20"
+      },
+      {
+        "__uuid__": "a29865f5-51c1-4c60-85c5-4e28cd90722b"
+      },
+      {
+        "__uuid__": "d23428bd-8557-466c-92f8-695805482e87"
+      },
+      {
+        "__uuid__": "3d4631c1-b107-47c5-b579-6d46175d4c04"
+      },
+      {
+        "__uuid__": "f58f0050-4ae5-4a23-8ab8-c1beb0572ebf"
       }
     ],
     "playOnLoad": false,
@@ -7973,7 +7990,7 @@
     "labTopCardScore": {
       "__id__": 108
     },
-    "global_effect": {
+    "globalSelfAnim": {
       "__id__": 172
     },
     "_id": "92ngaPIhdKnLueFvZ/XFk3"

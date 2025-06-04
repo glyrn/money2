@@ -5,7 +5,8 @@ cc.Class({
 
     properties: {
         img_loading:cc.Node,
-        lab_tips:cc.Label
+        lab_tips:cc.Label,
+        lab_debug:cc.Label,
     },
 
     onLoad () {
@@ -25,9 +26,14 @@ cc.Class({
         this.scheduleOnce(function () {
             this.lab_tips.node.active = false;
         }, 2);
+
+        this.lab_debug.string += msg;
     },
 
     start(){
+
+        console.log("启动参数："+window.location.href);
+        this.lab_debug.string = "启动参数："+window.location.href;
 
         var url = decodeURI(window.location.href);
         if(url.split('?').length > 1){
@@ -37,25 +43,29 @@ cc.Class({
                 var obj = params[paramsKey].split('=');
                 field[obj[0]] = obj[1];
             }
+            var that = this;
             cc.args = field;
-
             cc.director.preloadScene("Game",function() {
 
-                // if (defines.isDebug) {
+                if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn') {
                     globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
                         cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
                             cc.director.loadScene("Game");
                         });
-                // } else {
-                //     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign", {sign: cc.args['sign']}, function (isOk, data) {
-                //         if (isOk) {
-                //             globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
-                //                 cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
-                //                     cc.director.loadScene("Game");
-                //                 });
-                //         }
-                //     });
-                // }
+                } else {
+                    console.log("开始请求用户信息：")
+                    globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign", {sign: cc.args['sign']}, function (isOk, data) {
+                        if (isOk) {
+                            console.log("用户信息：",data)
+                            globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
+                                cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
+                                    cc.director.loadScene("Game");
+                                });
+                        }else{
+                            that.lab_debug.string += JSON.stringify(data);
+                        }
+                    });
+                }
             });
         }
     },

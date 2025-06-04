@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "7a60107a-9c51-4856-b26c-d907bbb7f65f",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 400,
+  "height": 740,
+  "platformSettings": {},
+  "subMetas": {
+    "2-扔出炸弹_00002": {
+      "ver": "1.0.4",
+      "uuid": "59facb36-7c56-4e73-abba-a18b86af5e0d",
+      "rawTextureUuid": "7a60107a-9c51-4856-b26c-d907bbb7f65f",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 42.5,
+      "offsetY": -290.5,
+      "trimX": 138,
+      "trimY": 581,
+      "width": 209,
+      "height": 159,
+      "rawWidth": 400,
+      "rawHeight": 740,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

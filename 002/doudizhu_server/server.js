@@ -98,18 +98,20 @@ const proto = {
     });
   },
   socketEmit:function(client,event,data){
-    var userObj = this.getPositionByClient(client);
-    if(userObj) {
-      var saveData = data;
-      if(data instanceof Object){//深复制data
-        saveData = JSON.parse(JSON.stringify(data));
+    if(client) {
+      var userObj = this.getPositionByClient(client);
+      if (userObj) {
+        var saveData = data;
+        if (data instanceof Object) {//深复制data
+          saveData = JSON.parse(JSON.stringify(data));
+        }
+        for (const ob_uid in userObj.ob_socket_map) {
+          userObj.ob_socket_map[ob_uid].emit(event, saveData);
+        }
+        userObj.recover_disconnect_data.push({event: event, data: saveData});
       }
-      for (const ob_uid in userObj.ob_socket_map) {
-        userObj.ob_socket_map[ob_uid].emit(event, saveData);
-      }
-      userObj.recover_disconnect_data.push({event:event,data:saveData});
+      client.socket.emit(event, data);
     }
-    client.socket.emit(event,data);
   },
   getDesk(deskId) {
     for (let i = 0, len = this.desks.length; i < len; i++) {
@@ -776,7 +778,12 @@ const proto = {
           const isPass = !data.length;
           const { status } = ret;
           if (status || !data.length) {
+
+            console.log("出牌调试：",posId, JSON.stringify(data),islaizi);
+            //debug
+            //强制重置posId
             game.next(posId, data,islaizi);
+            posId = game.lastCardInfo.posId;
 
             if (game.getStatus() === 5) {
               this.socketEmit(this.getClient(socket),'PLAY_CARD_ERROR', '游戏出错');

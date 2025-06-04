@@ -147,7 +147,7 @@ cc.Class({
         let data = this.score_list[index-1];
 
         //有人逃跑 无效局
-        if(data.invalid == 1){
+        if(data && data.invalid == 1){
             this.lab_title.string = '第'+index+'局：'+ "本局有玩家逃跑，请重新开始";
         }else{
             var isWin = data.winner.indexOf(globalData.gameMgr.posId) > -1;

@@ -340,6 +340,8 @@ Object.assign(
       const posIds = [0, 1, 2];
       var winnerId = '';
       var ret = {
+
+
         winner: [],
         loser: [],
         score: diZhuData.score,
@@ -371,7 +373,12 @@ Object.assign(
       return (diZhuLen === 0 && playerLen1 === 17 && playerLen2 === 17) || (diZhuLen !== 0 && this.sumCount[diZhuId] === 1 && (playerLen1 === 0 || playerLen2 === 0))
     },
     next(posId, data,islaizi) {
-      // console.log(posId, this.contextPosId)
+
+      //debug
+      //尝试修复这个非必现的bug
+      if(posId != this.contextPosId){
+        posId = this.contextPosId;
+      }
 
       if (posId == this.contextPosId) {
         //叫地主时候
