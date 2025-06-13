@@ -4,8 +4,9 @@ cc.Class({
 
     properties: {
         lab_tips:cc.Label,
-        img_loading:cc.Node,
+        // img_loading:cc.Node,
         lab_debug:cc.Label,
+        // prog_bar:cc.ProgressBar,
     },
 
     onLoad () {
@@ -21,11 +22,11 @@ cc.Class({
         });
         let that = this;
         globalData.eventlister.on('LOGIN_FAIL',function(msg){
-            that.img_loading.active = false;
+            // that.img_loading.active = false;
             that.showTips(msg)
         })
         globalData.eventlister.on('SITDOWN_ERROR',function(msg){
-            that.img_loading.active = false;
+            // that.img_loading.active = false;
             that.showTips(msg)
         })
 
@@ -47,7 +48,7 @@ cc.Class({
             }
             var that = this;
             cc.args = field;
-            cc.director.preloadScene("gameScene",function(){
+            cc.director.preloadScene("gameScene",this.onProgress.bind(this),function(){
                 if(defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn'){
                     //请求登录
                     globalData.socketMgr.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'],field['ob_uid'],field['room'],function(){
@@ -70,8 +71,11 @@ cc.Class({
             });
         }
     },
+    onProgress(completedCount, totalCount, item){
+        // this.prog_bar.progress = completedCount/totalCount;
+    },
     update(){
-        this.img_loading.angle = this.img_loading.angle + 20;
+        // this.img_loading.angle = this.img_loading.angle + 20;
     },
     showTips(msg){
         console.log(msg);

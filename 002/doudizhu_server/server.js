@@ -761,6 +761,24 @@ const proto = {
         }
       });
 
+      socket.on("CHECK_PLAY_CARD",data=>{
+
+        const client = this.getClient(socket);
+        if (!client) {
+          return;
+        }
+        let deskId = client.deskId;
+        let posId = client.posId;
+
+        const game = this.gameDatas[deskId];
+        if (game && deskId) {
+          let desk = this.getDesk(deskId);
+          let islaizi = desk.islaizi;
+          const ret = game.validate(posId, data,islaizi);
+          this.socketEmit(client,'CHECK_PLAY_CARD_SUCCESS', ret);
+        }
+      });
+
       socket.on('PLAY_CARD', data => {
         const client = this.getClient(socket);
         if (!client) {
@@ -782,8 +800,9 @@ const proto = {
             console.log("出牌调试：",posId, JSON.stringify(data),islaizi);
             //debug
             //强制重置posId
+            var lastPosId = game.contextPosId;
             game.next(posId, data,islaizi);
-            posId = game.lastCardInfo.posId;
+            posId = lastPosId;
 
             if (game.getStatus() === 5) {
               this.socketEmit(this.getClient(socket),'PLAY_CARD_ERROR', '游戏出错');
@@ -929,7 +948,7 @@ Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer(9002);
 gameServer.init();
 
-app.get('/quit',function(req,res){
+app.get('/ddz/quit',function(req,res){
   const uid = req.query.uid;
   res.send({state:0,msg:"退出成功",uid:uid});
   //踢出房间

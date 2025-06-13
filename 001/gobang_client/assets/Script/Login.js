@@ -4,7 +4,7 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        img_loading:cc.Node,
+        // img_loading:cc.Node,
         lab_tips:cc.Label,
         lab_debug:cc.Label,
     },
@@ -16,7 +16,7 @@ cc.Class({
         globalData.socketMgr.initSocket();
     },
     update(){
-        this.img_loading.angle = this.img_loading.angle + 10;
+        // this.img_loading.angle = this.img_loading.angle + 10;
     },
 
     showTips(msg){
@@ -29,11 +29,13 @@ cc.Class({
 
         this.lab_debug.string += msg;
     },
-
+    onProgress(completedCount, totalCount, item){
+        // this.prog_bar.progress = completedCount/totalCount;
+    },
     start(){
 
-        console.log("∆Ù∂Ø≤Œ ˝£∫"+window.location.href);
-        this.lab_debug.string = "∆Ù∂Ø≤Œ ˝£∫"+window.location.href;
+        console.log("ÂêØÂä®ÂèÇÊï∞Ôºö"+window.location.href);
+        this.lab_debug.string = "ÂêØÂä®ÂèÇÊï∞Ôºö"+window.location.href;
 
         var url = decodeURI(window.location.href);
         if(url.split('?').length > 1){
@@ -45,7 +47,7 @@ cc.Class({
             }
             var that = this;
             cc.args = field;
-            cc.director.preloadScene("Game",function() {
+            cc.director.preloadScene("Game",this.onProgress.bind(this),function() {
 
                 if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn') {
                     globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
@@ -53,10 +55,10 @@ cc.Class({
                             cc.director.loadScene("Game");
                         });
                 } else {
-                    console.log("ø™ º«Î«Û”√ªß–≈œ¢£∫")
+                    console.log("Áî®Êà∑‰ø°ÊÅØÔºö")
                     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign", {sign: cc.args['sign']}, function (isOk, data) {
                         if (isOk) {
-                            console.log("”√ªß–≈œ¢£∫",data)
+                            console.log("Áî®Êà∑‰ø°ÊÅØÔºö",data)
                             globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
                                 cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
                                     cc.director.loadScene("Game");

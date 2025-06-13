@@ -535,7 +535,7 @@ Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer()
 gameServer.init()
 
-app.get('/quit',function(req,res){
+app.get('/zgxq/quit',function(req,res){
   const uid = req.query.uid;
   res.send({state:0,msg:"退出成功",uid:uid});
   //踢出房间

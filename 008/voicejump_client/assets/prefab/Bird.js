@@ -128,8 +128,10 @@ cc.Class({
     },
     refresh(){
         //第一名要戴眼镜
-        var maxScore = 0;
+
         var maxPosId = 0;
+        var maxScore = globalData.gameMgr.playerData[maxPosId].gain_score;
+        // var maxCur_x = 0;
         for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
             var data = globalData.gameMgr.playerData[i];
             if(data && data.gain_score >= maxScore) {
@@ -138,6 +140,12 @@ cc.Class({
             }
         }
         this.img_glass.active = maxPosId === this.posId;
+
+        // //已经挂了 镜头跟随
+        // if (this.posId == globalData.gameMgr.posId && this.state == State.Drop) {
+        //     this.main_camera.stopAllActions();
+        //     // this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 200 - this._initPosX, this.main_camera.y)));
+        // }
     },
     setGameOver(){
         this.state = State.GAMEOVER;
@@ -179,11 +187,26 @@ cc.Class({
     move(data) {
         var that = this;
 
+        //自身是否挂了
+        var isDeadCameraFlow = false;
+        if(globalData.gameMgr.playerData[globalData.gameMgr.posId].game_type == 'fall') {
+            var maxPosId = 0;
+            var maxScore = globalData.gameMgr.playerData[maxPosId].gain_score;
+            for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
+                var playerData = globalData.gameMgr.playerData[i];
+                if (playerData && playerData.gain_score >= maxScore) {
+                    maxPosId = playerData.posId;
+                }
+            }
+            isDeadCameraFlow = maxPosId == this.posId;
+            // console.log(maxPosId,this.posId,isDeadCameraFlow,globalData.gameMgr.posId);
+        }
+
         if(data.type == 1){
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 50 ,data.cur_y);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId) {
+                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
                     this.main_camera.x = this.node.parent.x - this._initPosX;
                 }
             }else{
@@ -197,7 +220,7 @@ cc.Class({
                 this.node.parent.stopAllActions();
                 this.node.parent.runAction(seq);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId) {
+                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
                     this.main_camera.stopAllActions();
                     this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 50 - this._initPosX, this.main_camera.y)));
                 }
@@ -212,7 +235,7 @@ cc.Class({
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 200 ,data.cur_y);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId) {
+                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
                     this.main_camera.x = this.node.parent.x - this._initPosX;
                 }
             }else{
@@ -226,7 +249,7 @@ cc.Class({
                 this.node.parent.stopAllActions();
                 this.node.parent.runAction(seq);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId) {
+                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
                     this.main_camera.stopAllActions();
                     this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 200 - this._initPosX, this.main_camera.y)));
                 }
@@ -241,7 +264,7 @@ cc.Class({
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 350 ,data.cur_y);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId) {
+                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
                     this.main_camera.x = this.node.parent.x - this._initPosX;
                 }
             }else{
@@ -255,7 +278,7 @@ cc.Class({
                 this.node.parent.stopAllActions();
                 this.node.parent.runAction(seq);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId) {
+                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
                     this.main_camera.stopAllActions();
                     this.main_camera.runAction(cc.moveTo(1.5, cc.v2(data.cur_x + 350 - this._initPosX, this.main_camera.y)));
                 }

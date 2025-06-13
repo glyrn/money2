@@ -284,7 +284,7 @@ const proto = {
           userObj.recover_disconnect_data = [];
 
           this.broadCastRoom("MESSAGE",roomObj.deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
-          this.broadCastRoom("SIT_CHANGE",roomObj.deskId,{target:null},userObj.uid);
+          this.broadCastRoom("SIT_CHANGE",roomObj.deskId,{target:null,posId:userObj.posId},userObj.uid);
 
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
@@ -403,9 +403,23 @@ const proto = {
               return;
             }
             var userObj = null;
+            var people_num = 0;
+            if(room.ready_count == -1){
+              room.ready_count = obj.ready_count;
+              room.play_count = obj.play_count;
+            }
+            //统计房间实际人数
+            if(room.ready_count > 0){
+              for (let i = 0; i < room.positions.length; i++) {
+                if(room.positions[i].state > 0){
+                  people_num++;
+                }
+              }
+            }
+
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];
-              if(userObj.state == 0){
+              if(people_num < room.ready_count && userObj.state == 0){
                 userObj.uid = obj.uid;
                 userObj.state = 1;
                 userObj.name = obj.name;
@@ -423,10 +437,7 @@ const proto = {
 
                 self.clients[obj.uid] = socket;
 
-                if(room.ready_count == -1){
-                  room.ready_count = obj.ready_count;
-                  room.play_count = obj.play_count;
-                }
+
 
                 var playerData = [];
                 for (let i = 0; i < room.positions.length; i++) {
@@ -560,7 +571,7 @@ Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer()
 gameServer.init()
 
-app.get('/quit',function(req,res){
+app.get('/voice/quit',function(req,res){
   const uid = req.query.uid;
   res.send({state:0,msg:"退出成功",uid:uid});
   //踢出房间

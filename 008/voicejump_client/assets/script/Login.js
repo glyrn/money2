@@ -4,7 +4,7 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        img_loading:cc.Node,
+        // img_loading:cc.Node,
         lab_tips:cc.Label,
         lab_debug:cc.Label,
     },
@@ -15,10 +15,12 @@ cc.Class({
         globalData.socketMgr.initSocket();
     },
     update(){
-        this.img_loading.angle = this.img_loading.angle + 10;
+        // this.img_loading.angle = this.img_loading.angle + 10;
     },
 
     showTips(msg){
+
+        this.lab_debug.string += msg;
         console.log(msg);
         this.lab_tips.node.active = true;
         this.lab_tips.string = msg;
@@ -26,7 +28,9 @@ cc.Class({
             this.lab_tips.node.active = false;
         }, 2);
     },
-
+    onProgress(completedCount, totalCount, item){
+        // this.prog_bar.progress = completedCount/totalCount;
+    },
     start(){
         console.log("启动参数："+window.location.href);
         this.lab_debug.string = "启动参数："+window.location.href;
@@ -40,7 +44,7 @@ cc.Class({
             }
             cc.args = field;
 
-            cc.director.preloadScene("Game",function() {
+            cc.director.preloadScene("Game",this.onProgress.bind(this),function() {
 
                 if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn') {
                     globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],

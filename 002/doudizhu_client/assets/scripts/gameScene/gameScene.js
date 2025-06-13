@@ -75,7 +75,7 @@ cc.Class({
             if(globalData.gameMgr.posState.right.isPass){
                 that._player_node_list[2].getComponent('PlayerNode').cleanPass()
             }
-            cc.playEffect("sound/singer_send_card",false,1);
+            
         });
         globalData.eventlister.on('CTX_PLAY_CHANGE',function(){
             that.renderPlayerNode();
@@ -87,6 +87,7 @@ cc.Class({
         globalData.eventlister.on('GAME_OVER',function(){
             that.renderPlayerNode();
             that.renderCard();
+            that.globalSelfAnim.node.active = false;
         });
         globalData.eventlister.on('FORCE_EXIT_EV1',function(){
             that.renderPlayerNode();
@@ -108,12 +109,19 @@ cc.Class({
             }
         });
         globalData.eventlister.on('show_global_effect',function(data){
-            that.globalSelfAnim.node.active = true;
-            that.globalSelfAnim.play(data);
 
-            that.scheduleOnce(function () {
+            if(data.isHide){
                 that.globalSelfAnim.node.active = false;
-            }, 2);
+            }else{
+                that.globalSelfAnim.node.active = true;
+                that.globalSelfAnim.play(data.anim);
+
+                if(data.isAutoHide){
+                    that.scheduleOnce(function () {
+                        that.globalSelfAnim.node.active = false;
+                    }, 2);
+                }
+            }
         });
 
         this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
@@ -140,7 +148,9 @@ cc.Class({
         this._player_node_list[0].getComponent('PlayerNode').checkMissSelectCard()
     },
     onTouchEnd(){
-        this._player_node_list[0].getComponent('PlayerNode').onSelectCardEnd(this._hasTouchCard)
+        this._player_node_list[0].getComponent('PlayerNode').onSelectCardEnd(this._hasTouchCard);
+        //检测是否有特效牌型
+        this._player_node_list[0].getComponent('PlayerNode').checkEffectCardAnim(globalData.gameMgr.posState.self);
     },
 
     start(){
@@ -148,9 +158,11 @@ cc.Class({
     },
     onBtnTips(){
         this._player_node_list[0].getComponent('PlayerNode').selectTips(globalData.gameMgr.posState.self,true)
+        //检测是否有特效牌型
+        this._player_node_list[0].getComponent('PlayerNode').checkEffectCardAnim(globalData.gameMgr.posState.self);
     },
     renderRoom(){
-        this.lab_roomid.string = "房号:"+globalData.gameMgr.deskName +
+        this.lab_roomid.string = "版本:0.1 房号:"+globalData.gameMgr.deskName +
             "  底分:"+globalData.gameMgr.base_score +
             "  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         this.labTopCardScore.string = '';
@@ -175,7 +187,6 @@ cc.Class({
         this._player_node_list[1].getComponent('PlayerNode').renderCard('left',globalData.gameMgr.posState.left,roomState);
         this._player_node_list[2].getComponent('PlayerNode').renderCard('right',globalData.gameMgr.posState.right,roomState);
     },
-
     renderTopCard(data){
 
         let roomState = globalData.gameMgr.roomState
@@ -200,4 +211,6 @@ cc.Class({
     renderBeforeUI() {
         this.gameBeforeUI.getComponent('GameBeforeUI').render();
     },
+
+    
 });

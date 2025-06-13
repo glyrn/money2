@@ -61,6 +61,7 @@ cc.Class({
         this.enableInput(false);
         //刷新玩家
         globalData.eventlister.on("SIT_CHANGE",function(data){
+            console.log(data)
             that['avator'+data.posId].render(data.target);
             if(data.target){ //准备中
                 if(data.target.state == 2){
@@ -148,7 +149,7 @@ cc.Class({
         this.panel_drop.active = false;
     },
     renderRoomTitle(){
-        this.lab_room.string = "v0.0.1房号:"+globalData.gameMgr.roomState.roomId+" 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "v0.0.3房号:"+globalData.gameMgr.roomState.roomId+" 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
         if(distance > 0){
             const minutes = Math.floor((distance % ( 60 * 60)) /  60);

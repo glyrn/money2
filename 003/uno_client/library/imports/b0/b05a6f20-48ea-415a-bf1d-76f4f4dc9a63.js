@@ -11,7 +11,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 cc.Class({
   "extends": cc.Component,
   properties: {
-    img_loading: cc.Node,
+    // img_loading:cc.Node,
     lab_tips: cc.Label,
     lab_debug: cc.Label
   },
@@ -21,8 +21,7 @@ cc.Class({
 
     _globalData["default"].socketMgr.initSocket();
   },
-  update: function update() {
-    this.img_loading.angle = this.img_loading.angle + 10;
+  update: function update() {// this.img_loading.angle = this.img_loading.angle + 10;
   },
   showTips: function showTips(msg) {
     console.log(msg);
@@ -32,6 +31,8 @@ cc.Class({
       this.lab_tips.node.active = false;
     }, 2);
     this.lab_debug.string += msg;
+  },
+  onProgress: function onProgress(completedCount, totalCount, item) {// this.prog_bar.progress = completedCount/totalCount;
   },
   start: function start() {
     console.log("启动参数：" + window.location.href);
@@ -49,7 +50,7 @@ cc.Class({
 
       var that = this;
       cc.args = field;
-      cc.director.preloadScene("Game", function () {
+      cc.director.preloadScene("Game", this.onProgress.bind(this), function () {
         if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn') {
           _globalData["default"].socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
             cc.director.loadScene("Game");

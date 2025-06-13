@@ -22,11 +22,16 @@ cc.Class({
         clock:cc.Node,
         btn_score:cc.Node,
         _cur_score_idx:0,
-        img_uno:cc.Node,
+        // img_uno:cc.Node,
         sp_color1:cc.SpriteFrame,
         sp_color2:cc.SpriteFrame,
         sp_color3:cc.SpriteFrame,
         sp_color4:cc.SpriteFrame,
+        sp_clock_color1:cc.SpriteFrame,
+        sp_clock_color2:cc.SpriteFrame,
+        sp_clock_color3:cc.SpriteFrame,
+        sp_clock_color4:cc.SpriteFrame,
+        globalAnim:cc.Animation,
     },
     onLoad() {
 
@@ -46,6 +51,7 @@ cc.Class({
         this._player_list['top'].active = false;
         this._player_list['right'].active = false;
 
+        this._initCardColorPos = this.card_color.node.position;
         this.img_deck.active = false;
 
         this.renderRoom();
@@ -105,8 +111,8 @@ cc.Class({
         globalData.eventlister.on("HIDE_CARD_COLOR",function(){
             that.hideCardColor()
         });
-        // globalData.eventlister.on("SHOW_UNO",function(){
-        //     that.showUno();
+        // globalData.eventlister.on("show_global_effect",function(data){
+        //     that.showGlobalEffect(data);
         // })
     },
 
@@ -121,7 +127,8 @@ cc.Class({
             if(globalData.gameMgr.roomState.state == 1) {
                 this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
                 this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
-
+                this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color'+globalData.gameMgr.cur_out_color];
+                
                 if (timer_value == 0) {
                     globalData.gameMgr.playerData.self.target_timer_value = 0;
 
@@ -185,6 +192,8 @@ cc.Class({
         this.panel_ctrl.active = globalData.gameMgr.roomState.state == 1 &&
             !globalData.gameMgr.is_ob &&
             (globalData.gameMgr.playerData.self.posId == globalData.gameMgr.playerData.turn);
+        //更新倒计时闹钟颜色
+        
     },
     renderRoomTitle(){
         var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
@@ -225,6 +234,10 @@ cc.Class({
         this.img_deck.getChildByName("label").getComponent(cc.Label).string = globalData.gameMgr.card_remain;
     },
     pushCardToDesk(card,posId){
+        //记录当前出牌颜色、类型、位置
+        globalData.gameMgr.cur_out_color = card.color;
+        globalData.gameMgr.cur_out_value = card.value;
+        globalData.gameMgr.cur_out_posId = posId;
 
         var out_pos = cc.find("out_pos",this.node).position;
         var deck_pos = this.img_deck.position;
@@ -234,7 +247,7 @@ cc.Class({
         function getRandomArbitrary(min, max) {
             return Math.random() * (max - min) + min;
         }
-        node.angle = getRandomArbitrary(-20,20);
+        node.angle = getRandomArbitrary(-10,10);
         var that = this;
         this._out_cards.push(node);
         var offsetX = getRandomArbitrary(-30,30);
@@ -268,6 +281,18 @@ cc.Class({
             node.position = this._player_list[globalData.gameMgr.getPlayerDataKey(posId)].position;
         }
         node.runAction(cc.sequence(actions));
+
+        console.log("card.value：",card.value)
+        //播放全局动画
+        if(card.value == 'plus4'){
+            this.showGlobalEffect("anim+4")
+        }else if(card.value == 'plus2'){
+            this.showGlobalEffect("anim+2")
+        }else if(card.value == 'turn'){
+            this.showGlobalEffect("anim_turn")
+        }else if(card.value == 'stop'){
+            this.showGlobalEffect("anim_stop")
+        }
     },
     pushCardToPlayer:function(data){
         var deck_pos = this.img_deck.position;
@@ -333,6 +358,7 @@ cc.Class({
     },
     showSelectColor:function(){
         this.panel_color.active = true;
+        this.panel_color.getComponent("PlaneColor").playAnim();
         this.panel_color.getChildByName('frame_select').position = this.panel_color.getChildByName('btn_color1').position;
         globalData.gameMgr.playerData.curSelectColor = 1;
     },
@@ -340,8 +366,14 @@ cc.Class({
         this.panel_color.active = false;
     },
     showCardColor:function(color){
+        //当前颜色
+        this._cur_out_color = color;
         this.card_color.spriteFrame = this['sp_color' + color];
         this.card_color.node.active = true;
+
+        this.card_color.node.position = cc.v2(-50,136)
+        this.card_color.node.stopAllActions();
+        this.card_color.node.runAction(cc.moveTo(0.4,this._initCardColorPos));
     },
     hideCardColor:function(){
         this.card_color.node.active = false;
@@ -354,10 +386,12 @@ cc.Class({
             this.panel_tip.active = false;
         },1);
     },
-    showUno:function(){
-        this.img_uno.active = true;
+    showGlobalEffect:function(data){
+        this.globalAnim.node.active = true;
+        this.globalAnim.play(data);
+        var that = this;
         this.scheduleOnce(function () {
-            this.img_uno.active = false;
+            that.globalAnim.node.active = false;
         },1);
     },
     renderScorePanel(){
@@ -365,15 +399,15 @@ cc.Class({
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
 
         //有玩家逃跑 无效回合
-        if(data.invalid == 1){
-            this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "有玩家逃跑，本局无效";
-        }else{
-            if(data.winer == globalData.gameMgr.playerData.self.posId){
-                this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "恭喜，你赢了！";
-            }else{
-                this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "你输了，加油~";
-            }
-        }
+        // if(data.invalid == 1){
+        //     this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "有玩家逃跑，本局无效";
+        // }else{
+        //     if(data.winer == globalData.gameMgr.playerData.self.posId){
+        //         this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "恭喜，你赢了！";
+        //     }else{
+        //         this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "你输了，加油~";
+        //     }
+        // }
 
         for (let i = 0; i < 4; i++) {
             var label = this.panel_score.getChildByName('items').getChildByName('label'+i);

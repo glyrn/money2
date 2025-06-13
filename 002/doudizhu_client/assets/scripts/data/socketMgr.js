@@ -67,7 +67,6 @@ const socketMgr = function(){
             _gameMgr.play_count = data.play_count;
             _gameMgr.play_index = data.play_index;
 
-            console.log(data.posInfos)
             data.posInfos.forEach(function (pos) {
                 _gameMgr.updatePosStatus(pos.posId, pos.state, pos.name,pos.avatarUrl,pos.score,pos.uid);
             });
@@ -97,7 +96,6 @@ const socketMgr = function(){
 
         _socket.on('POS_STATUS_CHANGE', function (data) {
             // var direct = _gameMgr.getDirectionByPosId(data.posId);
-            console.log(data)
             _gameMgr.updatePosStatus(data.posId, data.state, data.name,data.avatarUrl,data.score,data.uid);
             _eventMgr.fire("POS_STATUS_CHANGE");
         });
@@ -202,9 +200,12 @@ const socketMgr = function(){
         });
 
         _socket.on('CTX_PLAY_CHANGE', function (data) {
+            console.log(data)
             var direct = _gameMgr.getDirectionByPosId(data.ctxData.posId);
             _gameMgr.posState[direct].ctxCards = data.ctxData.cards;
             _gameMgr.posState[direct].isPass = data.isPass;
+            //清空动画
+            _eventMgr.fire("show_global_effect",{isHide:true});
 
             if (!data.isPass) {
                 _gameMgr.roomState.ctxCard.len = data.ctxData.len;
@@ -222,14 +223,14 @@ const socketMgr = function(){
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 2;
                     }
-                    _eventMgr.fire("show_global_effect","animBoom"+_gameMgr.roomState.ctxPos);
+                    _eventMgr.fire("show_global_effect",{anim:"animBoom"+_gameMgr.roomState.ctxPos,isAutoHide:true});
                 }else if(card_type == 'KING'){
                     cc.playEffect('sound/king_bomb',false,1);
 
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 4;
                     }
-                    _eventMgr.fire("show_global_effect","animKing"+_gameMgr.roomState.ctxPos);
+                    _eventMgr.fire("show_global_effect",{anim:"animKing"+_gameMgr.roomState.ctxPos,isAutoHide:true});
                 }else if(card_type == 'AAABBB' && card_len == 6 ||
                     card_type == 'AAABBB' && card_len == 9 ||
                     card_type == 'AAAB' && card_len == 8 ||
@@ -244,7 +245,9 @@ const socketMgr = function(){
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 2;
                     }
-                    _eventMgr.fire("show_global_effect","animAirplane"+_gameMgr.roomState.ctxPos);
+                    _eventMgr.fire("show_global_effect",{anim:"animAirplane"+_gameMgr.roomState.ctxPos,isAutoHide:true});
+                }else{
+                    cc.playEffect("sound/singer_send_card",false,1);
                 }
             }
             _gameMgr.removeCards(direct, data.ctxData.cards);
@@ -272,6 +275,25 @@ const socketMgr = function(){
             _gameMgr.posState.self.ctxCards = cards;
             _eventMgr.fire('PLAY_CARD_SUCCESS');
             _eventMgr.fire('PLAY_CARD_SUCCESS1');
+        });
+        _socket.on("CHECK_PLAY_CARD_SUCCESS",function(ret){
+            if(ret.type == 'AAABBB' && ret.len == 6 ||
+                    ret.type == 'AAABBB' && ret.len == 9 ||
+                    ret.type == 'AAAB' && ret.len == 8 ||
+                    ret.type == 'AAABB' && ret.len == 10 ||
+                    ret.type == 'AAABB' && ret.len == 12 ||
+                    ret.type == 'AAABB' && ret.len == 15 ||
+                    ret.type == 'AAABB' && ret.len == 18 ||
+                    ret.type == 'AAABB' && ret.len == 20
+            ){
+                _eventMgr.fire("show_global_effect",{anim:'animAirpanel'});
+            }else if (ret.type == 'KING') {
+                _eventMgr.fire("show_global_effect",{anim:'animKing'});
+            }else if (ret.type == 'AAAA' && ret.len == 4) {
+                _eventMgr.fire("show_global_effect",{anim:'animBoom'});
+            }else{
+                _eventMgr.fire("show_global_effect",{isHide:true});
+            }
         });
 
         _socket.on('GAME_OVER', function (data) {
@@ -353,6 +375,10 @@ const socketMgr = function(){
             _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
         }
         return _gameMgr.is_ob;
+    }
+    that.checkPlayCard = function(data){
+        if(that.checkIsObserve()) return;
+        _socket.emit('CHECK_PLAY_CARD',data);
     }
     return that
 }

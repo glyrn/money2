@@ -411,4 +411,19 @@ cc.Class({
             this._cardOutList[i].getComponent('Card').render('none',card);
         }
     },
+    //检测是否有特效牌型
+    checkEffectCardAnim(playerData){
+
+        //轮到自己
+        if(globalData.gameMgr.roomState.ctxPos === 'self'){
+       
+            var select_cards = [];
+            for (let i = 0; i < playerData.cards.length; i++) {
+                if(playerData.cards[i].selected){
+                    select_cards.push(playerData.cards[i])
+                }
+            }
+            globalData.socketMgr.checkPlayCard(select_cards);
+        }
+    },
 });

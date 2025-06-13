@@ -4,7 +4,7 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        img_loading:cc.Node,
+        // img_loading:cc.Node,
         lab_tips:cc.Label,
         lab_debug:cc.Label,
     },
@@ -15,7 +15,7 @@ cc.Class({
         globalData.socketMgr.initSocket();
     },
     update(){
-        this.img_loading.angle = this.img_loading.angle + 10;
+        // this.img_loading.angle = this.img_loading.angle + 10;
     },
 
     showTips(msg){
@@ -27,6 +27,10 @@ cc.Class({
         }, 2);
 
         this.lab_debug.string += msg;
+    },
+
+    onProgress(completedCount, totalCount, item){
+        // this.prog_bar.progress = completedCount/totalCount;
     },
 
     start(){
@@ -45,7 +49,7 @@ cc.Class({
 
             var that = this;
             cc.args = field;
-            cc.director.preloadScene("Game",function() {
+            cc.director.preloadScene("Game",this.onProgress.bind(this),function() {
 
                 if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn') {
                     globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
@@ -67,9 +71,6 @@ cc.Class({
                     });
                 }
             });
-
-
-
         }
     },
 

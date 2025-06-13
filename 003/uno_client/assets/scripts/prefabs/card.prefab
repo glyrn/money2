@@ -188,7 +188,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "62fccff5-5943-4a51-a469-83cd0d48e747"
     },
     "fileId": "b4ZYk5DoJJtqcXf+G8FKIT",
     "sync": false
@@ -295,7 +295,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "62fccff5-5943-4a51-a469-83cd0d48e747"
     },
     "fileId": "b62NwSnudPMaTlHGZlmAVh",
     "sync": false
@@ -402,7 +402,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "62fccff5-5943-4a51-a469-83cd0d48e747"
     },
     "fileId": "d6qg6hWe1As5YG4HR4oCnv",
     "sync": false
@@ -425,31 +425,31 @@
       "__uuid__": "2792a197-3fa7-4833-b544-345424cfe8c0"
     },
     "sf_1": {
-      "__uuid__": "c6ec1111-787f-4183-9e5d-3860422dbc20"
+      "__uuid__": "27eca75d-5e18-44c8-ae46-aad78661e6ab"
     },
     "sf_2": {
-      "__uuid__": "63fe5fff-2069-47b2-a1da-ef4b433d0c41"
+      "__uuid__": "0e7261a2-39d6-4610-a322-82a4f628ea47"
     },
     "sf_3": {
-      "__uuid__": "939d896c-0620-426f-9196-642486733c03"
+      "__uuid__": "44dda378-2c97-4321-b035-62db8a548952"
     },
     "sf_4": {
-      "__uuid__": "f2ce5e61-cdfe-4303-b656-56416f13ea39"
+      "__uuid__": "489258e0-a3d1-4cad-b9ff-74e7df3e7e08"
     },
     "sf_5": {
-      "__uuid__": "51e7ef1c-2171-4870-8043-f2060e0bb522"
+      "__uuid__": "4ff1b2ee-c13c-4256-b2b9-d3c6c9b627c2"
     },
     "sf_6": {
-      "__uuid__": "fac56af6-750b-49fc-8aba-92b37aa50cd9"
+      "__uuid__": "60b6ea3c-8ede-4c5b-991a-2d8007fa5146"
     },
     "sf_7": {
-      "__uuid__": "7776e341-c69e-4d7c-914d-a8e744f8c3ec"
+      "__uuid__": "39e2719c-b01d-46d5-851e-5494a2b46964"
     },
     "sf_8": {
-      "__uuid__": "7262e7c9-1c29-4080-84a5-1b2d3787f24e"
+      "__uuid__": "d4859d95-c910-4505-832f-174e1a665c39"
     },
     "sf_9": {
-      "__uuid__": "d85e7530-24ed-4c6f-8c57-0aebef85f27b"
+      "__uuid__": "9b1d6d70-cfa7-4608-8c00-a2936016cb0d"
     },
     "sf_stop": {
       "__uuid__": "0fdac24c-19eb-47a1-b055-c7952df1327e"
@@ -571,7 +571,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "62fccff5-5943-4a51-a469-83cd0d48e747"
     },
     "fileId": "",
     "sync": false

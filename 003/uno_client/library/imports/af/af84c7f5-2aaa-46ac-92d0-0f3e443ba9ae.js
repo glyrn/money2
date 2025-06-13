@@ -210,6 +210,8 @@ var socketMgr = function socketMgr() {
     });
 
     _socket.on('PLAY_PASS_SUCCESS', function (data) {
+      console.log("手牌增加：", data.plus_cards);
+
       for (var i = 0; i < data.plus_cards.length; i++) {
         var card = data.plus_cards[i];
         card.isNew = true;

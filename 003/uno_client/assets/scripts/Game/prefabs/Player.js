@@ -7,6 +7,11 @@ cc.Class({
         card: cc.Prefab,
         _hand_cards:[],
         tips_index:0,
+        sp_clock_color1:cc.SpriteFrame,
+        sp_clock_color2:cc.SpriteFrame,
+        sp_clock_color3:cc.SpriteFrame,
+        sp_clock_color4:cc.SpriteFrame,
+        anim_pos:cc.Animation,
     },
     name: "Player",
     update:function(){
@@ -17,6 +22,7 @@ cc.Class({
 
             this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
             this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
+            this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color'+globalData.gameMgr.cur_out_color];
 
             if(timer_value == 0){
                 this._data.target_timer_value = 0;
@@ -27,7 +33,7 @@ cc.Class({
 
         this.avator = this.node.getChildByName('avator').getComponent("Avator");
         this.clock = this.node.getChildByName('clock');
-        this.lab_uno = this.node.getChildByName('lab_uno');
+
         this.tips_index = 0;
 
         if(data && data.uid > 0) {
@@ -105,17 +111,21 @@ cc.Class({
                         }
                     }
                 }
+                
+                if(globalData.gameMgr.cur_out_posId == data.posId){
+                    if(globalData.gameMgr.cur_out_value == "turn")
+                    {
+                        this.anim_pos.play("anim_small_turn");
+                    }else if(globalData.gameMgr.cur_out_value == "stop")
+                    {
+                        this.anim_pos.play("anim_small_stop");
+                    }
+                }
 
                 var isShowUno = data.cards.length == 1;
-                // if(this.lab_uno.active == false && isShowUno){
-                    // globalData.eventlister.fire("SHOW_UNO");
-                // }
-                this.lab_uno.active = isShowUno;
-                var that = this;
-                that.lab_uno.getComponent(cc.Animation).play();
-                this.scheduleOnce(function () {
-                    that.lab_uno.active = false;
-                },1.5)
+                if(isShowUno){
+                    this.anim_pos.play("anim_uno");
+                }
             }
 
             if(data.posId == globalData.gameMgr.playerData.turn &&
@@ -125,6 +135,9 @@ cc.Class({
             }else{
                 this.clock.active = false;
             }
+
+            
+
         }else{
             this.node.active = false;
             for (let i = 0; i < this._hand_cards.length; i++) {

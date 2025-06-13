@@ -1,0 +1,54 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "animAirpanel",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.6,
+  "sample": 60,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "d604a07e-ab03-42a7-a658-57d7a0c3f497"
+            }
+          }
+        ]
+      }
+    },
+    "props": {
+      "position": [
+        {
+          "frame": 0,
+          "value": [
+            0,
+            -472.556,
+            0
+          ],
+          "curve": "quadOut"
+        },
+        {
+          "frame": 0.4666666666666667,
+          "value": [
+            0,
+            -242.031,
+            0
+          ]
+        },
+        {
+          "frame": 0.6,
+          "value": [
+            0,
+            -380.841,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "events": []
+}

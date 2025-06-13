@@ -210,7 +210,7 @@
       "array": [
         0,
         0,
-        418.2818751148508,
+        427.1399671228061,
         0,
         0,
         0,
@@ -24959,9 +24959,7 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "e3dec742-ca78-44c3-b93d-0c2c8a01eb51"
-    },
+    "_spriteFrame": null,
     "_type": 0,
     "_sizeMode": 1,
     "_fillType": 0,
@@ -25075,9 +25073,7 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "d62dd8d3-c71f-4c12-94e3-e35f22f54397"
-    },
+    "_spriteFrame": null,
     "_type": 0,
     "_sizeMode": 1,
     "_fillType": 0,
