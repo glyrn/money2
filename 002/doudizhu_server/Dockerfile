@@ -14,4 +14,4 @@ WORKDIR /sunday/app
 ADD . /sunday/app/
 
 #
-ENTRYPOINT node index.js
+ENTRYPOINT node server.js
