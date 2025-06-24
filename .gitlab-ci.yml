@@ -12,7 +12,7 @@ workflow:
       when: always
     - if : '$CI_COMMIT_BRANCH =~ /^test$/'
       when: always
-    - if : '$CI_COMMIT_BRANCH ==master'
+    - if : '$CI_COMMIT_BRANCH == "master"'
       when: always
     - when: never
 
