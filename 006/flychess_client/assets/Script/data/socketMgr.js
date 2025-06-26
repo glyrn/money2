@@ -47,14 +47,16 @@ const socketMgr = function(){
             _eventMgr.fire('PREPARE_SUCCESS',posId);
         });
         _socket.on("LOGIN_SUCCESS", function (data) {
+
+            _gameMgr.playerData = JSON.parse(JSON.stringify(data.playerData));
             _gameMgr.roomState.roomId = data.roomId;
-            _gameMgr.playerData = data.playerData;
             _gameMgr.play_mode = data.play_mode;
             _gameMgr.posId = data.posId;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
-
+            console.log(_gameMgr.playerData)
             _gameMgr.checkBeat();
+            _eventMgr.fire("LOGIN_SUCCESS");
             if (_cbLogin) {
                 _cbLogin();
             }
@@ -65,6 +67,7 @@ const socketMgr = function(){
 
         _socket.on("MAKE_DICE_NUM_SUCCESS",function(data){
 
+            console.log(data)
             _gameMgr.playerData[data.posId].dice = data.num;
             _eventMgr.fire('MAKE_DICE_NUM_SUCCESS', data);
         })
@@ -73,7 +76,8 @@ const socketMgr = function(){
         })
 
         _socket.on("SIT_CHANGE",function(data){
-            console.log(data)
+
+            _gameMgr.playerData = JSON.parse(JSON.stringify(_gameMgr.playerData));
             //对手逃跑 重置游戏
             if(data.target == null){
                 _gameMgr.playerData[data.posId] = null;
@@ -82,6 +86,7 @@ const socketMgr = function(){
             }else{
                 _gameMgr.playerData[data.posId] = data.target;
             }
+            console.log(data,_gameMgr.playerData)
             _eventMgr.fire("SIT_CHANGE",data)
         })
 
@@ -108,6 +113,11 @@ const socketMgr = function(){
                 }
             }
             _eventMgr.fire("GAME_OVER",data);
+        });
+
+        _socket.on("CONNECT_STATE",function(data){
+            _gameMgr.playerData[data.posId].connect_state = data.state;
+            _eventMgr.fire('CONNECT_STATE',data);
         });
     }
 
@@ -137,7 +147,6 @@ const socketMgr = function(){
     }
     that.nextPlayerDice = function(){
         if(that.checkIsObserve()) return;
-        console.log("xxxxxxx");
         if(_gameMgr.isRecover) return;
         _socket.emit('NEXT_PLAYER_DICE');
     }

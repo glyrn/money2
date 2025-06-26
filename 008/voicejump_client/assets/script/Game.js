@@ -39,10 +39,12 @@ cc.Class({
 
         var that = this;
 
-        cc.game.setFrameRate(60);
+        cc.game.setFrameRate(59);
         const manager = cc.director.getCollisionManager();
         manager.enabled = true;
         manager.enabledDebugDraw = false;
+
+        cc.playMusic("sound/bg",true,1);
 
         for (let i = 0; i < 4; i++) {
             that['avator'+i].node.active = false;
@@ -129,8 +131,15 @@ cc.Class({
         globalData.eventlister.on("MESSAGE",function(msg){
             that.onShowTips(msg)
         });
+        globalData.eventlister.on("CONNECT_STATE",function(data){
+            if(that['avator'+data.posId] && globalData.gameMgr.playerData[data.posId]){
+                that['avator'+data.posId].render(globalData.gameMgr.playerData[data.posId]);
+            }
+        });
 
-        this.render();
+        globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            that.render();
+        });
         //初始化麦克风
         navigator.mediaDevices.getUserMedia({audio:true}).then(
             stream => {
@@ -149,7 +158,7 @@ cc.Class({
         this.panel_drop.active = false;
     },
     renderRoomTitle(){
-        this.lab_room.string = "v0.0.3房号:"+globalData.gameMgr.roomState.roomId+" 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "版本:1.0.6 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
         if(distance > 0){
             const minutes = Math.floor((distance % ( 60 * 60)) /  60);
@@ -159,8 +168,10 @@ cc.Class({
     },
     render(){
         this.renderRoomTitle();
-        this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 && !globalData.gameMgr.is_ob;
+        if(globalData.gameMgr.playerData[globalData.gameMgr.posId]){
+            this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
+                globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 && !globalData.gameMgr.is_ob;
+        }
 
         this.lab_score.node.active = globalData.gameMgr.roomState.state == 1;//游戏进行中
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
@@ -176,7 +187,8 @@ cc.Class({
         this._enableInput = enable;
     },
     voiceFail(error){
-        this.onShowTips('获取麦克风音量时出错:'+ error);
+        this.onShowTips("未开启麦克风权限");
+        // this.onShowTips('获取麦克风音量时出错:'+ error);
     },
     voiceSuccess(stream){
 

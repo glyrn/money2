@@ -49,7 +49,7 @@ cc.Class({
             return;
         }
 
-        this.lab_name.string = data.name;
+        this.lab_name.string = globalData.utils.subStringResult(data.name,7);
         if(data.posId == globalData.gameMgr.posId){
             this.lab_name.node.color = cc.Color.GREEN;
         }
@@ -190,16 +190,18 @@ cc.Class({
         //自身是否挂了
         var isDeadCameraFlow = false;
         if(globalData.gameMgr.playerData[globalData.gameMgr.posId].game_type == 'fall') {
-            var maxPosId = 0;
-            var maxScore = globalData.gameMgr.playerData[maxPosId].gain_score;
+            var sortItems = [];
             for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
                 var playerData = globalData.gameMgr.playerData[i];
-                if (playerData && playerData.gain_score >= maxScore) {
-                    maxPosId = playerData.posId;
+                if(playerData && playerData.game_type != 'fall'){
+                    sortItems.push({posId:playerData.posId,type:playerData.game_type,value:playerData.gain_score});
                 }
             }
-            isDeadCameraFlow = maxPosId == this.posId;
-            // console.log(maxPosId,this.posId,isDeadCameraFlow,globalData.gameMgr.posId);
+            sortItems.sort((a, b) => {
+                return b.value - a.value;
+            });
+            isDeadCameraFlow = sortItems[0].posId == this.posId;
+            console.log(sortItems[0].posId,this.posId,isDeadCameraFlow,globalData.gameMgr.posId);
         }
 
         if(data.type == 1){

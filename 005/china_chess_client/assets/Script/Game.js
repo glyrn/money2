@@ -174,6 +174,9 @@ cc.Class({
         globalData.eventlister.on("SIT_CHANGE",function(data){
             that.render();
         })
+        globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            that.render();
+        })
         globalData.eventlister.on('PREPARE_SUCCESS',function(prepare_uid){
             //准备成功
             that.btn_ready.active = false;
@@ -221,7 +224,9 @@ cc.Class({
             that.retrack_lock = false;
             that.render();
         })
-        this.render();
+        globalData.eventlister.on("CONNECT_STATE",function(data){
+            that.render();
+        });
     },
 
     render(){
@@ -253,7 +258,7 @@ cc.Class({
                 this.avator_target.getComponent("Avator").setData(globalData.gameMgr.playerData.self,'self');
             }
         }
-        this.lab_room.string = "版本:v0.0.1 房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "版本:1.0 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
     },
     gameStart:function(){
 

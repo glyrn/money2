@@ -5,12 +5,12 @@ cc.Class({
 
     properties: {
         // img_loading:cc.Node,
-        lab_tips:cc.Label,
-        lab_debug:cc.Label,
+        // lab_tips:cc.Label,
+        // lab_debug:cc.Label,
     },
 
     onLoad () {
-        this.lab_tips.node.active = false;
+        // this.lab_tips.node.active = false;
         cc.debug.setDisplayStats(false);
         globalData.socketMgr.initSocket();
     },
@@ -18,16 +18,16 @@ cc.Class({
         // this.img_loading.angle = this.img_loading.angle + 10;
     },
 
-    showTips(msg){
-        console.log(msg);
-        this.lab_tips.node.active = true;
-        this.lab_tips.string = msg;
-        this.scheduleOnce(function () {
-            this.lab_tips.node.active = false;
-        }, 2);
+    // showTips(msg){
+    //     console.log(msg);
+    //     this.lab_tips.node.active = true;
+    //     this.lab_tips.string = msg;
+    //     this.scheduleOnce(function () {
+    //         this.lab_tips.node.active = false;
+    //     }, 2);
 
-        this.lab_debug.string += msg;
-    },
+    //     this.lab_debug.string += msg;
+    // },
 
     onProgress(completedCount, totalCount, item){
         // this.prog_bar.progress = completedCount/totalCount;
@@ -36,7 +36,7 @@ cc.Class({
     start(){
 
         console.log("启动参数："+window.location.href);
-        this.lab_debug.string = "启动参数："+window.location.href;
+        // this.lab_debug.string = "启动参数："+window.location.href;
 
         var url = decodeURI(window.location.href);
         if(url.split('?').length > 1){
@@ -52,21 +52,35 @@ cc.Class({
             cc.director.preloadScene("Game",this.onProgress.bind(this),function() {
 
                 if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn') {
-                    globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+                    cc.director.loadScene("Game",function(){
+                        globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
                         cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
-                            cc.director.loadScene("Game");
+                            clearTimeout(that._handler);
+                            
                         });
+                    });
+                    
+                    that._handler = setTimeout(function(){
+                        that.start();
+                    },2000);
                 } else {
                     console.log("开始请求用户信息：")
                     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
                         if (isOk) {
                             console.log("用户信息：",data)
-                            globalData.socketMgr.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
+                            cc.director.loadScene("Game",function(){
+                                globalData.socketMgr.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
                                 cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
-                                    cc.director.loadScene("Game");
+                                    clearTimeout(that._handler);
+                                    
                                 });
+                            });
+                            
+                            that._handler = setTimeout(function(){
+                                that.start();
+                            },2000);
                         }else{
-                            that.lab_debug.string += JSON.stringify(data);
+                            // that.lab_debug.string += JSON.stringify(data);
                         }
                     });
                 }

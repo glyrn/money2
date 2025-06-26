@@ -60,6 +60,7 @@ const socketMgr = function(){
             _gameMgr.play_index = 0;
             _gameMgr.checkBeat();
 
+            _eventMgr.fire("LOGIN_SUCCESS")
             if (_cbLogin) {
                 _cbLogin();
             }
@@ -166,7 +167,9 @@ const socketMgr = function(){
             _eventMgr.fire('PLAY_CARD_SUCCESS',data);
             _gameMgr.getPlayerData(data.nextPosId).target_timer_value = Date.parse(new Date()) / 1000 + _gameMgr.roomState.timeout;
             _gameMgr.playerData.turn = data.nextPosId;
-            _eventMgr.fire('CHANGE_TURN');
+            // setTimeout(function(){
+                _eventMgr.fire('CHANGE_TURN');
+            // },1000);
         });
         _socket.on('PLAY_PASS_SUCCESS',function(data){
             console.log("手牌增加：",data.plus_cards);
@@ -190,6 +193,11 @@ const socketMgr = function(){
 
                 _eventMgr.fire('CHANGE_TURN');
             },1000);
+        });
+
+        _socket.on("CONNECT_STATE",function(data){
+            _gameMgr.getPlayerData(data.posId).connect_state = data.state;
+            _eventMgr.fire('CONNECT_STATE');
         });
     }
 

@@ -1,6 +1,7 @@
 {
-  "ver": "2.3.4",
+  "ver": "2.3.7",
   "uuid": "617db389-200f-42bb-9973-c06f8014990c",
+  "importer": "texture",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -12,8 +13,9 @@
   "platformSettings": {},
   "subMetas": {
     "声控游戏": {
-      "ver": "1.0.4",
+      "ver": "1.0.6",
       "uuid": "a87959e1-cd5a-47c3-8179-0cd12d197a5e",
+      "importer": "sprite-frame",
       "rawTextureUuid": "617db389-200f-42bb-9973-c06f8014990c",
       "trimType": "auto",
       "trimThreshold": 1,

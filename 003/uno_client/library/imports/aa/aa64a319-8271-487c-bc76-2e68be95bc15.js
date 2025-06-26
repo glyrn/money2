@@ -14,7 +14,8 @@ cc.Class({
     img_avatar: cc.Sprite,
     lab_name: cc.Label,
     img_ready: cc.Node,
-    lab_score: cc.Label
+    lab_score: cc.Label,
+    img_net_lost: cc.Node
   },
   name: "Avator",
   render: function render(data) {
@@ -25,7 +26,8 @@ cc.Class({
 
     this.node.active = true;
     this.img_ready.active = data.state == 2 && _globalData["default"].gameMgr.roomState.state != 1;
-    this.lab_name.string = data.name;
+    this.img_net_lost.active = data.connect_state == 0;
+    this.lab_name.string = _globalData["default"].utils.subStringResult(data.name, 7);
     var offset_txt = '';
 
     if (data.score_offset > 0) {

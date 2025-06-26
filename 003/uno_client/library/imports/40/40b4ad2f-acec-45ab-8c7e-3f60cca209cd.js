@@ -18,7 +18,30 @@ if (defines.isDebug) {
 } //云村域名
 
 
-defines.yc_domain = "https://www.fsyctech.com";
+defines.yc_domain = "https://www.fsyctech.com"; //------------------------------------------
+
+var url = decodeURI(window.location.href);
+
+if (url.split('?').length > 1) {
+  var params = url.split('?')[1].split('&');
+  var field = {};
+
+  for (var paramsKey in params) {
+    var obj = params[paramsKey].split('=');
+    field[obj[0]] = obj[1];
+  }
+
+  cc.args = field;
+
+  if (cc.args['gamedomain']) {
+    defines.serverUrl = "https://" + cc.args['gamedomain'];
+  }
+
+  if (cc.args['ycdomain']) {
+    defines.yc_domain = "https://" + cc.args['ycdomain'];
+  }
+}
+
 window.defines = defines;
 
 cc._RF.pop();

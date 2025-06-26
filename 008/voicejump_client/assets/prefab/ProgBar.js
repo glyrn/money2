@@ -7,6 +7,10 @@ cc.Class({
         avator1: cc.Sprite,
         avator2: cc.Sprite,
         avator3: cc.Sprite,
+        net_lost0:cc.Node,
+        net_lost1:cc.Node,
+        net_lost2:cc.Node,
+        net_lost3:cc.Node,
     },
     name:"ProgBar",
     onLoad: function () {
@@ -17,7 +21,10 @@ cc.Class({
         var that = this;
         globalData.eventlister.on("GAIN_SCORE_SUCCESS", function (data) {
             that.refresh();
-        })
+        });
+         globalData.eventlister.on("CONNECT_STATE1", function (data) {
+            that.refresh();
+        });
     },
     init: function () {
         var that = this;
@@ -45,7 +52,7 @@ cc.Class({
                 }else{
                     that['avator' + i].node.x = data.gain_score / 150 * 450;
                 }
-
+                that['net_lost' + i].active = data.connect_state == 0;
             }else{
                 that['avator' + i].node.active = false;
             }

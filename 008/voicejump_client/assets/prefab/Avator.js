@@ -1,5 +1,6 @@
 import globalData from "../script/data/globalData";
 import Brid from "../prefab/Bird"
+
 cc.Class({
     extends: cc.Component,
     properties: {
@@ -8,6 +9,7 @@ cc.Class({
         img_ready:cc.Node,
         img_dead:cc.Node,
         player:Brid,
+        img_net_lost:cc.Node,
     },
     name:"Avator",
 
@@ -30,7 +32,9 @@ cc.Class({
             });
         }
 
-        this.lab_name.string = data.name;
+        
+        this.lab_name.string = globalData.utils.subStringResult(data.name,7);
+        this.img_net_lost.active = data.connect_state == 0;
         this.img_ready.active = data.state == 2 && globalData.gameMgr.roomState.state != 1;
         // this.img_dead.active = data.game_type == 'fall';
     },

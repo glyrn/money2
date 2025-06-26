@@ -20,7 +20,7 @@
                 ],
                 "height": 396.66668701171875,
                 "type": "panel",
-                "width": 232
+                "width": 233
               },
               {
                 "active": 0,
@@ -29,12 +29,12 @@
                 ],
                 "height": 396.66668701171875,
                 "type": "panel",
-                "width": 232
+                "width": 233
               }
             ],
             "height": 796.3333740234375,
             "type": "dock-v",
-            "width": 232
+            "width": 233
           },
           {
             "children": [
@@ -47,7 +47,7 @@
                     ],
                     "height": 502.57293701171875,
                     "type": "panel",
-                    "width": 564
+                    "width": 563
                   },
                   {
                     "active": 0,
@@ -61,7 +61,7 @@
                 ],
                 "height": 502.57293701171875,
                 "type": "dock-h",
-                "width": 884
+                "width": 883
               },
               {
                 "active": 0,
@@ -71,12 +71,12 @@
                 ],
                 "height": 290.75,
                 "type": "panel",
-                "width": 884
+                "width": 883
               }
             ],
             "height": 796.3333740234375,
             "type": "dock-v",
-            "width": 884
+            "width": 883
           },
           {
             "active": 0,
@@ -101,7 +101,7 @@
       ]
     },
     "worker": {},
-    "window-1749707594245": {}
+    "window-1750922240254": {}
   },
   "panels": {
     "sprite-editor": {
@@ -115,6 +115,12 @@
       "y": 210,
       "width": 604,
       "height": 568
+    },
+    "package-asset.import": {
+      "x": 460,
+      "y": 170,
+      "width": 520,
+      "height": 575
     }
   },
   "panelLabelWidth.inspector": "31.929%",

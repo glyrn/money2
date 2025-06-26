@@ -65,7 +65,8 @@ const socketMgr = function(){
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
             _gameMgr.checkBeat();
-
+            
+            _eventMgr.fire("LOGIN_SUCCESS");
             if (_cbLogin) {
                 _cbLogin();
             }
@@ -109,7 +110,15 @@ const socketMgr = function(){
         });
         _socket.on("RETRACK_CHESS_RSP_SUCCESS",function(data){
             _eventMgr.fire('RETRACK_CHESS_RSP_SUCCESS',data);
-        })
+        });
+        _socket.on("CONNECT_STATE",function(data){
+            if(data.posId == _gameMgr.playerData.self.posId){
+                _gameMgr.playerData.self.connect_state = data.state;
+            }else if (data.posId == _gameMgr.playerData.target.posId){
+                _gameMgr.playerData.target.connect_state = data.state;
+            }
+            _eventMgr.fire('CONNECT_STATE',data);
+        });
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){

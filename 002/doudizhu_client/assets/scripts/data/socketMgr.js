@@ -72,6 +72,7 @@ const socketMgr = function(){
             });
             _gameMgr.posState.self.isDizhu = false;
             _eventMgr.fire('SITDOWN_SUCCESS');
+            _eventMgr.fire("POS_STATUS_CHANGE")
         });
 
         _socket.on('SITDOWN_ERROR', function (data) {
@@ -332,10 +333,18 @@ const socketMgr = function(){
         _socket.on('CALL_SCORE_SUCCESS',function(ratio){
             _gameMgr.posState.self.ratio = ratio;
             _eventMgr.fire('CALL_SCORE_SUCCESS')
-        })
+        });
 
-        _socket.on("connection",function(){
-            console.log("connect server success!!")
+        // _socket.on("connection",function(){
+        //     console.log("connect server success!!")
+        // });
+
+        _socket.on("CONNECT_STATE",function(data){
+            var direct = _gameMgr.getDirectionByPosId(data.posId);
+            if(direct){
+                _gameMgr.posState[direct].connect_state = data.state;
+                _eventMgr.fire('CONNECT_STATE',data);
+            }
         });
     }
 
@@ -352,6 +361,7 @@ const socketMgr = function(){
             return;
         }
         _socket.emit('SITDOWN', { deskName: deskName, base_score:base_score,play_count:play_count,play_mode:play_mode });
+        
     }
 
     that.call_score = function(score){

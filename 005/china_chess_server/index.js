@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const os = require('os');
 const https = require('https');
+const fs = require('fs');
 //本地调试
 var ioParam = {path:'/zgxq_socket.io'};
 var isDebug = false;
@@ -8,7 +9,11 @@ if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
   isDebug = true;
 }
-const yc_domain = 'www.fsyctech.com';
+const gameCfg = JSON.parse(fs.readFileSync('gameCfg.json', 'utf8'));
+
+const yc_domain = gameCfg['yc_domain'];//www.fsyctech.com';
+const game_port = gameCfg['game_port'];
+console.log("结算域名："+yc_domain)
 
 const express = require('express'),
     app = express(),
@@ -61,7 +66,7 @@ const proto = {
         play_mode:-1,
         play_count:0,
         base_score:100,
-        play_index:1,
+        play_index:0,
       }
       for (let j = 0; j < 2; j++) {
         desk.positions.push({
@@ -215,13 +220,7 @@ const proto = {
             this.desks[i].play_mode = -1;
           }else{
             // 还剩一个
-            this.broadCastRoom('GAME_OVER',this.desks[i].deskId,{winer:winerPosId,score:10});
-            this.sendYcGameOver({
-              room_id:this.desks[i].name,
-              game_id:5,
-              play_index:this.desks[i].play_index,
-              score_list:[{uid:this.desks[i].positions[winerPosId].uid,name:this.desks[i].positions[winerPosId].name,score:10,is_win:1}]
-            });
+            this.broadCastRoom('GAME_OVER',this.desks[i].deskId,{winer:winerPosId,score:0});
           }
         }
       }
@@ -287,9 +286,16 @@ const proto = {
             var emitObj = userObj.recover_disconnect_data[k];
             socket.emit(emitObj.event,emitObj.data);
           }
+          //广播其他所有人 该玩家上线了
+          this.broadCastRoom("CONNECT_STATE",roomObj.deskId,{state:1,posId:userObj.posId},userObj.uid);
           return true;
         }
       }
+    }
+    //是观众
+    if(obj.ob_uid){
+      console.log("观众："+obj.uid+" 等待玩家:"+obj.ob_uid)
+      return true;
     }
     return false;
   },
@@ -361,7 +367,7 @@ const proto = {
             var userObj = null;
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];
-              if(userObj.state == 0){
+              if(userObj.uid == 0){
                 userObj.uid = obj.uid;
                 userObj.state = 1;
                 userObj.name = obj.name;
@@ -380,10 +386,8 @@ const proto = {
 
               self.clients[obj.uid] = socket;
 
-              if(room.play_mode == -1){
-                room.play_mode = obj.play_mode;
-                room.play_count = obj.play_count;
-              }
+              room.play_mode = obj.play_mode;
+              room.play_count = obj.play_count;
 
               var target = null;
               if(room.play_mode == 1){ //人人对战
@@ -448,6 +452,15 @@ const proto = {
           var room = self.getDesk(socket);
           room.turn = 0;
           self.broadCastRoom("GAME_START",self.getDeskId(socket),room.turn);
+
+          room.play_index++;
+          if(room.play_index > room.play_count){
+            room.play_index -= room.play_count;
+          }
+          //重置成绩
+          if(room.play_index == 1){
+            room.score_list = [];
+          }
         }
       });
 
@@ -465,6 +478,10 @@ const proto = {
               delete self.clients[userObj.uid];
               userObj.socket = null;
               userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
+
+              //通知其他人 该玩家掉线了
+              self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);
+              return;
             }
           }
         }
@@ -511,21 +528,44 @@ const proto = {
 
       socket.on('REQ_GAME_OVER',function(data){
         var room = self.getDesk(socket);
+        var score_list = [];
         for (let i = 0; i < room.positions.length; i++) {
           room.positions[i].state = 1;
+          var score = 0;
+          var is_win = 0;
+          //胜利得10分
+          if(data.winer == room.positions[i].posId){
+            score = 10;
+            is_win = 1;
+          }else{
+            score = 0;
+            is_win = 0;
+          }
+          score_list.push({
+            uid:room.positions[i].uid,
+            name:room.positions[i].name,
+            avatorUrl:room.positions[i].avatorUrl,
+            score:score,
+            is_win:is_win
+          })
         }
-        self.sendYcGameOver({
-          room_id:room.name,
-          game_id:5,
-          play_index:room.play_index,
-          score_list:[{uid:room.positions[data.winer].uid,name:room.positions[data.winer].name,score:data.score,is_win:1}]
-        });
+
+        room.score_list.push({play_index:room.play_index,score_list:score_list})
+        
+        if(room.play_index == room.play_count){
+          //发送给云村数据
+          this.sendYcGameOver({
+            room_id:room.name,
+            game_id:5,
+            score_list:room.score_list
+          });
+        }
       })
 
     });
 
-    http.listen(9005, function(){
-      console.log('listening on :9005');
+    http.listen(game_port, function(){
+      console.log('listening on :'+game_port);
     });
   }
 
