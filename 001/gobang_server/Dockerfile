@@ -12,6 +12,9 @@ ENV LC_ALL=C.UTF-8
 WORKDIR /sunday/lianjin_game
 
 ADD . /sunday/lianjin_game/
+
+RUN npm install --verbose
+
 EXPOSE 9001
 #
 ENTRYPOINT ["npm", "start"]
