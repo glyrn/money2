@@ -1,4 +1,4 @@
-FROM node:16.20.2
+FROM 10.0.0.11:8006/library/node:16.20.2
 
 LABEL authors="yckj"
 
@@ -9,9 +9,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
-WORKDIR /sunday/lianjin_game
+WORKDIR /sunday/lianjin_game/wzq
 
-ADD . /sunday/lianjin_game/
+ADD . /sunday/lianjin_game/wzq/
 
 RUN npm install --verbose
 

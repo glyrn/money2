@@ -9,9 +9,12 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
-WORKDIR /sunday/lianjin_game
+WORKDIR /sunday/lianjin_game/flychess
 
-ADD . /sunday/lianjin_game/
+ADD . /sunday/lianjin_game/flychess/
 
+RUN npm install --verbose
+
+EXPOSE 9006
 #
-ENTRYPOINT node index.js
+ENTRYPOINT ["npm", "start"]

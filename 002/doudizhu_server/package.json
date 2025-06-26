@@ -2,7 +2,7 @@
   "name": "gobang_server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "dependencies": {
     "array-flatten": "^1.1.1",
     "ajv": "^6.12.6",
@@ -153,6 +153,7 @@
   },
   "devDependencies": {},
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
