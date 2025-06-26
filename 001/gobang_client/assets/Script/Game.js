@@ -348,8 +348,14 @@ cc.Class({
             self.dialog_retrack.active = data.posId == globalData.gameMgr.playerData.self.posId;
         })
 
-        this.render();
+        globalData.eventlister.on("CONNECT_STATE",function(data){
+            self.render();
+        });
+        globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            self.render();
+        })
     },
+
     render(){
 
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
@@ -372,7 +378,7 @@ cc.Class({
             this.avator_target.getComponent("Avator").setData(globalData.gameMgr.playerData.target);
         }
 
-        this.lab_room.string = "版本1.0 房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "版本:1.0 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
     },
     makeRetrackWithPc(){
         var del_list = [];

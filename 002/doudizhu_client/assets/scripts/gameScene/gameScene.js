@@ -35,6 +35,8 @@ cc.Class({
         }
 
         this.renderRoom();
+        
+        cc.playMusic("sound/bg",true,1);
 
         globalData.eventlister.on('PREPARE_SUCCESS',function(){
             //准备成功
@@ -45,10 +47,6 @@ cc.Class({
         //有其他玩家坐下
         globalData.eventlister.on("POS_STATUS_CHANGE",function(){
             that.renderPlayerNode();
-        });
-
-        globalData.eventlister.on("UNSITDOWN_SUCCESS",function(){
-
         });
 
         globalData.eventlister.on("GAME_START",function(){
@@ -124,6 +122,10 @@ cc.Class({
             }
         });
 
+        globalData.eventlister.on("CONNECT_STATE",function(data){
+            that.renderPlayerNode();
+        });
+
         this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
         this.node.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
@@ -162,7 +164,7 @@ cc.Class({
         this._player_node_list[0].getComponent('PlayerNode').checkEffectCardAnim(globalData.gameMgr.posState.self);
     },
     renderRoom(){
-        this.lab_roomid.string = "版本:0.1 房号:"+globalData.gameMgr.deskName +
+        this.lab_roomid.string = "版本:1.0 "+
             "  底分:"+globalData.gameMgr.base_score +
             "  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         this.labTopCardScore.string = '';

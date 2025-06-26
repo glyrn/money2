@@ -7,7 +7,7 @@
  */
 cc.playEffect=function(url,boolean,val){
     cc.loader.loadRes(url,cc.AudioClip,function (err,clip){
-        cc.audioEngine.play(clip,boolean,val);
+        cc.audioEngine.playEffect(clip,boolean);
     });
 },
 /**
@@ -18,9 +18,7 @@ cc.playEffect=function(url,boolean,val){
  * @return {[type]}          [description]
  */
 cc.playMusic=function(url,boolean,val){
-
     cc.loader.loadRes(url,cc.AudioClip,function (err,clip){
         cc.audioEngine.playMusic(clip,boolean);
-        cc.audioEngine.setMusicVolume(val);
     });
 }

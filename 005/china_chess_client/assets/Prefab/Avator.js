@@ -12,6 +12,7 @@ cc.Class({
         },
         lab_score:cc.Label,
         flag:cc.Node,
+        img_net_lost:cc.Node,
     },
     name:"Avator",
 
@@ -22,8 +23,9 @@ cc.Class({
         }
 
         this.img_ready.active = data.state == 2 && globalData.gameMgr.roomState.state != 1;
-        this.lab_name.string = data.name;
+        this.lab_name.string = globalData.utils.subStringResult(data.name,7);
         this.lab_score.string = data.score + "分";
+        this.img_net_lost.active = data.connect_state == 0;
 
         if(flag == 'pc') {
 

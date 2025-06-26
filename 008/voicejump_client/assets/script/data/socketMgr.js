@@ -44,10 +44,11 @@ const socketMgr = function(){
         });
 
         _socket.on('PREPARE_SUCCESS',function(posId){
-
-            _gameMgr.playerData[posId].state = 2;
-            _gameMgr.playerData[posId].game_type = 'normal';
-            _eventMgr.fire('PREPARE_SUCCESS',posId);
+            if(_gameMgr.playerData[posId]){
+                _gameMgr.playerData[posId].state = 2;
+                _gameMgr.playerData[posId].game_type = 'normal';
+                _eventMgr.fire('PREPARE_SUCCESS',posId);
+            }
         });
 
         _socket.on("LOGIN_SUCCESS", function (data) {
@@ -58,22 +59,24 @@ const socketMgr = function(){
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
             _gameMgr.checkBeat();
-
+            
+            _eventMgr.fire("LOGIN_SUCCESS");
             if (_cbLogin) {
                 _cbLogin();
             }
         });
 
         _socket.on("SIT_CHANGE",function(data){
+
+            _gameMgr.playerData = JSON.parse(JSON.stringify(_gameMgr.playerData));
             //对手逃跑 重置游戏
             if(data.target == null){
                 _gameMgr.playerData[data.posId] = null;
-
                 _gameMgr.roomState.state = 0;
             }else{
                 _gameMgr.playerData[data.posId] = data.target;
             }
-            _eventMgr.fire("SIT_CHANGE",data)
+            _eventMgr.fire("SIT_CHANGE",data);
         })
 
         _socket.on("REFRESH_DATA",function(data){
@@ -84,6 +87,7 @@ const socketMgr = function(){
             _eventMgr.fire("BIRD_MOVE_SUCCESS",data)
         });
         _socket.on("GAIN_SCORE_SUCCESS",function(data){
+            console.log("GAIN_SCORE_SUCCESS",data,_gameMgr.playerData)
             _gameMgr.playerData[data.posId].gain_score = data.gain_score;
             _eventMgr.fire("GAIN_SCORE_SUCCESS",data)
         })
@@ -106,7 +110,7 @@ const socketMgr = function(){
             for (const posId in _gameMgr.playerData) {
                 _gameMgr.playerData[posId].game_type = 'normal';
             }
-            _gameMgr.roomState.gametime_remain = Date.parse(new Date()) / 1000 + 5 * 60;
+            _gameMgr.roomState.gametime_remain = parseInt(data.start_time) + 5 * 60;
             _eventMgr.fire("GAME_START",data);
         })
         _socket.on("SET_RECOVER_STATUS",function(data){
@@ -121,6 +125,14 @@ const socketMgr = function(){
                 }
             }
             _eventMgr.fire("GAME_OVER",data);
+        });
+
+        _socket.on("CONNECT_STATE",function(data){
+            if(_gameMgr.playerData[data.posId]){
+                _gameMgr.playerData[data.posId].connect_state = data.state;
+            }
+            _eventMgr.fire('CONNECT_STATE',data);
+            _eventMgr.fire('CONNECT_STATE1',data);
         });
     }
 

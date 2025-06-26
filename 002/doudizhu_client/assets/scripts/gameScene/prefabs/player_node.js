@@ -16,6 +16,7 @@ cc.Class({
         lab_score:cc.Label,
         lab_ratio:cc.Label,
         plane_ratio:cc.Node,
+        img_net_lost:cc.Node,
     },
 
     onLoad () {
@@ -322,7 +323,7 @@ cc.Class({
         // 准备状态
         this.player_ready.active = playerData.state === 2 && (roomState.state === 0 || roomState.state === 3);
 
-        this.nickname_label.string = playerData.name;
+        this.nickname_label.string = globalData.utils.subStringResult(playerData.name,7);;
         this.lab_score.string = playerData.score + '分';
         this.lab_ratio.string = playerData.ratio + '倍';
         if(this._avatarUrl != playerData.avatarUrl && playerData.avatarUrl != null && playerData.avatarUrl != '')
@@ -345,6 +346,7 @@ cc.Class({
         this.masterIcon.active = playerData.isDizhu;
         this.lab_pass.active = playerData.isPass;
         this.plane_ratio.active = this.flag == 'self';
+        this.img_net_lost.active = playerData.connect_state == 0;
 
         this.renderClock(roomState);
     },

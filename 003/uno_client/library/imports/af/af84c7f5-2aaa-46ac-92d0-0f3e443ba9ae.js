@@ -86,6 +86,8 @@ var socketMgr = function socketMgr() {
 
       _gameMgr.checkBeat();
 
+      _eventMgr.fire("LOGIN_SUCCESS");
+
       if (_cbLogin) {
         _cbLogin();
       }
@@ -204,9 +206,10 @@ var socketMgr = function socketMgr() {
       _eventMgr.fire('PLAY_CARD_SUCCESS', data);
 
       _gameMgr.getPlayerData(data.nextPosId).target_timer_value = Date.parse(new Date()) / 1000 + _gameMgr.roomState.timeout;
-      _gameMgr.playerData.turn = data.nextPosId;
+      _gameMgr.playerData.turn = data.nextPosId; // setTimeout(function(){
 
-      _eventMgr.fire('CHANGE_TURN');
+      _eventMgr.fire('CHANGE_TURN'); // },1000);
+
     });
 
     _socket.on('PLAY_PASS_SUCCESS', function (data) {
@@ -235,6 +238,12 @@ var socketMgr = function socketMgr() {
 
         _eventMgr.fire('CHANGE_TURN');
       }, 1000);
+    });
+
+    _socket.on("CONNECT_STATE", function (data) {
+      _gameMgr.getPlayerData(data.posId).connect_state = data.state;
+
+      _eventMgr.fire('CONNECT_STATE');
     });
   };
 

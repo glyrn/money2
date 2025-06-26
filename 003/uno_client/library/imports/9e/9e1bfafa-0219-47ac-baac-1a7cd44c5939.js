@@ -37,7 +37,8 @@ cc.Class({
   },
   render: function render(data, flag) {
     this.avator = this.node.getChildByName('avator').getComponent("Avator");
-    this.clock = this.node.getChildByName('clock');
+    this.clock = this.node.getChildByName('clock'); // this.panel_wait_choice = this.clock.getChildByName('panel_wait_choice').getComponent("PlaneColor");
+
     this.tips_index = 0;
 
     if (data && data.uid > 0) {
@@ -77,7 +78,7 @@ cc.Class({
             card = this._hand_cards[_i];
           } else {
             var node = cc.instantiate(this.card);
-            node.parent = this.node;
+            node.parent = this.node.getChildByName("card_container");
             card = node.getComponent("Card");
 
             this._hand_cards.push(card);
@@ -123,13 +124,14 @@ cc.Class({
 
         var isShowUno = data.cards.length == 1;
 
-        if (isShowUno) {
+        if (isShowUno && data.posId == _globalData["default"].gameMgr.playerData.turn) {
           this.anim_pos.play("anim_uno");
+          cc.playEffect("sound/uno", false, 1);
         }
       }
 
       if (data.posId == _globalData["default"].gameMgr.playerData.turn && _globalData["default"].gameMgr.roomState.state == 1 && data.posId != _globalData["default"].gameMgr.playerData.self.posId) {
-        this.clock.active = true;
+        this.clock.active = true; // this.panel_wait_choice.playAnim(true);
       } else {
         this.clock.active = false;
       }
@@ -140,6 +142,8 @@ cc.Class({
         this._hand_cards[_i2].node.active = false;
       }
     }
+  },
+  selectCardAnim: function selectCardAnim(color, cb) {// this.panel_wait_choice.selectCardAnim(color,cb);
   },
   selectTips: function selectTips(last_card, only_check) {
     // console.log("selectTips",only_check);

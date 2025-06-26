@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const os = require('os');
 const https = require('https');
+const fs = require('fs');
 //本地调试
 var isDebug = false;
 var ioParam = {path:'/fxq_socket.io'};
@@ -8,7 +9,11 @@ if(getCurrentIP().indexOf("192.168") != -1){
   ioParam = null;
   isDebug = true;
 }
-const yc_domain = 'www.fsyctech.com';
+const gameCfg = JSON.parse(fs.readFileSync('gameCfg.json', 'utf8'));
+
+const yc_domain = gameCfg['yc_domain'];//www.fsyctech.com';
+const game_port = gameCfg['game_port'];
+console.log("结算域名："+yc_domain)
 
 const express = require('express'),
     app = express(),
@@ -63,7 +68,7 @@ const proto = {
         ready_count:-1,
         play_count:0,
         base_score:100,
-        play_index:1,
+        play_index:0,
         cur_posId:0,
       }
       for (let j = 0; j < 4; j++) {
@@ -333,15 +338,22 @@ const proto = {
           }
           //重连恢复
           socket.emit("SET_RECOVER_STATUS",{isRecover:true});
-          console.log("断线重连：数量："+userObj.recover_disconnect_data.length);
+          console.log("断线重连：");
           for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
             var emitObj = userObj.recover_disconnect_data[k];
             socket.emit(emitObj.event,emitObj.data);
           }
           socket.emit("SET_RECOVER_STATUS",{isRecover:false});
+          //广播其他所有人 该玩家上线了
+          this.broadCastRoom("CONNECT_STATE",roomObj.deskId,{state:1,posId:userObj.posId},userObj.uid);
           return true;
         }
       }
+    }
+    //是观众
+    if(obj.ob_uid){
+      console.log("观众："+obj.uid+" 等待玩家:"+obj.ob_uid)
+      return true;
     }
     return false;
   },
@@ -411,24 +423,15 @@ const proto = {
               return;
             }
             var userObj = null;
-            var people_num = 0;
-            if(room.ready_count == -1){
-              room.play_mode = obj.play_mode;
-              room.ready_count = obj.ready_count;
-              room.play_count = obj.play_count;
-            }
-            //统计房间实际人数
-            if(room.ready_count > 0){
-              for (let i = 0; i < room.positions.length; i++) {
-                if(room.positions[i].state > 0){
-                  people_num++;
-                }
-              }
-            }
+          
+            room.play_mode = obj.play_mode;
+            room.ready_count = obj.ready_count;
+            room.play_count = obj.play_count;
+        
 
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];
-              if (people_num < room.ready_count && userObj.state == 0) {
+              if (userObj.uid == 0) {
                 userObj.uid = obj.uid;
                 userObj.state = 1;
                 userObj.name = obj.name;
@@ -447,7 +450,7 @@ const proto = {
 
               var playerData = {};
               for (let i = 0; i < room.positions.length; i++) {
-                if(room.positions[i].state > 0){
+                if(room.positions[i].uid > 0){
                   playerData[room.positions[i].posId] = {
                     uid: room.positions[i].uid,
                     state: room.positions[i].state,
@@ -503,6 +506,15 @@ const proto = {
           // for (let i = 0; i < 6; i++) {
           //   bomb_idxs[self.getRandomNumForRange(51)] = 1;
           // }
+          desk.play_index++;
+          if(desk.play_index > desk.play_count){
+            desk.play_index -= desk.play_count;
+          }
+          //重置成绩
+          if(desk.play_index == 1){
+            desk.score_list = [];
+          }
+
           self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:desk.cur_posId,bomb_idxs:bomb_idxs});
         }
       });
@@ -521,6 +533,10 @@ const proto = {
               delete self.clients[userObj.uid];
               userObj.socket = null;
               userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
+
+              //通知其他人 该玩家掉线了
+              self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);
+              return;
             }
           }
         }
@@ -546,7 +562,7 @@ const proto = {
         if(self.checkOver(desk.deskId,posId) && desk.state == 1){
           desk.state = 2; //游戏结束
           var score_list = {};
-          var _score_list = [];
+          var ycscore_list = [];
           for (let i = 0; i < desk.positions.length; i++) {
             if(desk.positions[i].state == 2){
               var score = 0;
@@ -558,16 +574,19 @@ const proto = {
               score_list[desk.positions[i].posId] = score;
               desk.positions[i].state = 1;
               desk.positions[i].finish_chess = {0:0,1:0,2:0,3:0};
-              _score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:posId == i?1:0});
+              ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:posId == i?1:0,avatorUrl:desk.positions[i].avatorUrl});
             }
           }
           self.broadCastRoom("GAME_OVER",desk.deskId,{winer:posId,score_list:score_list});
-          self.sendYcGameOver({
-            room_id:desk.name,
-            game_id:6,
-            play_index:desk.play_index,
-            score_list:_score_list,
-          });
+          desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+
+          if(desk.play_index == desk.play_count){
+            self.sendYcGameOver({
+              room_id:desk.name,
+              game_id:6,
+              score_list:desk.score_list
+            });
+          }
         }
       });
       socket.on('NEXT_PLAYER_DICE',function(){
@@ -576,8 +595,8 @@ const proto = {
       })
     });
 
-    http.listen(9006, function(){
-      console.log('listening on :9006');
+    http.listen(game_port, function(){
+      console.log('listening on :'+game_port);
     });
   }
 

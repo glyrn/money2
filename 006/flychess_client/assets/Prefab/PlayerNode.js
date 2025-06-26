@@ -23,6 +23,7 @@ cc.Class({
         map:cc.Node,
         posId:0,
         flag:cc.Node,
+        img_net_lost:cc.Node,
     },
     name:"PlayerNode",
 
@@ -317,7 +318,8 @@ cc.Class({
                         that.map.getComponent('Map').checkEat(that.posId,target_place.id);
                     }, that))
                 }
-                jumpOnNum(12)
+                jumpOnNum(12);
+                cc.playEffect("sound/jump",false,1);
 
                 is_special = true;
             }else if(target_place.type == 1) { //炸弹
@@ -330,8 +332,10 @@ cc.Class({
         }
 
         function moveOnNum(num){
-
+            
             function moveOnNumSimple(num){
+
+                cc.playEffect("sound/run",false,1);
 
                 if(that.chess_steps[idx] > 0 || (that.chess_status[idx] == 2)){
                     that.chess_steps[idx]++;
@@ -475,6 +479,8 @@ cc.Class({
             this.chess_list[chess_idx].runAction(seq)
             this.chess_list[chess_idx].runAction(act2)
         }
+
+        cc.playEffect("sound/eat",false,1);
     },
     getChessNowPlaceId(idx){
         var all_places = this.map.getComponent('Map').getPosPlaces(this.posId);
@@ -519,8 +525,9 @@ cc.Class({
         var data = globalData.gameMgr.playerData[this.posId];
         if(data) {
             this.img_ready.active = data.state == 2 && globalData.gameMgr.roomState.state != 1;
-            this.lab_name.string = data.name;
+            this.lab_name.string = globalData.utils.subStringResult(data.name,7);
             this.lab_score.string = data.score + "分";
+            this.img_net_lost.active = data.connect_state == 0;
 
             if (data.dice && data.dice > 0) {
                 this.dice.node.active = true;

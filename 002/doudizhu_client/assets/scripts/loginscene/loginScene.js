@@ -3,9 +3,9 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        lab_tips:cc.Label,
+        // lab_tips:cc.Label,
         // img_loading:cc.Node,
-        lab_debug:cc.Label,
+        // lab_debug:cc.Label,
         // prog_bar:cc.ProgressBar,
     },
 
@@ -14,13 +14,14 @@ cc.Class({
 
         globalData.socketMgr.initSocket()
 
-        this.lab_tips.node.active = false;
-
-        globalData.eventlister.on("SITDOWN_SUCCESS",function(){
-            // 进入游戏
-            cc.director.loadScene("gameScene");
-        });
+        // this.lab_tips.node.active = false;
         let that = this;
+        globalData.eventlister.on("SITDOWN_SUCCESS",function(){
+            clearTimeout(that._handler);
+            // 进入游戏
+            
+        });
+        
         globalData.eventlister.on('LOGIN_FAIL',function(msg){
             // that.img_loading.active = false;
             that.showTips(msg)
@@ -36,7 +37,7 @@ cc.Class({
 
 
         console.log("启动参数："+window.location.href);
-        this.lab_debug.string = "启动参数："+window.location.href;
+        // this.lab_debug.string = "启动参数："+window.location.href;
 
         var url = decodeURI(window.location.href);
         if(url.split('?').length > 1){
@@ -50,21 +51,37 @@ cc.Class({
             cc.args = field;
             cc.director.preloadScene("gameScene",this.onProgress.bind(this),function(){
                 if(defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn'){
-                    //请求登录
-                    globalData.socketMgr.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'],field['ob_uid'],field['room'],function(){
-                        globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
-                    })
+
+                    cc.director.loadScene("gameScene",function(){
+                        //请求登录
+                        globalData.socketMgr.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'],field['ob_uid'],field['room'],function(){
+                            clearTimeout(that._handler);
+                            globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
+                        });
+                    });
+                    
+                    that._handler = setTimeout(function(){
+                        that.start();
+                    },2000);
                 }else{
                     console.log("开始请求用户信息：")
                     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
                         console.log("用户信息：",data)
                         if (isOk) {
-                            //请求登录
-                            globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, field['score'],field['ob_uid'],field['room'], function () {
-                                globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
+
+                            cc.director.loadScene("gameScene",function(){
+                                //请求登录
+                                globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, field['score'],field['ob_uid'],field['room'], function () {
+                                    clearTimeout(that._handler);
+                                    globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
+                                });
                             });
+                            
+                            that._handler = setTimeout(function(){
+                                that.start();
+                            },2000);
                         }else{
-                            that.lab_debug.string += JSON.stringify(data);
+                            // that.lab_debug.string += JSON.stringify(data);
                         }
                     });
                 }
@@ -77,14 +94,14 @@ cc.Class({
     update(){
         // this.img_loading.angle = this.img_loading.angle + 20;
     },
-    showTips(msg){
-        console.log(msg);
-        this.lab_tips.node.active = true;
-        this.lab_tips.string = msg;
-        this.scheduleOnce(function () {
-            this.lab_tips.node.active = false;
-        }, 2);
+    // showTips(msg){
+    //     console.log(msg);
+    //     this.lab_tips.node.active = true;
+    //     this.lab_tips.string = msg;
+    //     this.scheduleOnce(function () {
+    //         this.lab_tips.node.active = false;
+    //     }, 2);
 
-        this.lab_debug.string += msg;
-    },
+    //     this.lab_debug.string += msg;
+    // },
 });

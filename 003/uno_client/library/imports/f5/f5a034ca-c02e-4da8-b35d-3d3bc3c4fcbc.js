@@ -13,7 +13,7 @@ cc._RF.push(module, 'f5a03TKwC5NqLNdPTvDxPy8', 'audioMgr');
  */
 cc.playEffect = function (url, _boolean, val) {
   cc.loader.loadRes(url, cc.AudioClip, function (err, clip) {
-    cc.audioEngine.play(clip, _boolean, val);
+    cc.audioEngine.playEffect(clip, _boolean);
   });
 },
 /**
@@ -26,7 +26,6 @@ cc.playEffect = function (url, _boolean, val) {
 cc.playMusic = function (url, _boolean2, val) {
   cc.loader.loadRes(url, cc.AudioClip, function (err, clip) {
     cc.audioEngine.playMusic(clip, _boolean2);
-    cc.audioEngine.setMusicVolume(val);
   });
 };
 

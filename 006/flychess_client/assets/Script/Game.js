@@ -153,7 +153,7 @@ cc.Class({
         }
 
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
-        this.lab_room.string = "版本:v0.0.4.1 房号:"+globalData.gameMgr.roomState.roomId+"  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "版本:1.0.1 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
 
         //发送退出游戏事件
         if(isQuit){
@@ -227,21 +227,26 @@ cc.Class({
         globalData.eventlister.on("MESSAGE",function(msg){
             that.onShowTips(msg)
         });
-    },
-    start(){
-
-        for (let i = 0; i < 4; i++) {
-            this.playerNodes[i].node.active = false;
-        }
-        for (const i in globalData.gameMgr.playerData) {
-            if(globalData.gameMgr.playerData[i]) {
-                this.playerNodes[globalData.gameMgr.playerData[i].posId].node.active = true;
-                this.playerNodes[globalData.gameMgr.playerData[i].posId].render();
+        globalData.eventlister.on("CONNECT_STATE",function(data){
+            that.playerNodes[data.posId].render();
+        });
+        globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            for (let i = 0; i < 4; i++) {
+                that.playerNodes[i].node.active = false;
             }
-        }
-        // this.btn_score.active = false;
-        this.render()
+            for (const i in globalData.gameMgr.playerData) {
+                if(globalData.gameMgr.playerData[i]) {
+                    that.playerNodes[globalData.gameMgr.playerData[i].posId].node.active = true;
+                    that.playerNodes[globalData.gameMgr.playerData[i].posId].render();
+                }
+            }
+            // this.btn_score.active = false;
+            cc.playMusic("sound/bg",true,1);
+
+            that.render();
+        })
     },
+
 
     showDiceNum(num,cbFunc) {
         console.log("showDiceNum")
