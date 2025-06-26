@@ -1,4 +1,4 @@
-FROM node:16.20.2
+FROM 10.0.0.11:8006/library/node:16.20.2
 
 LABEL authors="yckj"
 
