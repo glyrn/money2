@@ -12,6 +12,6 @@ ENV LC_ALL=C.UTF-8
 WORKDIR /sunday/lianjin_game
 
 ADD . /sunday/lianjin_game/
-
+EXPOSE 9001
 #
-ENTRYPOINT node index.js
+ENTRYPOINT ["npm", "start"]
