@@ -13,17 +13,17 @@ WORKDIR /sunday/lianjin_game/game-update
 
 ADD . /sunday/lianjin_game/game-update/
 
-RUN mkdir -p /sunday/lianjin_game/game-update/game-wzq
+RUN mkdir -p /sunday/lianjin_game/game-update/client/game-wzq
 
-RUN mkdir -p /sunday/lianjin_game/game-update/game-hlddz
+RUN mkdir -p /sunday/lianjin_game/game-update/client/game-hlddz
 
-RUN mkdir -p /sunday/lianjin_game/game-update/game-uno
+RUN mkdir -p /sunday/lianjin_game/game-update/client/game-uno
 
-RUN mkdir -p /sunday/lianjin_game/game-update/game-zgxq
+RUN mkdir -p /sunday/lianjin_game/game-update/client/game-zgxq
 
-RUN mkdir -p /sunday/lianjin_game/game-update/game-fxq
+RUN mkdir -p /sunday/lianjin_game/game-update/client/game-fxq
 
-RUN mkdir -p /sunday/lianjin_game/game-update/game-voicejump
+RUN mkdir -p /sunday/lianjin_game/game-update/client/game-voicejump
 
 RUN npm install --verbose
 
