@@ -13,6 +13,8 @@ WORKDIR /sunday/lianjin_game/game-update
 
 ADD . /sunday/lianjin_game/game-update/
 
+RUN mkdir -p /sunday/lianjin_game/game-update/upload
+
 RUN mkdir -p /sunday/lianjin_game/game-update/client/game-wzq
 
 RUN mkdir -p /sunday/lianjin_game/game-update/client/game-hlddz
