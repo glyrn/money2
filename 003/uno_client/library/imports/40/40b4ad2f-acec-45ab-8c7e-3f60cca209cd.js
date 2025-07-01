@@ -34,7 +34,7 @@ if (url.split('?').length > 1) {
   cc.args = field;
 
   if (cc.args['gamedomain']) {
-    defines.serverUrl = "https://" + cc.args['gamedomain'];
+    defines.serverUrl = cc.args['gamedomain'];
   }
 
   if (cc.args['ycdomain']) {
