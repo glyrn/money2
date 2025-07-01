@@ -23,19 +23,19 @@ app.post('/syncgame', upload.single('file'), (req, res) => {
     const zipFile = './upload/'+req.file.filename;
 
         //五子棋上传路径
-        const destFolder_001 = '/sunday/lianjin_game/game-update/game-wzq';
+        const destFolder_001 = '/sunday/lianjin_game/game-update/client/game-wzq';
         //斗地主上传路径
-        const destFolder_002 = '/sunday/lianjin_game/game-update/game-hlddz';
+        const destFolder_002 = '/sunday/lianjin_game/game-update/client/game-hlddz';
         // UNO上传路径
-        const destFolder_003 = '/sunday/lianjin_game/game-update/game-uno';
+        const destFolder_003 = '/sunday/lianjin_game/game-update/client/game-uno';
         // 中国象棋上传路径
-        const destFolder_005 = '/sunday/lianjin_game/game-update/game-zgxq';
+        const destFolder_005 = '/sunday/lianjin_game/game-update/client/game-zgxq';
         // 飞行棋上传路径
-        const destFolder_006 = '/sunday/lianjin_game/game-update/game-fxq';
+        const destFolder_006 = '/sunday/lianjin_game/game-update/client/game-fxq';
         // 大富翁上传路径
         const destFolder_007 = './games/monopoly';
         // 跳动小鸟上传路径
-        const destFolder_008 = '/sunday/lianjin_game/game-update/game-voicejump';
+        const destFolder_008 = '/sunday/lianjin_game/game-update/client/game-voicejump';
 
     const destFolder = './upload';
 
