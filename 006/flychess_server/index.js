@@ -482,42 +482,40 @@ const proto = {
         var isStartGame = false;
         var ready_count = 0;
         var desk = self.getDesk(socket);
-        if(desk){
-          for (let j = 0; j < desk.positions.length; j++) {
-            var userObj = desk.positions[j];
-            if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
-              desk.positions[j].state = 2;
-            }
-            if(desk.positions[j].state == 2){
-              ready_count++;
-            }
+        for (let j = 0; j < desk.positions.length; j++) {
+          var userObj = desk.positions[j];
+          if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
+            desk.positions[j].state = 2;
+          }
+          if(desk.positions[j].state == 2){
+            ready_count++;
+          }
+        }
+
+        if(desk.ready_count == ready_count){
+          desk.state = 1;//开始游戏
+          isStartGame = true;
+        }
+
+        self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),self.getPosId(socket));
+        if(isStartGame)
+        {
+          desk.cur_posId = self.getRandomNumForRange(ready_count-1);
+          var bomb_idxs = {};
+          //不要炸弹了
+          // for (let i = 0; i < 6; i++) {
+          //   bomb_idxs[self.getRandomNumForRange(51)] = 1;
+          // }
+          desk.play_index++;
+          if(desk.play_index > desk.play_count){
+            desk.play_index -= desk.play_count;
+          }
+          //重置成绩
+          if(desk.play_index == 1){
+            desk.score_list = [];
           }
 
-          if(desk.ready_count == ready_count){
-            desk.state = 1;//开始游戏
-            isStartGame = true;
-          }
-
-          self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),self.getPosId(socket));
-          if(isStartGame)
-          {
-            desk.cur_posId = self.getRandomNumForRange(ready_count-1);
-            var bomb_idxs = {};
-            //不要炸弹了
-            // for (let i = 0; i < 6; i++) {
-            //   bomb_idxs[self.getRandomNumForRange(51)] = 1;
-            // }
-            desk.play_index++;
-            if(desk.play_index > desk.play_count){
-              desk.play_index -= desk.play_count;
-            }
-            //重置成绩
-            if(desk.play_index == 1){
-              desk.score_list = [];
-            }
-
-            self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:desk.cur_posId,bomb_idxs:bomb_idxs});
-          }
+          self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:desk.cur_posId,bomb_idxs:bomb_idxs});
         }
       });
 
@@ -558,46 +556,42 @@ const proto = {
       });
       socket.on('FINISH_CHESS',function(data){
         var desk = self.getDesk(socket);
-        if(desk){
-          var posId = data.posId;
-          desk.positions[posId].finish_chess[data.idx] = 1;
+        var posId = data.posId;
+        desk.positions[posId].finish_chess[data.idx] = 1;
 
-          if(self.checkOver(desk.deskId,posId) && desk.state == 1){
-            desk.state = 2; //游戏结束
-            var score_list = {};
-            var ycscore_list = [];
-            for (let i = 0; i < desk.positions.length; i++) {
-              if(desk.positions[i].state == 2){
-                var score = 0;
-                for (const k in desk.positions[i].finish_chess) {
-                  if(desk.positions[i].finish_chess[k] == 1){
-                    score += 10;
-                  }
-                }
-                score_list[desk.positions[i].posId] = score;
-                desk.positions[i].state = 1;
-                desk.positions[i].finish_chess = {0:0,1:0,2:0,3:0};
-                ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:posId == i?1:0,avatorUrl:desk.positions[i].avatorUrl});
+        if(self.checkOver(desk.deskId,posId) && desk.state == 1){
+          desk.state = 2; //游戏结束
+          var score_list = {};
+          var ycscore_list = [];
+          for (let i = 0; i < desk.positions.length; i++) {
+            if(desk.positions[i].state == 2){
+              var score = 0;
+              for (const k in desk.positions[i].finish_chess) {
+                 if(desk.positions[i].finish_chess[k] == 1){
+                   score += 10;
+                 }
               }
+              score_list[desk.positions[i].posId] = score;
+              desk.positions[i].state = 1;
+              desk.positions[i].finish_chess = {0:0,1:0,2:0,3:0};
+              ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:posId == i?1:0,avatorUrl:desk.positions[i].avatorUrl});
             }
-            self.broadCastRoom("GAME_OVER",desk.deskId,{winer:posId,score_list:score_list});
-            desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+          }
+          self.broadCastRoom("GAME_OVER",desk.deskId,{winer:posId,score_list:score_list});
+          desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
 
-            if(desk.play_index == desk.play_count){
-              self.sendYcGameOver({
-                room_id:desk.name,
-                game_id:6,
-                score_list:desk.score_list
-              });
-            }
+          if(desk.play_index == desk.play_count){
+            self.sendYcGameOver({
+              room_id:desk.name,
+              game_id:6,
+              score_list:desk.score_list
+            });
           }
         }
       });
       socket.on('NEXT_PLAYER_DICE',function(){
         var desk = self.getDesk(socket);
-        if(desk){
-          self.makeNextPlayerDice(desk);
-        }
+        self.makeNextPlayerDice(desk);
       })
     });
 

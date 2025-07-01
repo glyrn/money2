@@ -200,10 +200,8 @@ cc.Class({
             sortItems.sort((a, b) => {
                 return b.value - a.value;
             });
-            if(sortItems[0]){
-                isDeadCameraFlow = sortItems[0].posId == this.posId;
-                console.log(sortItems[0].posId,this.posId,isDeadCameraFlow,globalData.gameMgr.posId);
-            }
+            isDeadCameraFlow = sortItems[0].posId == this.posId;
+            console.log(sortItems[0].posId,this.posId,isDeadCameraFlow,globalData.gameMgr.posId);
         }
 
         if(data.type == 1){
