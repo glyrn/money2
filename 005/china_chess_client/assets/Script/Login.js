@@ -56,11 +56,12 @@ cc.Class({
                             });
                         });
                     that._handler = setTimeout(function(){
+                        globalData.eventlister.removeAllLister()
                         that.start();
                     },2000);
                 } else {
                     console.log("用户信息")
-                    globalData.utils.post("https://www.fsyctech.com/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                    globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
                         console.log("用户信息",data)
                         if (isOk) {
                             cc.director.loadScene("Game",function(){
@@ -71,6 +72,7 @@ cc.Class({
                             });
                             
                             that._handler = setTimeout(function(){
+                                globalData.eventlister.removeAllLister()
                                 that.start();
                             },2000);
                         }else{
