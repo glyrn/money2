@@ -87,6 +87,15 @@ build-docker-all:
     - docker login ${HARBOR_DOCKER_REGISTRY} -u ${HARBOR_REGISTRY_USER} -p ${HARBOR_REGISTRY_PASSWORD}
     - docker push ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_voicejump:${CI_COMMIT_SHORT_SHA}
 
+    - cd   ../../
+    # 构建 更新游戏
+    - cd  /voicejump_server
+    - pwd
+    - docker build -t ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_update_game:${CI_COMMIT_SHORT_SHA} .
+    - docker info
+    - docker login ${HARBOR_DOCKER_REGISTRY} -u ${HARBOR_REGISTRY_USER} -p ${HARBOR_REGISTRY_PASSWORD}
+    - docker push ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_update_game:${CI_COMMIT_SHORT_SHA}
+
   after_script:
     - docker rmi ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_wzq:${CI_COMMIT_SHORT_SHA} || true
     - docker rmi ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_doudizhu:${CI_COMMIT_SHORT_SHA} || true
@@ -94,6 +103,7 @@ build-docker-all:
     - docker rmi ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_china_chess:${CI_COMMIT_SHORT_SHA} || true
     - docker rmi ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_flychess:${CI_COMMIT_SHORT_SHA} || true
     - docker rmi ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_voicejump:${CI_COMMIT_SHORT_SHA} || true
+    - docker rmi ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_update_game:${CI_COMMIT_SHORT_SHA} || true
   allow_failure: true
 
 
@@ -253,4 +263,32 @@ build-docker-voicejump:
     - docker push ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_voicejump:${CI_COMMIT_SHORT_SHA}
   after_script:
     - docker rmi ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_voicejump:${CI_COMMIT_SHORT_SHA} || true
+  allow_failure: true
+
+
+
+# 构建声音游戏
+build-docker-update_game:
+  stage: docker-build
+  when: manual
+  image: docker:28  # 使用官方 Docker 镜像
+  services:
+    - name: docker:dind  # 启用 Docker in Docker
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""  # 禁用TLS
+  script:
+    - echo "当前CI工作目录:${CI_PROJECT_DIR}"
+    - echo "列出项目根目录内容:"
+    - ls -la ${CI_PROJECT_DIR}
+
+    # 构建 声音 游戏
+    - cd  /lianjin_update_game
+    - pwd
+    - docker build -t ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_update_game:${CI_COMMIT_SHORT_SHA} .
+    - docker info
+    - docker login ${HARBOR_DOCKER_REGISTRY} -u ${HARBOR_REGISTRY_USER} -p ${HARBOR_REGISTRY_PASSWORD}
+    - docker push ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_update_game:${CI_COMMIT_SHORT_SHA}
+  after_script:
+    - docker rmi ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_update_game:${CI_COMMIT_SHORT_SHA} || true
   allow_failure: true
