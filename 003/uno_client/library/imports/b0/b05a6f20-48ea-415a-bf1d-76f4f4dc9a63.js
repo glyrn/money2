@@ -57,6 +57,8 @@ cc.Class({
             });
           });
           that._handler = setTimeout(function () {
+            _globalData["default"].eventlister.removeAllLister();
+
             that.start();
           }, 2000);
         } else {
@@ -73,6 +75,8 @@ cc.Class({
                 });
               });
               that._handler = setTimeout(function () {
+                _globalData["default"].eventlister.removeAllLister();
+
                 that.start();
               }, 2000);
             } else {// that.lab_debug.string += JSON.stringify(data);

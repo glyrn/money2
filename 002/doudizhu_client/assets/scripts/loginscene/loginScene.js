@@ -61,6 +61,7 @@ cc.Class({
                     });
                     
                     that._handler = setTimeout(function(){
+                        globalData.eventlister.removeAllLister()
                         that.start();
                     },2000);
                 }else{
@@ -78,6 +79,7 @@ cc.Class({
                             });
                             
                             that._handler = setTimeout(function(){
+                                globalData.eventlister.removeAllLister()
                                 that.start();
                             },2000);
                         }else{
