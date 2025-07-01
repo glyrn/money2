@@ -54,11 +54,11 @@ cc.Class({
                         globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
                         cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
                             clearTimeout(that._handler);
+                            
                         });
                     });
                     that._handler = setTimeout(function(){
-                        globalData.eventlister.removeAllLister()
-                        that.start();
+                            that.start();
                     },2000);
                 } else {
                     console.log("用户信息：")
@@ -69,11 +69,11 @@ cc.Class({
                                 globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
                                     cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
                                         clearTimeout(that._handler);
+                                        
                                     });
    
                             });
                             that._handler = setTimeout(function(){
-                                globalData.eventlister.removeAllLister()
                                 that.start();
                             },2000);
                         }else{

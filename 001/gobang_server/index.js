@@ -576,38 +576,36 @@ const proto = {
 
       socket.on("PREPARE",function(){
         var roomObj = self.getDesk(socket);
-        if(roomObj){
-          var isStartGame = false;
-          var ready_count = 0;
-          for (let j = 0; j < roomObj.positions.length; j++) {
-            var userObj = roomObj.positions[j];
-            if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
-              roomObj.positions[j].state = 2;
-            }
-            if(roomObj.positions[j].state == 2){
-              ready_count++;
-            }
+        var isStartGame = false;
+        var ready_count = 0;
+        for (let j = 0; j < roomObj.positions.length; j++) {
+          var userObj = roomObj.positions[j];
+          if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
+            roomObj.positions[j].state = 2;
           }
-          if(roomObj.play_mode == 0 && ready_count == 1){ //人机
-            roomObj.state = 1;//开始游戏
-            isStartGame = true;
-          }else if(roomObj.play_mode == 1 && ready_count == 2){ //人人
-            roomObj.state = 1;//开始游戏
-            isStartGame = true;
+          if(roomObj.positions[j].state == 2){
+            ready_count++;
           }
-          self.broadCastRoom("PREPARE_SUCCESS",roomObj.deskId,self.getUid(socket));
-          if(isStartGame)
-          {
-            roomObj.play_index++;
-            if(roomObj.play_index > roomObj.play_count){
-              roomObj.play_index -= roomObj.play_count;
-            }
-            //重置成绩
-            if(roomObj.play_index == 1){
-              roomObj.score_list = [];
-            }
-            self.broadCastRoom("GAME_START",self.getDeskId(socket),1);
+        }
+        if(roomObj.play_mode == 0 && ready_count == 1){ //人机
+          roomObj.state = 1;//开始游戏
+          isStartGame = true;
+        }else if(roomObj.play_mode == 1 && ready_count == 2){ //人人
+          roomObj.state = 1;//开始游戏
+          isStartGame = true;
+        }
+        self.broadCastRoom("PREPARE_SUCCESS",roomObj.deskId,self.getUid(socket));
+        if(isStartGame)
+        {
+          roomObj.play_index++;
+          if(roomObj.play_index > roomObj.play_count){
+            roomObj.play_index -= roomObj.play_count;
           }
+          //重置成绩
+          if(roomObj.play_index == 1){
+            roomObj.score_list = [];
+          }
+          self.broadCastRoom("GAME_START",self.getDeskId(socket),1);
         }
       });
 
@@ -643,35 +641,33 @@ const proto = {
       });
       socket.on('PLAY_CHESS', function(tag){
         var desk = self.getDesk(socket);
-        if(desk){
-          var posId = self.getPosId(socket);
-          var count_chess_state = 0;
-          for (let i = 0; i < desk.chequer.length; i++) {
-            if(desk.chequer[i].state != -1){
-              count_chess_state++;
+        var posId = self.getPosId(socket);
+        var count_chess_state = 0;
+        for (let i = 0; i < desk.chequer.length; i++) {
+          if(desk.chequer[i].state != -1){
+            count_chess_state++;
+          }
+        }
+        var isOk = false;
+        for (let i = 0; i <  desk.chequer.length; i++) {
+          if(desk.chequer[i].tag == tag && desk.chequer[i].state == -1){
+            if(posId == 0){
+              desk.chequer[i].state = 1; //1白色 0黑色
+            }else{
+              desk.chequer[i].state = 0; //1白色 0黑色
             }
+            desk.chequer[i].idx = count_chess_state;
+            var day = new Date().toLocaleDateString()
+            var time = new Date().toLocaleTimeString('chinese', { hour12: false })
+            desk.chequer[i].day_time = day + " "+time;
+            isOk = true;
           }
-          var isOk = false;
-          for (let i = 0; i <  desk.chequer.length; i++) {
-            if(desk.chequer[i].tag == tag && desk.chequer[i].state == -1){
-              if(posId == 0){
-                desk.chequer[i].state = 1; //1白色 0黑色
-              }else{
-                desk.chequer[i].state = 0; //1白色 0黑色
-              }
-              desk.chequer[i].idx = count_chess_state;
-              var day = new Date().toLocaleDateString()
-              var time = new Date().toLocaleTimeString('chinese', { hour12: false })
-              desk.chequer[i].day_time = day + " "+time;
-              isOk = true;
-            }
-          }
-          if(!isOk){
-            self.socketEmit(desk.positions[posId],'MESSAGE','该位置已有棋！');
-          }else{
-            self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{posId:posId,tag:tag});
-            self.checkOver(desk.deskId,tag,posId);
-          }
+        }
+        if(!isOk){
+          self.socketEmit(desk.positions[posId],'MESSAGE','该位置已有棋！');
+        }else{
+          self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{posId:posId,tag:tag});
+          self.checkOver(desk.deskId,tag,posId);
         }
       });
 

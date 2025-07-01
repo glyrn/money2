@@ -450,18 +450,16 @@ const proto = {
         if(isStartGame)
         {
           var room = self.getDesk(socket);
-          if(room){
-            room.turn = 0;
-            self.broadCastRoom("GAME_START",self.getDeskId(socket),room.turn);
+          room.turn = 0;
+          self.broadCastRoom("GAME_START",self.getDeskId(socket),room.turn);
 
-            room.play_index++;
-            if(room.play_index > room.play_count){
-              room.play_index -= room.play_count;
-            }
-            //重置成绩
-            if(room.play_index == 1){
-              room.score_list = [];
-            }
+          room.play_index++;
+          if(room.play_index > room.play_count){
+            room.play_index -= room.play_count;
+          }
+          //重置成绩
+          if(room.play_index == 1){
+            room.score_list = [];
           }
         }
       });
