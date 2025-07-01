@@ -89,7 +89,7 @@ build-docker-all:
 
     - cd   ../../
     # 构建 更新游戏
-    - cd  /voicejump_server
+    - cd  /game-update
     - pwd
     - docker build -t ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_update_game:${CI_COMMIT_SHORT_SHA} .
     - docker info
@@ -283,7 +283,7 @@ build-docker-update_game:
     - ls -la ${CI_PROJECT_DIR}
 
     # 构建 声音 游戏
-    - cd  /lianjin_update_game
+    - cd  /game-update
     - pwd
     - docker build -t ${HARBOR_DOCKER_REGISTRY}/${HARBOR_LIBRARY_LIANJIN_GAME_NAME}/lianjin_update_game:${CI_COMMIT_SHORT_SHA} .
     - docker info
