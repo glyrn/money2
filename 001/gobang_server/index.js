@@ -33,7 +33,7 @@ app.all('*', function(req, res, next) {
 
 function GameServer() {
 
-  this.desks = this.createDeskList(50);
+  this.desks = this.createDeskList(150);
   this.clients = {};
 
   this.onlineUser = {}
@@ -58,7 +58,7 @@ const proto = {
   },
 
   createDeskList:function(n) {
-    n = n || 50;
+    n = n || 150;
     const ret = [];
     for (let i = 1; i <= n; i++) {
       const desk = {
@@ -77,7 +77,7 @@ const proto = {
           desk.chequer.push({tag:y*15+x,state:-1,idx:-1}); //state -1 没棋子  1 白色棋  0黑色棋
         }
       }
-      for (let j = 0; j < 2; j++) {
+      for (let j = 0; j < 20; j++) {
         desk.positions.push({
           uid:0,
           posId: j,

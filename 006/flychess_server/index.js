@@ -32,7 +32,7 @@ app.all('*', function(req, res, next) {
 
 function GameServer() {
 
-  this.desks = this.createDeskList(50);
+  this.desks = this.createDeskList(150);
   this.clients = {};
 }
 function getCurrentIP() {
@@ -56,7 +56,7 @@ const proto = {
     return Math.round(Math.random() * num);
   },
   createDeskList:function(n) {
-    n = n || 50;
+    n = n || 150;
     const ret = [];
     for (let i = 1; i <= n; i++) {
       const desk = {
@@ -71,7 +71,7 @@ const proto = {
         play_index:0,
         cur_posId:0,
       }
-      for (let j = 0; j < 4; j++) {
+      for (let j = 0; j < 20; j++) {
         desk.positions.push({
           uid:0,
           posId: j,
