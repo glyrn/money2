@@ -60,7 +60,7 @@ cc.Class({
             _globalData["default"].eventlister.removeAllLister();
 
             that.start();
-          }, 2000);
+          }, 10000);
         } else {
           console.log("开始请求用户信息：");
 
@@ -78,7 +78,7 @@ cc.Class({
                 _globalData["default"].eventlister.removeAllLister();
 
                 that.start();
-              }, 2000);
+              }, 10000);
             } else {// that.lab_debug.string += JSON.stringify(data);
             }
           });

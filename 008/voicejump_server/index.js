@@ -549,23 +549,25 @@ const proto = {
 
       socket.on("FALL_OVER",function(data){
         const desk = self.getDesk(socket);
-        var posId = self.getPosId(socket);
-        desk.positions[posId].refreshData.game_type = 'fall';
-        self.broadCastRoom("FALL_OVER_SUCCESS",self.getDeskId(socket),{type:4,posId:posId,x:data.cur_x,y:data.cur_y});
+        if(desk){
+          var posId = self.getPosId(socket);
+          desk.positions[posId].refreshData.game_type = 'fall';
+          self.broadCastRoom("FALL_OVER_SUCCESS",self.getDeskId(socket),{type:4,posId:posId,x:data.cur_x,y:data.cur_y});
 
-        var fall_num = 0;
-        var player_num = 0;
-        for (let i = 0; i < desk.positions.length; i++) {
-          if(desk.positions[i].uid > 0){
-            if(desk.positions[i].refreshData.game_type == 'fall'){
-              fall_num ++ ;
+          var fall_num = 0;
+          var player_num = 0;
+          for (let i = 0; i < desk.positions.length; i++) {
+            if(desk.positions[i].uid > 0){
+              if(desk.positions[i].refreshData.game_type == 'fall'){
+                fall_num ++ ;
+              }
+              player_num ++;
             }
-            player_num ++;
           }
-        }
-        //全部掉落
-        if(fall_num == player_num){
-          self.gameOver(desk);
+          //全部掉落
+          if(fall_num == player_num){
+            self.gameOver(desk);
+          }
         }
       });
 

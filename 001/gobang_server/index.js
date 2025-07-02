@@ -507,6 +507,7 @@ const proto = {
           var room = self.getDeskByName(obj.room);
           if(room) {
             console.log(obj.name, '进入房间', room.name,room.deskId);
+            // console.log("房间情况：",room.positions);
 
             var flag = false;
             //检查是否换房间
