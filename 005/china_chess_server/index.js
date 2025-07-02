@@ -490,38 +490,44 @@ const proto = {
       });
       socket.on('PLAY_CHESS', function(data){
         var desk = self.getDesk(socket);
-        self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,data);
+        if(desk){
+          self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,data);
+        }
       });
 
       socket.on("RETRACK_CHESS_RSP",function(option){
 
         var room = self.getDesk(socket);
-        var uid = self.getUid(socket);
+        if(room){
+          var uid = self.getUid(socket);
 
-        var turn;
-        if(option == 1){ //同意悔棋
-          for (let i = 0; i < room.positions.length; i++) {
-            if (room.positions[i].state > 0 && room.positions[i].uid != uid) {
-              var room_target = room.positions[i];
-              turn = room_target.posId;
+          var turn;
+          if(option == 1){ //同意悔棋
+            for (let i = 0; i < room.positions.length; i++) {
+              if (room.positions[i].state > 0 && room.positions[i].uid != uid) {
+                var room_target = room.positions[i];
+                turn = room_target.posId;
+              }
             }
+            self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{turn:turn,agree:true});
+          }else{
+            self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{agree:false});
+            self.broadCastRoom("MESSAGE",room.deskId,"对方不同意悔棋~",uid);
           }
-          self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{turn:turn,agree:true});
-        }else{
-          self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{agree:false});
-          self.broadCastRoom("MESSAGE",room.deskId,"对方不同意悔棋~",uid);
         }
       })
       socket.on("RETRACK_CHESS",function(){
 
         var room = self.getDesk(socket);
-        var uid = self.getUid(socket);
-        if(room.play_mode == 1) { //人人对战
-          for (let i = 0; i < room.positions.length; i++) {
-            if (room.positions[i].state > 0 && room.positions[i].uid != uid) {
-              var room_target = room.positions[i];
-              if(room_target.socket){
-                self.socketEmit(room_target,'RETRACK_CHESS_REQ');
+        if(room){
+          var uid = self.getUid(socket);
+          if(room.play_mode == 1) { //人人对战
+            for (let i = 0; i < room.positions.length; i++) {
+              if (room.positions[i].state > 0 && room.positions[i].uid != uid) {
+                var room_target = room.positions[i];
+                if(room_target.socket){
+                  self.socketEmit(room_target,'RETRACK_CHESS_REQ');
+                }
               }
             }
           }
@@ -530,37 +536,38 @@ const proto = {
 
       socket.on('REQ_GAME_OVER',function(data){
         var room = self.getDesk(socket);
-        var score_list = [];
-        for (let i = 0; i < room.positions.length; i++) {
-          room.positions[i].state = 1;
-          var score = 0;
-          var is_win = 0;
-          //胜利得10分
-          if(data.winer == room.positions[i].posId){
-            score = 10;
-            is_win = 1;
-          }else{
-            score = 0;
-            is_win = 0;
+        if(room){
+          var score_list = [];
+          for (let i = 0; i < room.positions.length; i++) {
+            room.positions[i].state = 1;
+            var score = 0;
+            var is_win = 0;
+            //胜利得10分
+            if(data.winer == room.positions[i].posId){
+              score = 10;
+              is_win = 1;
+            }else{
+              score = 0;
+              is_win = 0;
+            }
+            score_list.push({
+              uid:room.positions[i].uid,
+              name:room.positions[i].name,
+              avatorUrl:room.positions[i].avatorUrl,
+              score:score,
+              is_win:is_win
+            })
           }
-          score_list.push({
-            uid:room.positions[i].uid,
-            name:room.positions[i].name,
-            avatorUrl:room.positions[i].avatorUrl,
-            score:score,
-            is_win:is_win
-          })
-        }
-
-        room.score_list.push({play_index:room.play_index,score_list:score_list})
-        
-        if(room.play_index == room.play_count){
-          //发送给云村数据
-          this.sendYcGameOver({
-            room_id:room.name,
-            game_id:5,
-            score_list:room.score_list
-          });
+          room.score_list.push({play_index:room.play_index,score_list:score_list})
+          
+          if(room.play_index == room.play_count){
+            //发送给云村数据
+            this.sendYcGameOver({
+              room_id:room.name,
+              game_id:5,
+              score_list:room.score_list
+            });
+          }
         }
       })
 
