@@ -31,7 +31,7 @@ app.all('*', function(req, res, next) {
 
 const Game = require('./game.js');
 function createDeskList(n) {
-  n = n || 50;
+  n = n || 150;
   const ret = [];
   for (let i = 1; i <= n; i++) {
     const desk = {
@@ -44,7 +44,7 @@ function createDeskList(n) {
       base_score:100,
       play_index:1
     }
-    for (let j = 0; j < 3; j++) {
+    for (let j = 0; j < 20; j++) {
       desk.positions.push({
         uid:0,
         posId: j,
@@ -79,7 +79,7 @@ function time() {
 function GameServer(port) {
   this.clients = [];
   this.port = port;
-  this.desks = createDeskList(20);
+  this.desks = createDeskList(150);
   this.gameDatas = {};
 }
 const proto = {
