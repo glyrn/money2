@@ -600,7 +600,7 @@ const proto = {
     });
 
     http.listen(game_port, function(){
-      console.log('listening on :'+game_port);
+      console.log('listening on 0702 :'+game_port);
     });
   }
 }
