@@ -478,7 +478,7 @@ const proto = {
             socket.emit(emitObj.event,emitObj.data);
           }
           //广播其他所有人 该玩家上线了
-          this.broadCastRoom("CONNECT_STATE",roomObj.deskId,{state:1,posId:userObj.posId},userObj.uid);
+          this.broadCastRoom("CONNECT_STATE",roomObj.deskId,{state:1,posId:userObj.posId},socket);
           return true;
         }
       }
@@ -950,7 +950,7 @@ const proto = {
                 }
               }
               //通知其他人 该玩家掉线了
-              self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);
+              self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},socket);
               return;
             }
           }
