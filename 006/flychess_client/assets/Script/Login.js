@@ -46,10 +46,11 @@ cc.Class({
                         });
                     });
                         
-                    // that._handler = setTimeout(function(){
-                    //     globalData.eventlister.removeAllLister()
-                    //     that.start();
-                    // },10000);
+                    that._handler = setTimeout(function(){
+                        globalData.eventlister.removeAllLister()
+                        that.onLoad()
+                        that.start();
+                    },5000);
                 }else{
                     console.log("用户信息")
                     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
@@ -63,10 +64,11 @@ cc.Class({
                                 });
                             });
                             
-                            // that._handler = setTimeout(function(){
-                            //     globalData.eventlister.removeAllLister()
-                            //     that.start();
-                            // },10000);
+                            that._handler = setTimeout(function(){
+                                globalData.eventlister.removeAllLister()
+                                that.onLoad()
+                                that.start();
+                            },5000);
                         }
                     });
                 }

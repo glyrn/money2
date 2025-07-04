@@ -55,10 +55,13 @@ cc.Class({
             _globalData["default"].socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
               clearTimeout(that._handler);
             });
-          }); // that._handler = setTimeout(function(){
-          //     globalData.eventlister.removeAllLister()
-          //     that.start();
-          // },10000);
+          });
+          that._handler = setTimeout(function () {
+            _globalData["default"].eventlister.removeAllLister();
+
+            that.onLoad();
+            that.start();
+          }, 5000);
         } else {
           console.log("开始请求用户信息：");
 
@@ -71,12 +74,15 @@ cc.Class({
                 _globalData["default"].socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
                   clearTimeout(that._handler);
                 });
-              }); // that._handler = setTimeout(function(){
-              //     globalData.eventlister.removeAllLister()
-              //     that.start();
-              // },10000);
+              });
+              that._handler = setTimeout(function () {
+                _globalData["default"].eventlister.removeAllLister();
+
+                that.onLoad();
+                that.start();
+              }, 5000);
             } else {// that.lab_debug.string += JSON.stringify(data);
-              }
+            }
           });
         }
       });

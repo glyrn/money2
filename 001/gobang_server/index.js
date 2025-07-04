@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const os = require('os');
 const https = require('https');
 const fs = require('fs');
+const _ = require('lodash');
 //本地调试
 var ioParam = {path:'/wzq_socket.io'};
 var isDebug = false;
@@ -165,9 +166,11 @@ const proto = {
   },
   socketEmit:function(userObj,event,data){
     var saveData = data;
-    if(data instanceof Object){//深复制data
-      saveData = JSON.parse(JSON.stringify(data));
-    }
+    // if(data instanceof Object){//深复制data
+    //   saveData = JSON.parse(JSON.stringify(data));
+    // }
+    saveData = _.cloneDeep(data);
+
     for (const ob_uid in userObj.ob_socket_map) {
       userObj.ob_socket_map[ob_uid].emit(event,saveData);
     }
