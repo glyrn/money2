@@ -70,7 +70,7 @@ const proto = {
         base_score:100,
         play_index:0,
       }
-      for (let j = 0; j < 20; j++) {
+      for (let j = 0; j < 4; j++) {
         desk.positions.push({
           uid:0,
           posId: j,
