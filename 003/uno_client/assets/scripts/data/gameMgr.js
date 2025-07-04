@@ -72,15 +72,14 @@ const gameMgr = function(){
             target_timer_value:0,
         }
     };
-    that.beatCount = function(){
-        that.lossBeatNums++;
-        if(that.lossBeatNums >= 3){
-            _eventMgr.fire('MESSAGE','游戏已断线！');
-        }
-        setTimeout(that.beatCount,5000);
-    }
     that.checkBeat = function(){
-        setTimeout(that.beatCount,5000);
+        if(that._checkBeatId) clearInterval(that._checkBeatId);
+        that._checkBeatId = setInterval(() => {
+            that.lossBeatNums++;
+            if(that.lossBeatNums >= 3){
+                _eventMgr.fire('MESSAGE','游戏已断线！');
+            }
+        }, 5000);
     }
 
     that.updateHouseStatus = function (deskId, posId, state) {

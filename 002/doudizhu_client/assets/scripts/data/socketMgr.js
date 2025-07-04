@@ -17,9 +17,11 @@ const socketMgr = function(){
     },
     that.initSocket = function(){
         var opts = {
-            'reconnection':false,
+            'reconnection': true,
+            'reconnectionDelay': 1000,
+            'maxReconnectionAttempts': 10,
             'force new connection': true,
-            'transports':['websocket', 'polling'],
+            'transports': ['websocket', 'polling'],
         }
         var protocol = ''
         if(defines.isDebug){
@@ -35,6 +37,15 @@ const socketMgr = function(){
             _socket.emit('pong', {beat: 1});
 
             _gameMgr.lossBeatNums--;
+        });
+        _socket.on('connect', () => {
+            console.log('Connected to the server!');
+        });
+        _socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+        });
+        _socket.on('connect_timeout', (timeout) => {
+            console.error('Connection timeout:', timeout);
         });
         _socket.on("MESSAGE",function(data){
             _eventMgr.fire('MESSAGE',data.msg);
@@ -373,6 +384,7 @@ const socketMgr = function(){
         _socket.emit('PLAY_CARD', []);
     }
     that.prepare = function(){
+        console.log("发送PREPARE")
         if(that.checkIsObserve()) return;
         _socket.emit('PREPARE');
     }

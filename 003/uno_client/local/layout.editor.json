@@ -5,10 +5,10 @@
       "main": true,
       "url": "app://editor/index.html",
       "windowType": "dockable",
-      "x": 0,
-      "y": 0,
-      "width": 1440,
-      "height": 912,
+      "x": -8,
+      "y": -8,
+      "width": 1456,
+      "height": 928,
       "layout": {
         "children": [
           {
@@ -99,7 +99,8 @@
         "timeline",
         "inspector"
       ]
-    }
+    },
+    "window-1751531061328": {}
   },
   "panels": {
     "sprite-editor": {
