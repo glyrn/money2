@@ -235,7 +235,7 @@ const proto = {
     }
     desk.state = 0;
     this.broadCastRoom("GAME_OVER",desk.deskId,score_list);
-
+    if(!desk.score_list) desk.score_list = [];
     desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
     if(desk.play_index == desk.play_count){
       this.sendYcGameOver({

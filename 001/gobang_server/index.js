@@ -276,6 +276,7 @@ const proto = {
       });
       desk.positions[i].state = 1;
     }
+    if(!desk.score_list) desk.score_list = [];
     desk.score_list.push({play_index:desk.play_index,score_list:score_list})
     for (let i = 0; i < desk.chequer.length; i++) {
       desk.chequer[i].state = -1;

@@ -50,6 +50,7 @@ const utils = function(){
      * 
      */
     that.subStringResult = function(str, len){
+        if(!str) return "";
         var newLength = 0; 
         var newStr = ""; 
         var chineseRegex = /[^\x00-\xff]/g; 

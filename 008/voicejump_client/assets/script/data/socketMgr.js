@@ -32,6 +32,15 @@ const socketMgr = function(){
         }
         console.log(protocol+defines.serverUrl)
         _socket = window.io.connect(protocol+defines.serverUrl, opts);
+        _socket.on('connect', () => {
+            console.log('Connected to the server!');
+        });
+        _socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+        });
+        _socket.on('connect_timeout', (timeout) => {
+            console.error('Connection timeout:', timeout);
+        });
         _socket.on('ping', function (data) {
             //心跳
             _socket.emit('pong', {beat: 1});
@@ -52,6 +61,8 @@ const socketMgr = function(){
         });
 
         _socket.on("LOGIN_SUCCESS", function (data) {
+            console.log("socket:LOGIN_SUCCESS")
+            _gameMgr.playerData = JSON.parse(JSON.stringify(data.playerData));
             _gameMgr.roomState.roomId = data.roomId;
             _gameMgr.playerData = data.playerData;
             _gameMgr.play_mode = data.play_mode;
@@ -71,7 +82,8 @@ const socketMgr = function(){
             _gameMgr.playerData = JSON.parse(JSON.stringify(_gameMgr.playerData));
             //对手逃跑 重置游戏
             if(data.target == null){
-                _gameMgr.playerData[data.posId] = null;
+                //debug
+                // _gameMgr.playerData[data.posId] = null;
                 _gameMgr.roomState.state = 0;
             }else{
                 _gameMgr.playerData[data.posId] = data.target;
@@ -137,6 +149,7 @@ const socketMgr = function(){
     }
 
     that.login = function(uid,name,avatorUrl,score,room,ready_count,play_count,ob_uid,cbFunc){
+        console.log("发送登录请求")
         _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,ready_count:ready_count,play_count:play_count,ob_uid:ob_uid});
         _cbLogin = cbFunc;
         //是否旁观

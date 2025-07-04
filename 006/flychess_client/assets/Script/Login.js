@@ -37,7 +37,7 @@ cc.Class({
             var that = this;
             cc.args = field;
             cc.director.preloadScene("Game",this.onProgress.bind(this),function() {
-                if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn') {
+                if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
                     cc.director.loadScene("Game",function(){
                         globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
                         cc.args['play_mode'],cc.args['ready_count'], cc.args['play_count'],  cc.args['ob_uid'], function () {
@@ -46,10 +46,10 @@ cc.Class({
                         });
                     });
                         
-                    that._handler = setTimeout(function(){
-                        globalData.eventlister.removeAllLister()
-                        that.start();
-                    },10000);
+                    // that._handler = setTimeout(function(){
+                    //     globalData.eventlister.removeAllLister()
+                    //     that.start();
+                    // },10000);
                 }else{
                     console.log("用户信息")
                     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
@@ -63,10 +63,10 @@ cc.Class({
                                 });
                             });
                             
-                            that._handler = setTimeout(function(){
-                                globalData.eventlister.removeAllLister()
-                                that.start();
-                            },10000);
+                            // that._handler = setTimeout(function(){
+                            //     globalData.eventlister.removeAllLister()
+                            //     that.start();
+                            // },10000);
                         }
                     });
                 }

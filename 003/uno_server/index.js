@@ -743,6 +743,7 @@ const proto = {
                 return b.score - a.score;
               });
               self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list});
+              if(!desk.score_list) desk.score_list = [];
               desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list})
               
               if(score_total >= desk.specific_score){

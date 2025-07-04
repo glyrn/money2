@@ -860,6 +860,7 @@ const proto = {
               score_list.sort((a, b) => {
                 return b.score - a.score;
               });
+              if(!desk.score_list) desk.score_list = [];
               desk.score_list.push({play_index:desk.play_index,score_list:score_list})
               if(desk.play_index == desk.play_count){
                 this.sendYcGameOver({

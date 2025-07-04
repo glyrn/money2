@@ -14,27 +14,23 @@ cc.Class({
 
         globalData.socketMgr.initSocket()
 
-        // this.lab_tips.node.active = false;
-        let that = this;
-        globalData.eventlister.on("SITDOWN_SUCCESS",function(){
-            clearTimeout(that._handler);
-            // 进入游戏
-            
-        });
-        
-        globalData.eventlister.on('LOGIN_FAIL',function(msg){
-            // that.img_loading.active = false;
-            that.showTips(msg)
-        })
-        globalData.eventlister.on('SITDOWN_ERROR',function(msg){
-            // that.img_loading.active = false;
-            that.showTips(msg)
-        })
-
     },
     
     start () {
 
+         // this.lab_tips.node.active = false;
+        let that = this;
+        globalData.eventlister.on("SITDOWN_SUCCESS",function(){
+            clearTimeout(that._handler);
+            // 进入游戏
+        });
+        
+        globalData.eventlister.on('LOGIN_FAIL',function(msg){
+            console.log(msg)
+        })
+        globalData.eventlister.on('SITDOWN_ERROR',function(msg){
+            console.log(msg)
+        })
 
         console.log("启动参数："+window.location.href);
         // this.lab_debug.string = "启动参数："+window.location.href;
@@ -47,23 +43,26 @@ cc.Class({
                 var obj = params[paramsKey].split('=');
                 field[obj[0]] = obj[1];
             }
-            var that = this;
+
             cc.args = field;
             cc.director.preloadScene("gameScene",this.onProgress.bind(this),function(){
-                if(defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn'){
+                if(defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce){
 
                     cc.director.loadScene("gameScene",function(){
                         //请求登录
+                        console.log("发送登录请求")
                         globalData.socketMgr.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'],field['ob_uid'],field['room'],function(){
                             clearTimeout(that._handler);
+                            console.log("发送坐下请求")
                             globalData.socketMgr.sitdown(field['room'], parseInt(field['score']), parseInt(field['base_score']), field['play_count'], field['play_mode']);
                         });
                     });
                     
-                    that._handler = setTimeout(function(){
-                        globalData.eventlister.removeAllLister()
-                        that.start();
-                    },10000);
+                    // that._handler = setTimeout(function(){
+                    //     globalData.eventlister.removeAllLister()
+                    //     that.onLoad();
+                    //     that.start();
+                    // },2000);
                 }else{
                     console.log("开始请求用户信息：")
                     globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
@@ -78,10 +77,11 @@ cc.Class({
                                 });
                             });
                             
-                            that._handler = setTimeout(function(){
-                                globalData.eventlister.removeAllLister()
-                                that.start();
-                            },10000);
+                            // that._handler = setTimeout(function(){
+                            //     globalData.eventlister.removeAllLister()
+                            //     that.onLoad();
+                            //     that.start();
+                            // },2000);
                         }else{
                             // that.lab_debug.string += JSON.stringify(data);
                         }
