@@ -16,7 +16,9 @@ const socketMgr = function(){
     },
     that.initSocket = function() {
         var opts = {
-            'reconnection': false,
+            'reconnection': true,
+            'reconnectionDelay': 1000,
+            'maxReconnectionAttempts': 10,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
         }
@@ -31,6 +33,15 @@ const socketMgr = function(){
         }
         console.log(protocol+defines.serverUrl)
         _socket = window.io.connect(protocol+defines.serverUrl, opts);
+        _socket.on('connect', () => {
+            console.log('Connected to the server!');
+        });
+        _socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+        });
+        _socket.on('connect_timeout', (timeout) => {
+            console.error('Connection timeout:', timeout);
+        });
         _socket.on('ping', function (data) {
             //心跳
             _socket.emit('pong', {beat: 1});
@@ -125,6 +136,7 @@ const socketMgr = function(){
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
+        console.log("发送登录请求")
         _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count,ob_uid:ob_uid});
         _cbLogin = cbFunc;
         //是否旁观

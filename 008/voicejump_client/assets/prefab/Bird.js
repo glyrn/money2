@@ -128,17 +128,18 @@ cc.Class({
     },
     refresh(){
         //第一名要戴眼镜
-
-        var maxPosId = 0;
-        var maxScore = globalData.gameMgr.playerData[maxPosId].gain_score;
-        // var maxCur_x = 0;
-        for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
-            var data = globalData.gameMgr.playerData[i];
-            if(data && data.gain_score >= maxScore) {
-                maxPosId = data.posId;
-                maxScore = data.gain_score;
+        var sortItems = [];
+        for (let i = 0; i < cc.args['ready_count']; i++) {
+            var playerData = globalData.gameMgr.playerData[i];
+            if(playerData){
+                sortItems.push({posId:playerData.posId,type:playerData.game_type,value:playerData.gain_score});
             }
         }
+        sortItems.sort((a, b) => {
+            return b.value - a.value;
+        });
+        var maxPosId = sortItems[0] ? sortItems[0].posId : 0;
+        
         this.img_glass.active = maxPosId === this.posId;
 
         // //已经挂了 镜头跟随
@@ -191,7 +192,7 @@ cc.Class({
         var isDeadCameraFlow = false;
         if(globalData.gameMgr.playerData[globalData.gameMgr.posId].game_type == 'fall') {
             var sortItems = [];
-            for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
+            for (let i = 0; i < cc.args['ready_count']; i++) {
                 var playerData = globalData.gameMgr.playerData[i];
                 if(playerData && playerData.game_type != 'fall'){
                     sortItems.push({posId:playerData.posId,type:playerData.game_type,value:playerData.gain_score});

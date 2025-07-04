@@ -31,7 +31,9 @@ var socketMgr = function socketMgr() {
 
   that.initSocket = function () {
     var opts = {
-      'reconnection': false,
+      'reconnection': true,
+      'reconnectionDelay': 1000,
+      'maxReconnectionAttempts': 10,
       'force new connection': true,
       'transports': ['websocket', 'polling']
     };
@@ -46,6 +48,18 @@ var socketMgr = function socketMgr() {
 
     console.log(protocol + defines.serverUrl);
     _socket = window.io.connect(protocol + defines.serverUrl, opts);
+
+    _socket.on('connect', function () {
+      console.log('Connected to the server!');
+    });
+
+    _socket.on('connect_error', function (error) {
+      console.error('Connection error:', error);
+    });
+
+    _socket.on('connect_timeout', function (timeout) {
+      console.error('Connection timeout:', timeout);
+    });
 
     _socket.on('ping', function (data) {
       //心跳

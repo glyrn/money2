@@ -50,17 +50,15 @@ cc.Class({
       var that = this;
       cc.args = field;
       cc.director.preloadScene("Game", this.onProgress.bind(this), function () {
-        if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn') {
+        if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
           cc.director.loadScene("Game", function () {
             _globalData["default"].socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
               clearTimeout(that._handler);
             });
-          });
-          that._handler = setTimeout(function () {
-            _globalData["default"].eventlister.removeAllLister();
-
-            that.start();
-          }, 10000);
+          }); // that._handler = setTimeout(function(){
+          //     globalData.eventlister.removeAllLister()
+          //     that.start();
+          // },10000);
         } else {
           console.log("开始请求用户信息：");
 
@@ -73,14 +71,12 @@ cc.Class({
                 _globalData["default"].socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
                   clearTimeout(that._handler);
                 });
-              });
-              that._handler = setTimeout(function () {
-                _globalData["default"].eventlister.removeAllLister();
-
-                that.start();
-              }, 10000);
+              }); // that._handler = setTimeout(function(){
+              //     globalData.eventlister.removeAllLister()
+              //     that.start();
+              // },10000);
             } else {// that.lab_debug.string += JSON.stringify(data);
-            }
+              }
           });
         }
       });

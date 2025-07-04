@@ -558,6 +558,7 @@ const proto = {
               is_win:is_win
             })
           }
+          if(!room.score_list) room.score_list = [];
           room.score_list.push({play_index:room.play_index,score_list:score_list})
           
           if(room.play_index == room.play_count){
