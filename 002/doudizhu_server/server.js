@@ -44,7 +44,7 @@ function createDeskList(n) {
       base_score:100,
       play_index:1
     }
-    for (let j = 0; j < 20; j++) {
+    for (let j = 0; j < 3; j++) {
       desk.positions.push({
         uid:0,
         posId: j,

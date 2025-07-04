@@ -77,6 +77,7 @@ const socketMgr = function(){
             _gameMgr.play_count = data.play_count;
             _gameMgr.checkBeat();
             
+            console.log(data)
             _eventMgr.fire("LOGIN_SUCCESS");
             if (_cbLogin) {
                 _cbLogin();
