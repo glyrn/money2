@@ -118,7 +118,7 @@ const proto = {
         cur_posId:0,
         out_cards:[],
       }
-      for (let j = 0; j < 20; j++) {
+      for (let j = 0; j < 4; j++) {
         desk.positions.push({
           uid:0,
           posId: j,
