@@ -346,10 +346,6 @@ const socketMgr = function(){
             _eventMgr.fire('CALL_SCORE_SUCCESS')
         });
 
-        // _socket.on("connection",function(){
-        //     console.log("connect server success!!")
-        // });
-
         _socket.on("CONNECT_STATE",function(data){
             var direct = _gameMgr.getDirectionByPosId(data.posId);
             if(direct){

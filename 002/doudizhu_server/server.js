@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const os = require('os');
 const https = require('https');
 const fs = require('fs');
+const _ = require('lodash');
 //本地调试
 var ioParam = {path:'/hlddz_socket.io'};
 var isDebug = false;
@@ -84,6 +85,7 @@ function GameServer(port) {
 }
 const proto = {
   broadCastHouse(event, data, socket) {
+    console.log("broadCastHouse")
     socket = socket === undefined ? null : socket;
     this.clients.forEach((client, index) => {
       if (client.deskId === '') {
@@ -104,16 +106,12 @@ const proto = {
     if(client) {
       var userObj = this.getPositionByClient(client);
       if (userObj) {
-        var saveData = data;
-        if (data instanceof Object) {//深复制data
-          saveData = JSON.parse(JSON.stringify(data));
-        }
         for (const ob_uid in userObj.ob_socket_map) {
-          userObj.ob_socket_map[ob_uid].emit(event, saveData);
+          userObj.ob_socket_map[ob_uid].emit(event, _.cloneDeep(data));
         }
-        userObj.recover_disconnect_data.push({event: event, data: saveData});
+        userObj.recover_disconnect_data.push({event: event, data: _.cloneDeep(data)});
       }
-      client.socket.emit(event, data);
+      client.socket.emit(event, _.cloneDeep(data));
     }
   },
   getDesk(deskId) {
@@ -540,16 +538,18 @@ const proto = {
     const self = this;
 
     function setHeartbeat(){
-      setTimeout(setHeartbeat,5000);
+      // setTimeout(setHeartbeat,5000);
       io.sockets.emit('ping',{beat:1});
     }
-    setTimeout(setHeartbeat,5000);
+    // setTimeout(setHeartbeat,5000);
+    setInterval(setHeartbeat,5000)
 
     function checkDisconnect(){
-      setTimeout(checkDisconnect, 5000);
+    //   setTimeout(checkDisconnect, 5000);
       self.checkDisconnect()
     }
-    setTimeout(checkDisconnect, 5000);
+    // setTimeout(checkDisconnect, 5000);
+    setInterval(checkDisconnect,5000)
 
     io.on('connection', socket => {
       socket.on('pong', function(data){
@@ -566,7 +566,7 @@ const proto = {
           //推送恢复数据
           return;
         }
-
+        console.log("Login")
         if (this.checkUserName(data.uid)) {
 
           this.addClient(socket, {uid:data.uid, name:data.name,avatarUrl:data.avatarUrl,score:data.score});
@@ -579,6 +579,7 @@ const proto = {
       });
 
       socket.on('SITDOWN', data => {
+        console.log("SITDOWN")
         const client = this.getClient(socket);
         if (!client) {
           return;
