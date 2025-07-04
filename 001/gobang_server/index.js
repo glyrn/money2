@@ -538,10 +538,10 @@ const proto = {
 
               self.clients[obj.uid] = socket;
 
-              if(room.play_mode == -1){
+              // if(room.play_mode == -1){
                 room.play_mode = obj.play_mode;
                 room.play_count = obj.play_count;
-              }
+              // }
 
               var target = null;
               if(room.play_mode == 1){ //人人对战
