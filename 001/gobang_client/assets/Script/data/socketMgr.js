@@ -1,3 +1,4 @@
+import globalData from "./globalData.js"
 if(window.io == undefined){
     console.error("找不到socket.io.js库文件");
 }
@@ -19,7 +20,7 @@ const socketMgr = function(){
         var opts = {
             'reconnection': true,
             'reconnectionDelay': 1000,
-            'maxReconnectionAttempts': 10,
+            'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
         }
@@ -35,6 +36,32 @@ const socketMgr = function(){
         _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('connect', () => {
             console.log('Connected to the server!');
+
+            cc.director.preloadScene("Game",function(){},function() {
+                
+                globalData.eventlister.removeAllLister()
+                if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
+                    cc.director.loadScene("Game",function(){
+                        globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+                        cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
+                            // clearTimeout(that._handler);
+                        });
+                    });
+                } else {
+                    console.log("用户信息：")
+                    globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign", {sign: cc.args['sign']}, function (isOk, data) {
+                        if (isOk) {
+                            console.log("用户信息：",data);
+                            cc.director.loadScene("Game",function(){
+                                globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
+                                    cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
+                                        // clearTimeout(that._handler);
+                                    });
+                            });
+                        }
+                    });
+                }
+            });
         });
         _socket.on('connect_error', (error) => {
             console.error('Connection error:', error);

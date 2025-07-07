@@ -25,13 +25,13 @@ if(url.split('?').length > 1){
     }
     cc.args = field;
     //正式环境调试
-    // defines.isDebug = false;
-    // // defines.isForce = true;
-    // cc.args['gamedomain'] = "www.fsyctech.com";
-    // // cc.args['ycdomain'] = "www.fsyctech.com";
-    // // cc.args['gamedomain'] = "www.woojey.com";
+    defines.isDebug = true;
+    defines.isForce = true;
+    // // cc.args['gamedomain'] = "www.fsyctech.com";
+    // // // cc.args['ycdomain'] = "www.fsyctech.com";
+    // cc.args['gamedomain'] = "www.woojey.com";
     // cc.args['ycdomain'] = "www.woojey.com";
-    console.log("testcbbaaab")
+    console.log("test888")
 
     if(cc.args['gamedomain']){
         defines.serverUrl = cc.args['gamedomain'];

@@ -48,44 +48,34 @@ cc.Class({
       }
 
       var that = this;
-      cc.args = field;
-      cc.director.preloadScene("Game", this.onProgress.bind(this), function () {
-        if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
-          cc.director.loadScene("Game", function () {
-            _globalData["default"].socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
-              clearTimeout(that._handler);
-            });
-          });
-          that._handler = setTimeout(function () {
-            _globalData["default"].eventlister.removeAllLister();
-
-            that.onLoad();
-            that.start();
-          }, 5000);
-        } else {
-          console.log("开始请求用户信息：");
-
-          _globalData["default"].utils.post(defines.yc_domain + "/client/alchemy/callback/checkSign", {
-            sign: cc.args['sign']
-          }, function (isOk, data) {
-            if (isOk) {
-              console.log("用户信息：", data);
-              cc.director.loadScene("Game", function () {
-                _globalData["default"].socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
-                  clearTimeout(that._handler);
-                });
-              });
-              that._handler = setTimeout(function () {
-                _globalData["default"].eventlister.removeAllLister();
-
-                that.onLoad();
-                that.start();
-              }, 5000);
-            } else {// that.lab_debug.string += JSON.stringify(data);
-            }
-          });
-        }
-      });
+      cc.args = field; // cc.director.preloadScene("Game",this.onProgress.bind(this),function() {
+      //     if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
+      //         cc.director.loadScene("Game",function(){
+      //             globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+      //             cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
+      //                 clearTimeout(that._handler);
+      //             });
+      //         });
+      //         that._handler = setTimeout(function(){
+      //             globalData.eventlister.removeAllLister()
+      //             that.onLoad()
+      //             that.start();
+      //         },5000);
+      //     } else {
+      //         console.log("开始请求用户信息：")
+      //         globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+      //             if (isOk) {
+      //                 console.log("用户信息：",data)
+      //                 cc.director.loadScene("Game",function(){
+      //                     globalData.socketMgr.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
+      //                     cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
+      //                         clearTimeout(that._handler);
+      //                     });
+      //                 });
+      //             }
+      //         });
+      //     }
+      // });
     }
   }
 });

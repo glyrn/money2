@@ -119,22 +119,6 @@ const proto = {
       }
     }
   },
-  _deepClone:function(source) {
-      if (typeof source !== 'object' || source == null) {
-        return source;
-      }
-      const target = Array.isArray(source) ? [] : {};
-      for (const key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          if (typeof source[key] === 'object' && source[key] !== null) {
-            target[key] = this._deepClone(source[key]);
-          } else {
-            target[key] = source[key];
-          }
-        }
-      }
-      return target;
-  },
   socketEmit:function(userObj,event,data){
     var saveData = data;
         // if(data instanceof Object){//深复制data
@@ -416,6 +400,9 @@ const proto = {
 
     const self = this;
     io.on('connection', function(socket){
+
+      socket.on('pong', function(data){
+      });
 
       console.log('有客户端接入，时间： %s', self.time());
 

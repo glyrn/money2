@@ -18,7 +18,7 @@ const socketMgr = function(){
         var opts = {
             'reconnection': true,
             'reconnectionDelay': 1000,
-            'maxReconnectionAttempts': 10,
+            'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
         }
@@ -33,6 +33,38 @@ const socketMgr = function(){
         _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('connect', () => {
             console.log('Connected to the server!');
+
+            globalData.eventlister.removeAllLister()
+            cc.director.preloadScene("Game",function(){},function() {
+
+                if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
+                    cc.director.loadScene("Game",function(){
+                        globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+                        cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
+                            // clearTimeout(that._handler);
+                            
+                        });
+                    });
+                    
+                } else {
+                    console.log("开始请求用户信息：")
+                    globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                        if (isOk) {
+                            console.log("用户信息：",data)
+                            cc.director.loadScene("Game",function(){
+                                globalData.socketMgr.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
+                                cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {
+                                    // clearTimeout(that._handler);
+                                    
+                                });
+                            });
+
+                        }
+                    });
+                }
+            });
+
+           
         });
         _socket.on('connect_error', (error) => {
             console.error('Connection error:', error);
@@ -207,8 +239,10 @@ const socketMgr = function(){
         });
 
         _socket.on("CONNECT_STATE",function(data){
-            _gameMgr.getPlayerData(data.posId).connect_state = data.state;
-            _eventMgr.fire('CONNECT_STATE');
+            if(_gameMgr.getPlayerData(data.posId)){
+                _gameMgr.getPlayerData(data.posId).connect_state = data.state;
+                _eventMgr.fire('CONNECT_STATE');
+            }
         });
     }
 
