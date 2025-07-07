@@ -565,7 +565,7 @@ const proto = {
           
           if(room.play_index == room.play_count){
             //发送给云村数据
-            this.sendYcGameOver({
+            self.sendYcGameOver({
               room_id:room.name,
               game_id:5,
               score_list:room.score_list
