@@ -267,6 +267,37 @@ const proto = {
       }
     }
   },
+  clearRoomByUid:function(){
+    var deskId = 0;
+    for (let i = 0; i < this.desks.length; i++) {
+      var roomObj = this.desks[i];
+      for (let j = 0; j < roomObj.positions.length; j++) {
+        var userObj = roomObj.positions[j];
+        if(userObj.uid == uid){
+          deskId = roomObj.deskId;
+        }
+      }
+    }
+    var desk = this.getDeskById(deskId);
+    if(desk){
+      for (let k = 0; k < desk.positions.length; k++) {
+        var userObj = desk.positions[k];
+        userObj.uid = 0;
+        userObj.state = 0;
+        userObj.name = '';
+        userObj.avatorUrl = '';
+        userObj.score = 0;
+        userObj.disconnectTime = null;
+        //清空断线重连信息
+        userObj.recover_disconnect_data = [];
+      }
+      desk.name = '';
+      desk.state = 0;
+      desk.play_index = 0;
+      desk.ready_count = -1;
+    }
+    return deskId;
+  },
   checkRecover:function(socket,obj){
 
     for (let i = 0; i < this.desks.length; i++) {
@@ -592,7 +623,7 @@ gameServer.init()
 
 app.get('/zgxq/quit',function(req,res){
   const uid = req.query.uid;
+  var deskId = gameServer.clearRoomByUid(uid);
+  console.log("清空房间:"+deskId);
   res.send({state:0,msg:"退出成功",uid:uid});
-  //踢出房间
-  gameServer.checkChangeRoom(-1,uid);
 })
