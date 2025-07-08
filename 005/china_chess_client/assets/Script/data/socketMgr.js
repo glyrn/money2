@@ -107,6 +107,7 @@ const socketMgr = function(){
             _eventMgr.fire('PREPARE_SUCCESS', data.msg);
         });
         _socket.on("LOGIN_SUCCESS", function (data) {
+            console.log("LOGIN_SUCCESS:"+JSON.stringify(data));
             _gameMgr.roomState.roomId = data.roomId;
             _gameMgr.playerData.target = data.target;
             _gameMgr.playerData.self = data.self;
