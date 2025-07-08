@@ -310,6 +310,35 @@ const proto = {
       }
     }
   },
+  clearRoomByUid:function(uid){
+    var deskId = 0;
+    for (let i = 0; i < this.desks.length; i++) {
+      var roomObj = this.desks[i];
+      for (let j = 0; j < roomObj.positions.length; j++) {
+        var userObj = roomObj.positions[j];
+        if(userObj.uid == uid){
+          deskId = roomObj.deskId;
+        }
+      }
+    }
+    var desk = this.getDeskById(deskId);
+    for (let k = 0; k < desk.positions.length; k++) {
+      var userObj = desk.positions[k];
+      userObj.uid = 0;
+      userObj.state = 0;
+      userObj.name = '';
+      userObj.avatorUrl = '';
+      userObj.score = 0;
+      userObj.disconnectTime = null;
+      //清空断线重连信息
+      userObj.recover_disconnect_data = [];
+    }
+    desk.name = '';
+    desk.state = 0;
+    desk.play_index = 0;
+    desk.ready_count = -1;
+    return deskId;
+  },
   checkRecover:function(socket,obj){
 
     for (let i = 0; i < this.desks.length; i++) {
@@ -417,9 +446,11 @@ const proto = {
             self.checkChangeRoom(room.deskId,obj.uid);
             //检测是否重连玩家
             if(self.checkRecover(socket,obj)){
+              console.log(obj.name+"使用重连数据进入房间");
               //推送恢复数据
               return;
             }
+            console.log(obj.name+"尝试进入房间");
             var userObj = null;
 
             room.ready_count = obj.ready_count;
@@ -527,7 +558,7 @@ const proto = {
         const desk = self.getDesk(socket);
         if(desk){
           var posId = self.getPosId(socket);
-          if(desk.positions[posId].refreshData.game_type != "fall"){
+          if(desk.positions[posId] && desk.positions[posId].refreshData && desk.positions[posId].refreshData.game_type != "fall"){
             self.broadCastRoom("BIRD_MOVE_SUCCESS",self.getDeskId(socket),{type:data.type,posId:posId,cur_x:data.cur_x,cur_y:data.cur_y});
           }
         }
@@ -603,9 +634,7 @@ gameServer.init()
 
 app.get('/voice/quit',function(req,res){
   const uid = req.query.uid;
+  var deskId = gameServer.clearRoomByUid(uid);
+  console.log("清空房间:"+deskId);
   res.send({state:0,msg:"退出成功",uid:uid});
-  //踢出房间
-  
-  gameServer.checkChangeRoom(-1,uid);
-  console.log(uid+" 主动退出房间");
 })
