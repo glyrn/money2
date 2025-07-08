@@ -33,7 +33,7 @@ var socketMgr = function socketMgr() {
     var opts = {
       'reconnection': true,
       'reconnectionDelay': 1000,
-      'maxReconnectionAttempts': 10,
+      'maxReconnectionAttempts': 100,
       'force new connection': true,
       'transports': ['websocket', 'polling']
     };
@@ -51,6 +51,31 @@ var socketMgr = function socketMgr() {
 
     _socket.on('connect', function () {
       console.log('Connected to the server!');
+
+      _globalData["default"].eventlister.removeAllLister();
+
+      cc.director.preloadScene("Game", function () {}, function () {
+        if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
+          cc.director.loadScene("Game", function () {
+            _globalData["default"].socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {// clearTimeout(that._handler);
+            });
+          });
+        } else {
+          console.log("开始请求用户信息：");
+
+          _globalData["default"].utils.post(defines.yc_domain + "/client/alchemy/callback/checkSign", {
+            sign: cc.args['sign']
+          }, function (isOk, data) {
+            if (isOk) {
+              console.log("用户信息：", data);
+              cc.director.loadScene("Game", function () {
+                _globalData["default"].socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {// clearTimeout(that._handler);
+                });
+              });
+            }
+          });
+        }
+      });
     });
 
     _socket.on('connect_error', function (error) {
@@ -255,9 +280,11 @@ var socketMgr = function socketMgr() {
     });
 
     _socket.on("CONNECT_STATE", function (data) {
-      _gameMgr.getPlayerData(data.posId).connect_state = data.state;
+      if (_gameMgr.getPlayerData(data.posId)) {
+        _gameMgr.getPlayerData(data.posId).connect_state = data.state;
 
-      _eventMgr.fire('CONNECT_STATE');
+        _eventMgr.fire('CONNECT_STATE');
+      }
     });
   };
 

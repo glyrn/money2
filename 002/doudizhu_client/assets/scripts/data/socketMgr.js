@@ -7,6 +7,7 @@ const socketMgr = function(){
     var _socket = null
     var _gameMgr = null;
     var _eventMgr = null;
+    var _util = null;
     var _cbLogin;
 
     that.setGameMgr = function(gameMgr){
@@ -15,11 +16,14 @@ const socketMgr = function(){
     that.setEventlister = function(eventMgr){
         _eventMgr = eventMgr
     },
+    that.setUtil = function(util){
+        _util = util;
+    }
     that.initSocket = function(){
         var opts = {
             'reconnection': true,
             'reconnectionDelay': 1000,
-            'maxReconnectionAttempts': 10,
+            'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
         }
@@ -40,6 +44,36 @@ const socketMgr = function(){
         });
         _socket.on('connect', () => {
             console.log('Connected to the server!');
+            
+            _eventMgr.removeAllLister()
+            cc.director.preloadScene("gameScene",function(){},function(){
+                if(defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce){
+
+                    cc.director.loadScene("gameScene",function(){
+                        //请求登录
+                        console.log("发送登录请求")
+                        that.login(cc.args['uid'],cc.args['name'],cc.args['avatorUrl'],cc.args['score'],cc.args['ob_uid'],cc.args['room'],
+                            parseInt(cc.args['score']), parseInt(cc.args['base_score']), cc.args['play_count'], cc.args['play_mode'],function(){
+                        });
+                    });
+                }else{
+                    console.log("开始请求用户信息：")
+                    _util.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                        console.log("用户信息：",data)
+                        if (isOk) {
+
+                            cc.director.loadScene("gameScene",function(){
+                                //请求登录
+                                that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'],cc.args['ob_uid'],cc.args['room'],
+                                    parseInt(cc.args['score']), parseInt(cc.args['base_score']), cc.args['play_count'], cc.args['play_mode'], function () {
+
+                                });
+                            });
+                        
+                        }
+                    });
+                }
+            });
         });
         _socket.on('connect_error', (error) => {
             console.error('Connection error:', error);
@@ -53,8 +87,24 @@ const socketMgr = function(){
         });
 
         _socket.on("LOGIN_SUCCESS",function(data) {
-            _gameMgr.desks = data;
+            // _gameMgr.desks = data;
             // _gameMgr.where = 1;
+
+            _gameMgr.posId = data.posId;
+            _gameMgr.deskId = data.roomId;
+            // _gameMgr.deskName = data.room;
+            _gameMgr.isLaizi = data.islaizi;
+            _gameMgr.base_score = data.base_score;
+            _gameMgr.play_count = data.play_count;
+            _gameMgr.play_index = data.play_index;
+
+            data.posInfos.forEach(function (pos) {
+                _gameMgr.updatePosStatus(pos.posId, pos.state, pos.name,pos.avatorUrl,pos.score,pos.uid);
+            });
+            _gameMgr.posState.self.isDizhu = false;
+            // _eventMgr.fire('SITDOWN_SUCCESS');
+            // _eventMgr.fire("POS_STATUS_CHANGE");
+            _eventMgr.fire('LOGIN_SUCCESS');
 
             _gameMgr.checkBeat();
 
@@ -63,33 +113,28 @@ const socketMgr = function(){
             }
         });
 
-        _socket.on("LOGIN_FAIL",function(data){
-            console.log("LOGIN_FAIL:"+data.msg);
-            _eventMgr.fire('LOGIN_FAIL',data.msg)
-        });
+        // _socket.on("SITDOWN_SUCCESS",function(data) {
+        //     // _gameMgr.where = 2;
+        //     _gameMgr.posId = data.posId;
+        //     _gameMgr.deskId = data.deskId;
+        //     _gameMgr.deskName = data.deskName;
+        //     _gameMgr.isLaizi = data.islaizi;
+        //     _gameMgr.base_score = data.base_score;
+        //     _gameMgr.play_count = data.play_count;
+        //     _gameMgr.play_index = data.play_index;
 
-        _socket.on("SITDOWN_SUCCESS",function(data) {
-            // _gameMgr.where = 2;
-            _gameMgr.posId = data.posId;
-            _gameMgr.deskId = data.deskId;
-            _gameMgr.deskName = data.deskName;
-            _gameMgr.isLaizi = data.islaizi;
-            _gameMgr.base_score = data.base_score;
-            _gameMgr.play_count = data.play_count;
-            _gameMgr.play_index = data.play_index;
+        //     data.posInfos.forEach(function (pos) {
+        //         _gameMgr.updatePosStatus(pos.posId, pos.state, pos.name,pos.avatorUrl,pos.score,pos.uid);
+        //     });
+        //     _gameMgr.posState.self.isDizhu = false;
+        //     _eventMgr.fire('SITDOWN_SUCCESS');
+        //     _eventMgr.fire("POS_STATUS_CHANGE")
+        // });
 
-            data.posInfos.forEach(function (pos) {
-                _gameMgr.updatePosStatus(pos.posId, pos.state, pos.name,pos.avatarUrl,pos.score,pos.uid);
-            });
-            _gameMgr.posState.self.isDizhu = false;
-            _eventMgr.fire('SITDOWN_SUCCESS');
-            _eventMgr.fire("POS_STATUS_CHANGE")
-        });
-
-        _socket.on('SITDOWN_ERROR', function (data) {
-            console.log(data.msg);
-            _eventMgr.fire('SITDOWN_ERROR',data.msg);
-        });
+        // _socket.on('SITDOWN_ERROR', function (data) {
+        //     console.log(data.msg);
+        //     _eventMgr.fire('SITDOWN_ERROR',data.msg);
+        // });
 
         _socket.on('UNSITDOWN_SUCCESS', function (data) {
             _gameMgr.resetRoomStatus();
@@ -355,21 +400,15 @@ const socketMgr = function(){
         });
     }
 
-    that.login = function(uid,name,avatarUrl,score,ob_uid,room,cbFunc){
-        _socket.emit('LOGIN', {uid:uid,name:name,avatarUrl:avatarUrl,score:score,ob_uid:ob_uid,deskName:room});
+    that.login = function(uid,name,avatorUrl,score,ob_uid,room,score,base_score,play_count,play_mode,cbFunc){
+        _socket.emit('LOGIN', {uid:uid,name:name,avatorUrl:avatorUrl,score:score,ob_uid:ob_uid,room:room,
+            score:score,base_score:base_score,play_count:play_count,play_mode:play_mode});
         _cbLogin = cbFunc;
 
         //是否旁观
         _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;
     }
 
-    that.sitdown = function(deskName,score,base_score,play_count,play_mode){
-        if(_gameMgr.is_ob){
-            return;
-        }
-        _socket.emit('SITDOWN', { deskName: deskName, base_score:base_score,play_count:play_count,play_mode:play_mode });
-        
-    }
 
     that.call_score = function(score){
         if(that.checkIsObserve()) return;

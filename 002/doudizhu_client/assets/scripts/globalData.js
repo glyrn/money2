@@ -14,6 +14,7 @@ globalData.socketMgr = socketMgr()
 globalData.validateMgr = validateMgr()
 globalData.socketMgr.setGameMgr(globalData.gameMgr)
 globalData.socketMgr.setEventlister(globalData.eventlister)
+globalData.socketMgr.setUtil(globalData.utils);
 globalData.gameMgr.setSocketMgr(globalData.socketMgr)
 globalData.gameMgr.setEventlister(globalData.eventlister)
 globalData.gameMgr.setValidateMgr(globalData.validateMgr)

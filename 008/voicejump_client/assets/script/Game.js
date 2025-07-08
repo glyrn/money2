@@ -44,7 +44,7 @@ cc.Class({
         manager.enabled = true;
         manager.enabledDebugDraw = false;
 
-        cc.playMusic("sound/bg",true,1);
+        // cc.playMusic("sound/bg",true,1);
 
         for (let i = 0; i < 4; i++) {
             that['avator'+i].node.active = false;

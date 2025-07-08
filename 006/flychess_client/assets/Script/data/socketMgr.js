@@ -1,3 +1,4 @@
+import globalData from "./globalData";
 
 const socketMgr = function(){
     var that = {}
@@ -5,6 +6,7 @@ const socketMgr = function(){
     var _socket = null
     var _gameMgr = null;
     var _eventMgr = null;
+    var _utils = null;
     var _cbLogin;
 
     that.setGameMgr = function(gameMgr){
@@ -13,11 +15,14 @@ const socketMgr = function(){
     that.setEventlister = function(eventMgr){
         _eventMgr = eventMgr
     },
+    that.setUtils = function(utils){
+        _utils = utils
+    },
     that.initSocket = function() {
         var opts = {
             'reconnection': true,
             'reconnectionDelay': 1000,
-            'maxReconnectionAttempts': 10,
+            'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
         }
@@ -33,6 +38,37 @@ const socketMgr = function(){
         _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('connect', () => {
             console.log('Connected to the server!');
+
+            _eventMgr.removeAllLister()
+            cc.director.preloadScene("Game",function(){},function() {
+                if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
+                    cc.director.loadScene("Game",function(){
+                        that.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+                        cc.args['play_mode'],cc.args['ready_count'], cc.args['play_count'],  cc.args['ob_uid'], function () {
+                            // clearTimeout(that._handler);
+                           
+                        });
+                    });
+                        
+                }else{
+                    console.log("用户信息")
+                    _utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                        if (isOk) {
+                            console.log("用户信息",data)
+                            cc.director.loadScene("Game",function(){
+                                that.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
+                                cc.args['play_mode'],cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
+                                    // clearTimeout(that._handler);
+                                   
+                                });
+                            });
+                            
+                        
+                        }
+                    });
+                }
+            });
+
         });
         _socket.on('connect_error', (error) => {
             console.error('Connection error:', error);
@@ -77,9 +113,9 @@ const socketMgr = function(){
         });
 
         _socket.on("MAKE_DICE_NUM_SUCCESS",function(data){
-
-            console.log(data)
-            _gameMgr.playerData[data.posId].dice = data.num;
+            if( _gameMgr.playerData[data.posId]){
+                _gameMgr.playerData[data.posId].dice = data.num;
+            }
             _eventMgr.fire('MAKE_DICE_NUM_SUCCESS', data);
         })
         _socket.on('PLAY_MOVE_STEP_SUCCESS',function(data){
@@ -127,7 +163,9 @@ const socketMgr = function(){
         });
 
         _socket.on("CONNECT_STATE",function(data){
-            _gameMgr.playerData[data.posId].connect_state = data.state;
+            if(_gameMgr.playerData[data.posId]){
+                _gameMgr.playerData[data.posId].connect_state = data.state;
+            }
             _eventMgr.fire('CONNECT_STATE',data);
         });
     }
