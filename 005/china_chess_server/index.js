@@ -351,6 +351,9 @@ const proto = {
     const self = this;
     io.on('connection', function(socket){
 
+      socket.on('pong', function(data){
+      });
+      
       console.log('有客户端接入，时间： %s', self.time());
 
       socket.on('LOGIN',function(obj){

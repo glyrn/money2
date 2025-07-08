@@ -18,7 +18,7 @@ const socketMgr = function(){
         var opts = {
             'reconnection': true,
             'reconnectionDelay': 1000,
-            'maxReconnectionAttempts': 10,
+            'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
         }
@@ -35,6 +35,44 @@ const socketMgr = function(){
         _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('connect', () => {
             console.log('Connected to the server!');
+
+             globalData.eventlister.removeAllLister();
+             cc.director.preloadScene("Game",function(){},function() {
+                if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
+                    cc.director.loadScene("Game",function(){
+                        globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+                            cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
+                                // clearTimeout(that._handler);
+                            });
+                        });
+                    // that._handler = setTimeout(function(){
+                    //     globalData.eventlister.removeAllLister()
+                    //     that.onLoad();
+                    //     that.start();
+                    // },2000);
+                } else {
+                    console.log("用户信息")
+                    globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                        console.log("用户信息",data)
+                        if (isOk) {
+                            cc.director.loadScene("Game",function(){
+                                globalData.socketMgr.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
+                                    cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'],function () {
+                                        // clearTimeout(that._handler);
+                                    });
+                            });
+                            
+                            // that._handler = setTimeout(function(){
+                            //     globalData.eventlister.removeAllLister()
+                            //     that.onLoad();
+                            //     that.start();
+                            // },2000);
+                        }else{
+                            // that.lab_debug.string += JSON.stringify(data);
+                        }
+                    });
+                }
+            });
         });
         _socket.on('connect_error', (error) => {
             console.error('Connection error:', error);
@@ -83,7 +121,10 @@ const socketMgr = function(){
         });
 
         _socket.on("SIT_CHANGE",function(data){
-            _gameMgr.playerData.target = data.target;
+
+            if(data.target){
+                _gameMgr.playerData.target = data.target;
+            }
             //对手逃跑 重置游戏
             if(data.target == null){
                 _gameMgr.roomState.state = 0;
@@ -103,7 +144,9 @@ const socketMgr = function(){
             }else{
                 //重置 悔棋次数
                 _gameMgr.playerData.self.retrack_num = 5;
-                _gameMgr.playerData.target.retrack_num = 5;
+                if(_gameMgr.playerData.target){
+                    _gameMgr.playerData.target.retrack_num = 5;
+                }   
                 _gameMgr.playerData.turn = data;
             }
 
@@ -128,7 +171,7 @@ const socketMgr = function(){
          _socket.on("CONNECT_STATE",function(data){
             if(data.posId == _gameMgr.playerData.self.posId){
                 _gameMgr.playerData.self.connect_state = data.state;
-            }else if (data.posId == _gameMgr.playerData.target.posId){
+            }else if (_gameMgr.playerData.target && (data.posId == _gameMgr.playerData.target.posId)){
                 _gameMgr.playerData.target.connect_state = data.state;
             }
             _eventMgr.fire('CONNECT_STATE',data);
