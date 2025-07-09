@@ -34,6 +34,7 @@ cc.Class({
         _jump1CDTime:700,
         _jump2CDTime:1000,
         prog_voice:cc.Node,
+        editBox:cc.EditBox,
     },
     onLoad() {
 
@@ -44,6 +45,7 @@ cc.Class({
         manager.enabled = true;
         manager.enabledDebugDraw = false;
 
+        this.editBox.string = window.location.href;
         // cc.playMusic("sound/bg",true,1);
 
         for (let i = 0; i < 4; i++) {
@@ -158,7 +160,7 @@ cc.Class({
         this.panel_drop.active = false;
     },
     renderRoomTitle(){
-        this.lab_room.string = "版本:1.1.0 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "版本:1.1.2 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
         if(distance > 0){
             const minutes = Math.floor((distance % ( 60 * 60)) /  60);

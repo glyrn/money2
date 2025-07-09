@@ -35,8 +35,8 @@ function GameServer() {
 
   this.desks = this.createDeskList(150);
   this.clients = {};
+  this.gameDatas = {};
 
-  this.onlineUser = {}
 }
 function getCurrentIP() {
   const interfaces = os.networkInterfaces();
@@ -169,16 +169,6 @@ const proto = {
     }
     return findDesk;
   },
-  checkTimeGameOver:function(){
-    for (let _i = 0, len = this.desks.length; _i < len; _i++) {
-      var desk = this.desks[_i];
-      if(desk.state == 1) {
-        if (Date.parse(new Date()) / 1000 - desk.start_time > 5 * 60){ //最多玩5分钟
-          this.gameOver(desk);
-        }
-      }
-    }
-  },
   broadCastRoom:function(event,roomId,data,except){
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
@@ -233,6 +223,19 @@ const proto = {
         score_list:desk.score_list,
       });
     }
+  },
+  checkPrepareAll(deskId) {
+    const desk = this.getDesk(deskId);
+    if (desk) {
+      const positions = desk.positions;
+      for (let i = 0; i < 3; i++) {
+        if (positions[i].state !== 2) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   },
   checkDisconnect:function(){
     for (let i = 0; i < this.desks.length; i++) {
@@ -382,17 +385,15 @@ const proto = {
   },
   init:function () {
 
-    function setHeartbeat() {
-      setTimeout(setHeartbeat, 5000);
-      io.sockets.emit('ping', {beat: 1});
+    function setHeartbeat(){
+      io.sockets.emit('ping',{beat:1});
     }
-    setTimeout(setHeartbeat, 5000);
+    setInterval(setHeartbeat,5000)
 
     function checkDisconnect(){
-      setTimeout(checkDisconnect, 5000);
       self.checkDisconnect()
     }
-    setTimeout(checkDisconnect, 5000);
+    setInterval(checkDisconnect,5000)
 
     const self = this;
     io.on('connection', function(socket){
@@ -464,7 +465,7 @@ const proto = {
                   ready_count:room.ready_count,
                   play_count:room.play_count,
                   play_index:room.play_index,
-                  playerData:playerData,
+                  posInfos:playerData,
                 });
                 self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
 
@@ -478,7 +479,50 @@ const proto = {
           }
       })
 
-      
+      socket.on('PREPARE',function(){
+
+        var isStartGame = false;
+        var ready_count = 0;
+        const desk = self.getDesk(socket);
+        if(desk){
+          var prepare_posId = null;
+          for (let j = 0; j < desk.positions.length; j++) {
+            const userObj = desk.positions[j];
+            if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
+              desk.positions[j].state = 2;
+              prepare_posId = userObj.posId;
+            }
+            if(desk.positions[j].state == 2){
+              ready_count++;
+            }
+          }
+
+          if(ready_count == 3 ){
+            desk.state = 1;//开始游戏
+            isStartGame = true;
+          }
+
+          self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),prepare_posId);
+          if(isStartGame)
+          {
+            desk.play_index++;
+            if(desk.play_index > desk.play_count){
+              desk.play_index -= desk.play_count;
+            }
+            //重置成绩
+            if(desk.play_index == 1){
+              desk.score_list = [];
+            }
+            
+            desk.start_time = Date.parse(new Date()) / 1000;
+            self.broadCastRoom("GAME_START",self.getDeskId(socket),{level:1,start_time:parseInt(desk.start_time)});
+            for (let j = 0; j < desk.positions.length; j++) {
+              desk.positions[j].gain_score = 0;
+              desk.positions[j].refreshData = {game_type:'normal',posId:j};
+            }
+          }
+        }
+      });
 
       socket.on('disconnect', function(){
 

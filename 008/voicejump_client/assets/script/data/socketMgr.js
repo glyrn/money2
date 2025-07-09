@@ -46,33 +46,55 @@ const socketMgr = function(){
             _eventMgr.removeAllLister();
             cc.director.preloadScene("Game",function(){},function() {
 
-                if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
-
-                    cc.director.loadScene("Game",function(){
-                        console.log("进入场景")
-                        that.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
-                        cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
-                            // clearTimeout(that._handler);
-                            
-                        });
-                    });
-                    
-                } else {
-                    console.log("用户信息：")
-                    _utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign", {sign: cc.args['sign']}, function (isOk, data) {
-                        if (isOk) {
-                            console.log("用户信息：",data)
+                // var enterGame = function(){
+                    if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
 
                             cc.director.loadScene("Game",function(){
-                                that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
-                                    cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
-                                        // clearTimeout(that._handler);
-                                        
+                                console.log("进入场景")
+                                that.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+                                cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
+                                    // clearTimeout(that._handler);
+                                    
+                                });
+                            });
+                            
+                        } else {
+                            console.log("用户信息：")
+                            _utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign", {sign: cc.args['sign']}, function (isOk, data) {
+                                if (isOk) {
+                                    console.log("用户信息：",data)
+
+                                    cc.director.loadScene("Game",function(){
+                                        that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
+                                            cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
+                                                // clearTimeout(that._handler);
+                                                
+                                            });
                                     });
+
+                                    setTimeout(function(){
+                                        _eventMgr.removeAllLister();
+                                        cc.director.loadScene("Game",function(){
+                                            that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
+                                                cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
+                                                    // clearTimeout(that._handler);
+                                                    
+                                                });
+                                        });
+                                    },2000)
+                                }
                             });
                         }
-                    });
-                }
+                // }
+                // if(cc.args['ob_uid'] != null && cc.args['ob_uid'] != undefined){
+                //     setTimeout(() => {
+                //         console.log("延迟开始")
+                //         enterGame();
+                //     }, 3000);
+                // }else{
+                //     console.log("马上！开始")
+                //     enterGame();
+                // }
             });
         });
         _socket.on('connect_error', (error) => {
@@ -189,8 +211,8 @@ const socketMgr = function(){
     }
 
     that.login = function(uid,name,avatorUrl,score,room,ready_count,play_count,ob_uid,cbFunc){
-        console.log("发送登录请求")
-        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,ready_count:ready_count,play_count:play_count,ob_uid:ob_uid});
+        console.log("发送登录请求",cc.args['lanuch_url'])
+        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,ready_count:ready_count,play_count:play_count,ob_uid:ob_uid,lanuch_url:cc.args['lanuch_url']});
         _cbLogin = cbFunc;
         //是否旁观
         _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;

@@ -44,7 +44,7 @@ cc.Class({
             }
             var that = this;
             cc.args = field;
-           
+            cc.args['lanuch_url'] = window.location.href;
         }
     },
 

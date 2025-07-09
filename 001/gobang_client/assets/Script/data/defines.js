@@ -23,14 +23,14 @@ if(url.split('?').length > 1){
         field[obj[0]] = obj[1];
     }
     cc.args = field;
-//正式环境调试
+    //正式环境调试
     // defines.isDebug = false;
     // defines.isForce = true;
     //  cc.args['gamedomain'] = "www.fsyctech.com";
     // // cc.args['ycdomain'] = "www.fsyctech.com";
     // // cc.args['gamedomain'] = "www.woojey.com";
     //  cc.args['ycdomain'] = "www.woojey.com";
-    console.log("test002111111")
+    console.log("test01")
     if(cc.args['gamedomain']){
         defines.serverUrl = cc.args['gamedomain'];
     }

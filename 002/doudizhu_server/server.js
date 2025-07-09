@@ -455,6 +455,37 @@ const proto = {
       }
     }
   },
+  clearRoomByUid:function(){
+    var deskId = 0;
+    for (let i = 0; i < this.desks.length; i++) {
+      var roomObj = this.desks[i];
+      for (let j = 0; j < roomObj.positions.length; j++) {
+        var userObj = roomObj.positions[j];
+        if(userObj.uid == uid){
+          deskId = roomObj.deskId;
+        }
+      }
+    }
+    var desk = this.getDesk(deskId);
+    if(desk){
+      for (let k = 0; k < desk.positions.length; k++) {
+        var userObj = desk.positions[k];
+        userObj.uid = 0;
+        userObj.state = 0;
+        userObj.name = '';
+        userObj.avatarUrl = '';
+        userObj.score = 0;
+        userObj.disconnectTime = null;
+        //清空断线重连信息
+        userObj.recover_disconnect_data = [];
+      }
+      desk.name = '';
+      desk.state = 0;
+      desk.play_index = 0;
+      desk.ready_count = -1;
+    }
+    return deskId;
+  },
   checkRecover:function(socket,obj){
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
@@ -545,7 +576,6 @@ const proto = {
     setInterval(setHeartbeat,5000)
 
     function checkDisconnect(){
-    //   setTimeout(checkDisconnect, 5000);
       self.checkDisconnect()
     }
     // setTimeout(checkDisconnect, 5000);
