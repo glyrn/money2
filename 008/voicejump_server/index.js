@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const os = require('os');
 const https = require('https');
 const fs = require('fs');
-const _ = require('lodash');
+// const _ = require('lodash');
 //本地调试
 var isDebug = false;
 var ioParam = {path:'/voice_socket.io'};
@@ -121,13 +121,13 @@ const proto = {
   },
   socketEmit:function(userObj,event,data){
     var saveData = data;
-        // if(data instanceof Object){//深复制data
-        //   saveData = JSON.parse(JSON.stringify(data));
-        // }
-    saveData = _.cloneDeep(data);
+    if(data instanceof Object){//深复制data
+      saveData = JSON.parse(JSON.stringify(data));
+    }
     for (const ob_uid in userObj.ob_socket_map) {
       userObj.ob_socket_map[ob_uid].emit(event,saveData);
     }
+    // console.log("----添加重连数据！！",event,saveData)
     userObj.recover_disconnect_data.push({event:event,data:saveData});
     userObj.socket.emit(event,saveData);
   },
@@ -312,12 +312,14 @@ const proto = {
   },
   clearRoomByUid:function(uid){
     var deskId = 0;
+    var _idx = 0;
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
       for (let j = 0; j < roomObj.positions.length; j++) {
         var userObj = roomObj.positions[j];
         if(userObj.uid == uid){
           deskId = roomObj.deskId;
+          _idx = i;
         }
       }
     }
@@ -333,16 +335,21 @@ const proto = {
         userObj.disconnectTime = null;
         //清空断线重连信息
         userObj.recover_disconnect_data = [];
+        userObj.ob_socket_map = {};
+        desk.positions[k] = userObj;
       }
       desk.name = '';
       desk.state = 0;
       desk.play_index = 0;
       desk.ready_count = -1;
+      //覆盖更新
+      this.desks[_idx] = desk;
+      console.log("覆盖桌子：",this.desks[_idx]);
     }
     return deskId;
   },
   checkRecover:function(socket,obj){
-
+    
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
       for (let j = 0; j < roomObj.positions.length; j++) {
@@ -359,7 +366,7 @@ const proto = {
           }
           //重连恢复
           socket.emit("SET_RECOVER_STATUS",{isRecover:true});
-          console.log("恢复数据：")
+          console.log("恢复数据：",userObj.uid,obj.uid,obj.ob_uid,userObj.recover_disconnect_data.length);
           for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
             var emitObj = userObj.recover_disconnect_data[k];
             socket.emit(emitObj.event,emitObj.data);
@@ -441,8 +448,8 @@ const proto = {
 
           var room = self.getDeskByName(obj.room);
           if(room) {
-            console.log(obj.name, '进入房间', room.name,room.deskId);
-
+            console.log(obj.name, '进入房间',obj.uid, room.name,room.deskId);
+            console.log("启动参数:",obj.name,obj.lanuch_url);
             var flag = false;
             //检查是否换房间
             self.checkChangeRoom(room.deskId,obj.uid);
@@ -625,7 +632,7 @@ const proto = {
     });
 
     http.listen(game_port, function(){
-      console.log('listening on 0702 :'+game_port);
+      console.log('listening on :'+game_port);
     });
   }
 }
