@@ -121,7 +121,6 @@ cc.Class({
                 }
             }
         });
-
         globalData.eventlister.on("CONNECT_STATE",function(data){
             that.renderPlayerNode();
         });
@@ -156,7 +155,7 @@ cc.Class({
     },
 
     start(){
-        this.renderPlayerNode();
+        // this.renderPlayerNode();
     },
     onBtnTips(){
         this._player_node_list[0].getComponent('PlayerNode').selectTips(globalData.gameMgr.posState.self,true)

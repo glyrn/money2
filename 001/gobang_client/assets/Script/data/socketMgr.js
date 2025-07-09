@@ -8,14 +8,18 @@ const socketMgr = function(){
     var _socket = null
     var _gameMgr = null;
     var _eventMgr = null;
+    var _utils = null;
     var _cbLogin;
 
     that.setGameMgr = function(gameMgr){
         _gameMgr = gameMgr
-    },
+    }
     that.setEventlister = function(eventMgr){
         _eventMgr = eventMgr
-    },
+    }
+    that.setUtils = function(utils){
+        _utils = utils;
+    }
     that.initSocket = function() {
         var opts = {
             'reconnection': true,
@@ -39,21 +43,21 @@ const socketMgr = function(){
 
             cc.director.preloadScene("Game",function(){},function() {
                 
-                globalData.eventlister.removeAllLister()
+                _eventMgr.removeAllLister()
                 if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
                     cc.director.loadScene("Game",function(){
-                        globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+                        that.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
                         cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
                             // clearTimeout(that._handler);
                         });
                     });
                 } else {
                     console.log("用户信息：")
-                    globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign", {sign: cc.args['sign']}, function (isOk, data) {
+                    _utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign", {sign: cc.args['sign']}, function (isOk, data) {
                         if (isOk) {
                             console.log("用户信息：",data);
                             cc.director.loadScene("Game",function(){
-                                globalData.socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
+                                that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
                                     cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
                                         // clearTimeout(that._handler);
                                     });

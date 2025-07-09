@@ -47,6 +47,7 @@ cc.Class({
             }
             var that = this;
             cc.args = field;
+            cc.args['lanuch_url'] = window.location.href;
             // cc.director.preloadScene("Game",this.onProgress.bind(this),function() {
 
                 if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
