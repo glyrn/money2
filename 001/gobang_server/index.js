@@ -449,7 +449,7 @@ const proto = {
       }
     }
   },
-  clearRoomByUid:function(){
+  clearRoomByUid:function(uid){
     var deskId = 0;
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];

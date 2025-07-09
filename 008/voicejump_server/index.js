@@ -208,7 +208,7 @@ const proto = {
       }
     }
     score_list.sort((a, b) => b.score - a.score);
-    var winer = score_list[0].posId;
+    var winer = score_list[0] ? score_list[0].posId : -1;
     var ycscore_list = [];
     for (let i = 0; i < desk.positions.length; i++) {
       desk.positions[i].state = 1;
