@@ -153,7 +153,7 @@
     "yeast": "^0.1.2"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

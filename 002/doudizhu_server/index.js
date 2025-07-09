@@ -31,6 +31,7 @@ app.all('*', function(req, res, next) {
   next();
 });
 
+const Game = require('./game.js');
 function GameServer() {
 
   this.desks = this.createDeskList(150);
@@ -69,7 +70,7 @@ const proto = {
         ready_count:-1,
         play_count:0,
         base_score:100,
-        play_index:0,
+        play_index:1,
       }
       for (let j = 0; j < 4; j++) {
         desk.positions.push({
@@ -148,6 +149,16 @@ const proto = {
       }
     }
   },
+  getUserObj:function(socket){
+    for (let i = 0; i < this.desks.length; i++) {
+      for (let j = 0; j < this.desks[i].positions.length; j++) {
+        var userObj = this.desks[i].positions[j];
+        if (userObj.socket && userObj.socket.id == socket.id) {
+          return userObj;
+        }
+      }
+    }
+  },
   getDeskByName:function(deskName) {
     let findDesk;
     for (let i = 0, len = this.desks.length; i < len; i++) {
@@ -169,6 +180,44 @@ const proto = {
     }
     return findDesk;
   },
+  getPosition(desk, posId) {
+    for (let i = 0, len = desk.positions.length; i < len; i++) {
+      let position = desk.positions[i];
+      if (position.posId == posId) {
+        return position;
+      }
+    }
+    return null;
+  },
+  updatePosStatus(deskId, posId, state, name,avatorUrl,score,uid) {
+    const desk = this.getDeskById(deskId);
+    if (desk) {
+      const position = this.getPosition(desk, posId);
+      if (position) {
+        position.state = state;
+        if (name === '' || name) {
+          position.name = name;
+          position.avatorUrl = avatorUrl;
+          position.score = score;
+          position.uid = uid;
+        }
+      }
+      // 检测是否需要重置房间属性
+      var isNeedClear = true;
+      for (const positionKey in desk.positions) {
+         if(desk.positions[positionKey].state != 0){
+           isNeedClear = false;
+         }
+      }
+      if(isNeedClear){
+        desk.islaizi = 0;
+        desk.base_score = 100;
+        desk.play_count = 0;
+        desk.play_index = 1;
+        desk.name = '';
+      }
+    }
+  },
   broadCastRoom:function(event,roomId,data,except){
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
@@ -188,42 +237,7 @@ const proto = {
       }
     }
   },
-  gameOver:function(desk){
-    var score_list = [];
 
-    for (let j = 0; j < desk.positions.length; j++) {
-      var userObj = desk.positions[j];
-      if(userObj.uid > 0) {
-        score_list.push({posId: j, score: userObj.gain_score, name: userObj.name});
-      }
-    }
-    score_list.sort((a, b) => b.score - a.score);
-    var winer = score_list[0].posId;
-    var ycscore_list = [];
-    for (let i = 0; i < desk.positions.length; i++) {
-      desk.positions[i].state = 1;
-      if(desk.positions[i].uid >0) {
-        ycscore_list.push({
-          uid: desk.positions[i].uid,
-          name: desk.positions[i].name,
-          score: desk.positions[i].gain_score,
-          is_win: winer == i ? 1 : 0,
-          avatorUrl:desk.positions[i].avatorUrl,
-        })
-      }
-    }
-    desk.state = 0;
-    this.broadCastRoom("GAME_OVER",desk.deskId,score_list);
-    if(!desk.score_list) desk.score_list = [];
-    desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
-    if(desk.play_index == desk.play_count){
-      this.sendYcGameOver({
-        room_id:desk.name,
-        game_id:8,
-        score_list:desk.score_list,
-      });
-    }
-  },
   checkPrepareAll(deskId) {
     const desk = this.getDesk(deskId);
     if (desk) {
@@ -245,6 +259,7 @@ const proto = {
 
         if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
+          let name = userObj.name;
           userObj.uid = 0;
           userObj.state = 0;
           userObj.name = '';
@@ -253,8 +268,7 @@ const proto = {
           userObj.disconnectTime = null;
           //清空断线重连信息
           userObj.recover_disconnect_data = [];
-
-          this.broadCastRoom("MESSAGE",this.desks[i].deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
+          this.broadCastRoom("MESSAGE",this.desks[i].deskId, { msg:'玩家'+name+'已掉线'},userObj.uid);
           this.broadCastRoom("SIT_CHANGE",this.desks[i].deskId,{target:null,posId:userObj.posId},userObj.uid);
 
           //检查是否全部掉线 是的话要重置房间
@@ -267,7 +281,7 @@ const proto = {
           if(isClean){
             this.desks[i].name = '';
             this.desks[i].state = 0;
-            this.desks[i].play_index = 0;
+            this.desks[i].play_index = 1;
             this.desks[i].ready_count = -1;
           }
         }
@@ -293,7 +307,7 @@ const proto = {
           //清空断线重连信息
           userObj.recover_disconnect_data = [];
 
-          this.broadCastRoom("MESSAGE",roomObj.deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
+          this.broadCastRoom("MESSAGE",roomObj.deskId, { msg:'玩家'+userObj.name+'已掉线'},userObj.uid);
           this.broadCastRoom("SIT_CHANGE",roomObj.deskId,{target:null,posId:userObj.posId},userObj.uid);
 
           //检查是否全部掉线 是的话要重置房间
@@ -306,12 +320,59 @@ const proto = {
           if(isClean){
             this.desks[i].name = '';
             this.desks[i].state = 0;
-            this.desks[i].play_index = 0;
+            this.desks[i].play_index = 1;
             this.desks[i].ready_count = -1;
           }
         }
       }
     }
+  },
+  startGame:function(deskId,isRestart){
+    if (this.gameDatas[deskId] === undefined) {
+      this.gameDatas[deskId] = new Game();
+    }
+    const game = this.gameDatas[deskId];
+    game.init();
+    const cards = game.start(isRestart).getCards();
+    let desk = this.getDeskById(deskId);
+    desk.score_list = [];
+
+    this.broadCastRoom("GAME_START",deskId, { cards });
+    this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos: game.getContextPosId(), ctxScore: game.getContextScore(), timeout: 15 });
+  },
+  clearRoomByUid:function(uid){
+    var deskId = 0;
+    var _idx = 0;
+    for (let i = 0; i < this.desks.length; i++) {
+      var roomObj = this.desks[i];
+      for (let j = 0; j < roomObj.positions.length; j++) {
+        var userObj = roomObj.positions[j];
+        if(userObj.uid == uid){
+          deskId = roomObj.deskId;
+          _idx = i;
+        }
+      }
+    }
+    var desk = this.getDeskById(deskId);
+    if(desk){
+      for (let k = 0; k < desk.positions.length; k++) {
+        var userObj = desk.positions[k];
+        userObj.uid = 0;
+        userObj.state = 0;
+        userObj.name = '';
+        userObj.avatorUrl = '';
+        userObj.score = 0;
+        userObj.disconnectTime = null;
+        //清空断线重连信息
+        userObj.recover_disconnect_data = [];
+        userObj.ob_socket_map = {};
+      }
+      desk.name = '';
+      desk.state = 0;
+      desk.play_index = 1;
+      desk.ready_count = -1;
+    }
+    return deskId;
   },
   checkRecover:function(socket,obj){
 
@@ -474,7 +535,8 @@ const proto = {
               for (let i = 0; i < room.positions.length; i++) {
                 uids += room.positions[i].uid +",";
               }
-              socket.emit("MESSAGE",'房间已满员 '+room.name+" "+uids);
+              console.log('房间已满员 '+room.name+" "+uids);
+              socket.emit("MESSAGE", { msg:'房间已满员 '+room.name+" "+uids});
             }
           }
       })
@@ -502,24 +564,192 @@ const proto = {
             isStartGame = true;
           }
 
-          self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),prepare_posId);
+          self.broadCastRoom("PREPARE_SUCCESS",desk.deskId,prepare_posId);
           if(isStartGame)
           {
-            desk.play_index++;
-            if(desk.play_index > desk.play_count){
-              desk.play_index -= desk.play_count;
-            }
             //重置成绩
             if(desk.play_index == 1){
               desk.score_list = [];
             }
             
-            desk.start_time = Date.parse(new Date()) / 1000;
-            self.broadCastRoom("GAME_START",self.getDeskId(socket),{level:1,start_time:parseInt(desk.start_time)});
-            for (let j = 0; j < desk.positions.length; j++) {
-              desk.positions[j].gain_score = 0;
-              desk.positions[j].refreshData = {game_type:'normal',posId:j};
+            self.startGame(desk.deskId,false);
+          }
+        }
+      });
+
+      socket.on('CALL_SCORE', data => {
+        const { score } = data;
+        let posId = self.getPosId(socket);
+        const desk = self.getDesk(socket);
+        if(!desk) return;
+        let deskId = desk.deskId;
+        const game = self.gameDatas[deskId];
+        if (!game || !deskId) {
+          return;
+        }
+
+        const status = game.next(posId, score).getStatus();
+        if (status == 1) {
+          self.socketEmit(self.getUserObj(socket),'CALL_SCORE_SUCCESS',score);
+          const ctxPos = game.getContextPosId();
+          const ctxScore = game.getContextScore();
+          const calledScores = game.getCalledScores();
+          self.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15 });
+        }
+        if (status == 2) {
+          const topCards = game.getTopCards();
+          const dizhuPosId = game.getDiZhuPosId();
+          let islaizi = desk.islaizi;
+          const laiziCards = islaizi > 0 ? game.getLaiziCards(islaizi) : [];
+          game.contextLaiziCards = laiziCards;
+          self.socketEmit(self.getUserObj(socket),'CALL_SCORE_SUCCESS',score);
+          self.broadCastRoom('SHOW_TOP_CARD', deskId, { topCards,laiziCards, dizhuPosId, timeout: 15,score:game.getMaxScoreInfo().score });
+          self.broadCastRoom('CTX_PLAY_CHANGE', deskId, {
+            ctxData: {
+              len: 0,
+              key: '',
+              type: '',
+              cards: [],
+              posId: dizhuPosId,
+            },
+            posId: dizhuPosId,
+            timeout: 30,
+            isPass: false,
+          });
+
+        }
+        if (status == 4) {
+          self.broadCastRoom('MESSAGE', deskId, { msg: '没有玩家叫分，重新发牌' });
+          self.socketEmit(self.getUserObj(socket),'CALL_SCORE_SUCCESS',0);
+          self.startGame(deskId,true);
+        }
+      });
+
+      socket.on("CHECK_PLAY_CARD",data=>{
+
+        let posId = self.getPosId(socket);
+        const desk = self.getDesk(socket);
+        if(!desk) return;
+        let deskId = desk.deskId;
+
+        const game = self.gameDatas[deskId];
+        if (game && deskId) {
+          let islaizi = desk.islaizi;
+          const ret = game.validate(posId, data,islaizi);
+          self.socketEmit(self.getUserObj(socket),'CHECK_PLAY_CARD_SUCCESS', ret);
+        }
+      });
+
+       socket.on('PLAY_CARD', data => {
+
+        let posId = self.getPosId(socket);
+        const desk = self.getDesk(socket);
+        if(!desk) return;
+        let deskId = desk.deskId;
+
+        const game = self.gameDatas[deskId];
+        if (game && deskId) {
+          let islaizi = desk.islaizi;
+          const ret = game.validate(posId, data,islaizi);
+          const isPass = !data.length;
+          const { status } = ret;
+          if (status || !data.length) {
+
+            console.log("出牌调试：",posId, JSON.stringify(data),islaizi);
+            //debug
+            //强制重置posId
+            var lastPosId = game.contextPosId;
+            game.next(posId, data,islaizi);
+            posId = lastPosId;
+
+            if (game.getStatus() === 5) {
+              self.socketEmit(self.getUserObj(socket),'PLAY_CARD_ERROR', '游戏出错');
+              return;
             }
+
+            self.broadCastRoom('CTX_PLAY_CHANGE', deskId, {
+              ctxData: {
+                len: data.length,
+                key: ret.key,
+                type: ret.type,
+                cards: data,
+                posId:posId,
+              },
+              posId: game.getContextPosId(),
+              timeout: 15,
+              isPass:isPass,
+            })
+            self.socketEmit(self.getUserObj(socket),'PLAY_CARD_SUCCESS', data);
+
+
+            if (game.getStatus() === 3) {
+              var gameResult = game.getResult();
+              console.log("游戏结果：",gameResult);
+              self.broadCastRoom('GAME_OVER', deskId, gameResult);
+
+              var score = desk.base_score * gameResult.score * gameResult.ratio;
+              var score_list = [];
+              for (let j = 0; j < gameResult.winner.length; j++) {
+                for (let i = 0; i < desk.positions.length; i++) {
+                  if(desk.positions[i].posId == gameResult.winner[j]){
+                    score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.winner.length,is_win:1,avatorUrl:desk.positions[i].avatarUrl})
+                  }
+                }
+              }
+              for (let j = 0; j < gameResult.loser.length; j++) {
+                for (let i = 0; i < desk.positions.length; i++) {
+                  if(desk.positions[i].posId == gameResult.loser[j]){
+                    score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.loser.length,is_win:0,avatorUrl:desk.positions[i].avatarUrl})
+                  }
+                }
+              }
+              
+              score_list.sort((a, b) => {
+                return b.score - a.score;
+              });
+              if(!desk.score_list) desk.score_list = [];
+              desk.score_list.push({play_index:desk.play_index,score_list:score_list})
+              if(desk.play_index == desk.play_count){
+                self.sendYcGameOver({
+                  room_id:desk.name,
+                  game_id:2,
+                  score_list:desk.score_list
+                })
+              }
+
+              desk.play_index++;
+              if(desk.play_count < desk.play_index){ //剩余局数为0
+                desk.play_index = 1;
+              }
+              self.updatePosStatus(deskId, 0, 1);
+              self.updatePosStatus(deskId, 1, 1);
+              self.updatePosStatus(deskId, 2, 1);
+              game.init();
+            }else{
+              //游戏中
+              if(game.getStatus() == 2) {
+                //玩家如果掉线中 自动出pass
+                var nextUserObj = self.getPosition(desk, game.getContextPosId());
+                if (nextUserObj.disconnectTime > 0) {
+                  game.next(nextUserObj.posId, [], desk.islaizi);
+                  self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
+                    ctxData: {
+                      len: 0,
+                      key: '',
+                      type: '',
+                      cards: [],
+                      posId: nextUserObj.posId,
+                    },
+                    posId: game.getContextPosId(),
+                    timeout: 15,
+                    isPass: true,
+                  })
+                }
+              }
+            }
+
+          } else {
+            self.socketEmit(self.getUserObj(socket),'PLAY_CARD_ERROR', '你的牌不符合规则')
           }
         }
       });
@@ -559,9 +789,7 @@ gameServer.init()
 
 app.get('/ddz/quit',function(req,res){
   const uid = req.query.uid;
+  var deskId = gameServer.clearRoomByUid(uid);
+  console.log("清空房间:"+deskId);
   res.send({state:0,msg:"退出成功",uid:uid});
-  //踢出房间
-  
-  gameServer.checkChangeRoom(-1,uid);
-  console.log(uid+" 主动退出房间");
 })
