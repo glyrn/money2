@@ -28,6 +28,7 @@ globalData.eventlister = (0, _event_lister["default"])({});
 globalData.socketMgr = (0, _socketMgr["default"])();
 globalData.socketMgr.setGameMgr(globalData.gameMgr);
 globalData.socketMgr.setEventlister(globalData.eventlister);
+globalData.socketMgr.setUtils(globalData.utils);
 globalData.gameMgr.setSocketMgr(globalData.socketMgr);
 globalData.gameMgr.setEventlister(globalData.eventlister);
 var _default = globalData;

@@ -219,7 +219,7 @@
       "array": [
         0,
         0,
-        351.28235234501733,
+        417.42424462409946,
         0,
         0,
         0,
@@ -1600,7 +1600,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "结算",
+    "_name": "bg_end",
     "_objFlags": 0,
     "_parent": {
       "__id__": 32
@@ -3539,7 +3539,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 8.33,
+      "width": 0,
       "height": 50.4
     },
     "_anchorPoint": {
