@@ -486,6 +486,10 @@ const proto = {
       desk.play_index = 0;
       desk.ready_count = -1;
       desk.ob_socket_map = {};
+      for (let k = 0; k < desk.chequer.length; k++) {
+        desk.chequer[k].state = -1;
+        desk.chequer[k].idx = -1;
+      }
     }
     return deskId;
   },
