@@ -14,27 +14,10 @@ cc.Class({
         cc.debug.setDisplayStats(false);
         globalData.socketMgr.initSocket();
     },
-    update(){
-        // this.img_loading.angle = this.img_loading.angle + 10;
-    },
-
-    // showTips(msg){
-    //     console.log(msg);
-    //     this.lab_tips.node.active = true;
-    //     this.lab_tips.string = msg;
-    //     this.scheduleOnce(function () {
-    //         this.lab_tips.node.active = false;
-    //     }, 2);
-
-    //     this.lab_debug.string += msg;
-    // },
-    onProgress(completedCount, totalCount, item){
-        // this.prog_bar.progress = completedCount/totalCount;
-    },
+    
     start(){
 
         console.log("启动参数："+window.location.href);
-        // this.lab_debug.string = "启动参数："+window.location.href;
 
         var url = decodeURI(window.location.href);
         if(url.split('?').length > 1){
@@ -47,8 +30,7 @@ cc.Class({
             var that = this;
             
             cc.args = field;
-           
-
+            cc.args['lanuch_url'] = window.location.href;
         }
     },
 

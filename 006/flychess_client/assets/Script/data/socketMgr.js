@@ -171,7 +171,7 @@ const socketMgr = function(){
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,ready_count,play_count,ob_uid,cbFunc){
-        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,ready_count:ready_count,play_count:play_count,ob_uid:ob_uid});
+        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,ready_count:ready_count,play_count:play_count,ob_uid:ob_uid,lanuch_url:cc.args['lanuch_url']});
         _cbLogin = cbFunc;
         //是否旁观
         _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;

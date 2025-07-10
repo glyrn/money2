@@ -67,7 +67,7 @@ cc.Class({
     },
 
     start () {
-        this.btn_score.active = globalData.gameMgr.score_list.length > 0;
+        // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
     },
     onBtnChupai(){
         globalData.gameMgr.playCards();

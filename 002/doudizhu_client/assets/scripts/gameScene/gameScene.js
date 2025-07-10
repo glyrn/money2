@@ -33,8 +33,6 @@ cc.Class({
             player_node.active = false;
             this._player_node_list[i] = player_node;
         }
-
-        this.renderRoom();
         
         cc.playMusic("sound/bg",true,1);
 
@@ -47,6 +45,7 @@ cc.Class({
         //有其他玩家坐下
         globalData.eventlister.on("POS_STATUS_CHANGE",function(){
             that.renderPlayerNode();
+            that.renderRoom();
         });
 
         globalData.eventlister.on("GAME_START",function(){

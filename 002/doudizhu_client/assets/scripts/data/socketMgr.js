@@ -86,12 +86,9 @@ const socketMgr = function(){
         });
 
         _socket.on("LOGIN_SUCCESS",function(data) {
-            // _gameMgr.desks = data;
-            // _gameMgr.where = 1;
 
             _gameMgr.posId = data.posId;
             _gameMgr.deskId = data.roomId;
-            // _gameMgr.deskName = data.room;
             _gameMgr.isLaizi = data.islaizi;
             _gameMgr.base_score = data.base_score;
             _gameMgr.play_count = data.play_count;
@@ -102,7 +99,6 @@ const socketMgr = function(){
                 _gameMgr.updatePosStatus(pos.posId, pos.state, pos.name,pos.avatorUrl,pos.score,pos.uid);
             }
             _gameMgr.posState.self.isDizhu = false;
-            // _eventMgr.fire('SITDOWN_SUCCESS');
             _eventMgr.fire("POS_STATUS_CHANGE");
 
             _gameMgr.checkBeat();
@@ -111,11 +107,6 @@ const socketMgr = function(){
                 _cbLogin();
             }
         });
-
-
-        // _socket.on('STATUS_CHANGE', function (data) {
-        //     _gameMgr.updateHouseStatus(data.deskId, data.posId, data.state);
-        // });
 
         _socket.on('SIT_CHANGE', function (data) {
             var target = data.target;
@@ -136,7 +127,6 @@ const socketMgr = function(){
         });
 
         _socket.on('FORCE_EXIT_EV', function (data) {
-            console.log(data.msg);
 
             _gameMgr.roomState.timeout = 0;
             _gameMgr.startTimer(false);//停止计时器
@@ -171,9 +161,13 @@ const socketMgr = function(){
             _eventMgr.fire('FORCE_EXIT_EV2',data.msg);
         });
 
-        _socket.on('PREPARE_SUCCESS', function (data) {
-            _gameMgr.posState.self.state = 2;
-            _eventMgr.fire('PREPARE_SUCCESS');
+        _socket.on('PREPARE_SUCCESS', function (posId) {
+
+            var direct = _gameMgr.getDirectionByPosId(posId);
+            if(direct && _gameMgr.posState[direct]) {
+                _gameMgr.posState[direct].state = 2;
+                _eventMgr.fire('PREPARE_SUCCESS');
+            }
         });
 
         _socket.on('GAME_START', function (data) {
@@ -225,7 +219,6 @@ const socketMgr = function(){
         });
 
         _socket.on('CTX_PLAY_CHANGE', function (data) {
-            console.log(data)
             var direct = _gameMgr.getDirectionByPosId(data.ctxData.posId);
             _gameMgr.posState[direct].ctxCards = data.ctxData.cards;
             _gameMgr.posState[direct].isPass = data.isPass;
@@ -370,7 +363,7 @@ const socketMgr = function(){
 
     that.login = function(uid,name,avatorUrl,score,ob_uid,room,base_score,play_count,play_mode,cbFunc){
         _socket.emit('LOGIN', {uid:uid,name:name,avatorUrl:avatorUrl,score:score,ob_uid:ob_uid,room:room,
-            score:score,base_score:base_score,play_count:play_count,play_mode:play_mode});
+            score:score,base_score:base_score,play_count:play_count,play_mode:play_mode,lanuch_url:cc.args['lanuch_url']});
         _cbLogin = cbFunc;
 
         //是否旁观
@@ -387,7 +380,6 @@ const socketMgr = function(){
         _socket.emit('PLAY_CARD', []);
     }
     that.prepare = function(){
-        console.log("发送PREPARE")
         if(that.checkIsObserve()) return;
         _socket.emit('PREPARE');
     }

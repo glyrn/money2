@@ -34,7 +34,7 @@ cc.Class({
         _jump1CDTime:700,
         _jump2CDTime:1000,
         prog_voice:cc.Node,
-        editBox:cc.EditBox,
+        // editBox:cc.EditBox,
     },
     onLoad() {
 
@@ -45,7 +45,7 @@ cc.Class({
         manager.enabled = true;
         manager.enabledDebugDraw = false;
 
-        this.editBox.string = window.location.href;
+        // this.editBox.string = window.location.href;
         // cc.playMusic("sound/bg",true,1);
 
         for (let i = 0; i < 4; i++) {
