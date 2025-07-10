@@ -356,6 +356,7 @@ const proto = {
         userObj.avatorUrl = '';
         userObj.score = 0;
         userObj.disconnectTime = null;
+        userObj.finish_chess = {0:0,1:0,2:0,3:0};
         //清空断线重连信息
         userObj.recover_disconnect_data = [];
       }
