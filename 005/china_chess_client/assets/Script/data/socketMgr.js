@@ -6,6 +6,7 @@ const socketMgr = function(){
     var _socket = null
     var _gameMgr = null;
     var _eventMgr = null;
+    var _utils = null;
     var _cbLogin;
 
     that.setGameMgr = function(gameMgr){
@@ -14,6 +15,9 @@ const socketMgr = function(){
     that.setEventlister = function(eventMgr){
         _eventMgr = eventMgr
     },
+    that.setUtils = function(util){
+        _utils = util;
+    }
     that.initSocket = function() {
         var opts = {
             'reconnection': true,
@@ -36,39 +40,27 @@ const socketMgr = function(){
         _socket.on('connect', () => {
             console.log('Connected to the server!');
 
-             globalData.eventlister.removeAllLister();
+             _eventMgr.removeAllLister();
              cc.director.preloadScene("Game",function(){},function() {
                 if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
                     cc.director.loadScene("Game",function(){
-                        globalData.socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+                        that.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
                             cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'], function () {
-                                // clearTimeout(that._handler);
+                    
                             });
                         });
-                    // that._handler = setTimeout(function(){
-                    //     globalData.eventlister.removeAllLister()
-                    //     that.onLoad();
-                    //     that.start();
-                    // },2000);
+
                 } else {
                     console.log("用户信息")
-                    globalData.utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                    _utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
                         console.log("用户信息",data)
                         if (isOk) {
                             cc.director.loadScene("Game",function(){
-                                globalData.socketMgr.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
+                                that.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
                                     cc.args['play_mode'], cc.args['play_count'], cc.args['ob_uid'],function () {
-                                        // clearTimeout(that._handler);
+                                       
                                     });
                             });
-                            
-                            // that._handler = setTimeout(function(){
-                            //     globalData.eventlister.removeAllLister()
-                            //     that.onLoad();
-                            //     that.start();
-                            // },2000);
-                        }else{
-                            // that.lab_debug.string += JSON.stringify(data);
                         }
                     });
                 }
@@ -134,7 +126,7 @@ const socketMgr = function(){
             _eventMgr.fire("SIT_CHANGE",data);
             //对手逃跑 游戏结束
             if(data.target == null){
-                globalData.eventlister.fire('GAME_OVER',{score:100,winer:globalData.gameMgr.playerData.self.posId});
+                _eventMgr.fire('GAME_OVER',{score:100,winer:globalData.gameMgr.playerData.self.posId});
             }
         })
 
@@ -181,7 +173,7 @@ const socketMgr = function(){
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
         console.log("发送登录请求")
-        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count,ob_uid:ob_uid});
+        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,play_count:play_count,ob_uid:ob_uid,lanuch_url:cc.args['lanuch_url']});
         _cbLogin = cbFunc;
         //是否旁观
         _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;

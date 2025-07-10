@@ -18,6 +18,7 @@ var socketMgr = function socketMgr() {
   var _socket = null;
   var _gameMgr = null;
   var _eventMgr = null;
+  var _utils = null;
 
   var _cbLogin;
 
@@ -27,6 +28,10 @@ var socketMgr = function socketMgr() {
 
   that.setEventlister = function (eventMgr) {
     _eventMgr = eventMgr;
+  };
+
+  that.setUtils = function (utils) {
+    _utils = utils;
   };
 
   that.initSocket = function () {
@@ -52,25 +57,23 @@ var socketMgr = function socketMgr() {
     _socket.on('connect', function () {
       console.log('Connected to the server!');
 
-      _globalData["default"].eventlister.removeAllLister();
+      _eventMgr.removeAllLister();
 
       cc.director.preloadScene("Game", function () {}, function () {
         if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
           cc.director.loadScene("Game", function () {
-            _globalData["default"].socketMgr.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {// clearTimeout(that._handler);
-            });
+            that.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {});
           });
         } else {
           console.log("开始请求用户信息：");
 
-          _globalData["default"].utils.post(defines.yc_domain + "/client/alchemy/callback/checkSign", {
+          _utils.post(defines.yc_domain + "/client/alchemy/callback/checkSign", {
             sign: cc.args['sign']
           }, function (isOk, data) {
             if (isOk) {
               console.log("用户信息：", data);
               cc.director.loadScene("Game", function () {
-                _globalData["default"].socketMgr.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {// clearTimeout(that._handler);
-                });
+                that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {});
               });
             }
           });
@@ -298,7 +301,8 @@ var socketMgr = function socketMgr() {
       ready_count: ready_count,
       game_time: game_time,
       specific_score: specific_score,
-      ob_uid: ob_uid
+      ob_uid: ob_uid,
+      lanuch_url: cc.args['lanuch_url']
     });
 
     _cbLogin = cbFunc; //是否旁观

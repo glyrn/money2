@@ -401,6 +401,7 @@ const proto = {
               this.desks[i].state = 0;
               this.desks[i].play_index = 0;
               this.desks[i].play_mode = -1;
+              this.desks[i].ob_socket_map = {};
           }else{
             for (let k = 0; k < this.desks[i].chequer.length; k++) {
               this.desks[i].chequer[k].state = -1;
@@ -484,6 +485,7 @@ const proto = {
       desk.state = 0;
       desk.play_index = 0;
       desk.ready_count = -1;
+      desk.ob_socket_map = {};
     }
     return deskId;
   },
@@ -505,6 +507,7 @@ const proto = {
               var emitObj = userObj.recover_disconnect_data[k];
               socket.emit(emitObj.event,emitObj.data);
             }
+            break;
           }
         }
         return true;
@@ -560,6 +563,7 @@ const proto = {
           var room = self.getDeskByName(obj.room);
           if(room) {
             console.log(obj.name, '进入房间', room.name,room.deskId);
+            console.log("启动参数:",obj.name,obj.lanuch_url);
 
             var flag = false;
             //检查是否换房间
