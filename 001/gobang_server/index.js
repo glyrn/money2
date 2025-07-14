@@ -361,6 +361,7 @@ const proto = {
 
         if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
+          var name = userObj.name;
           userObj.uid = 0;
           userObj.state = 0;
           userObj.name = '';
@@ -370,7 +371,7 @@ const proto = {
           //清空断线重连信息
           userObj.recover_disconnect_data = [];
 
-          this.broadCastRoom("MESSAGE",this.desks[i].deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
+          this.broadCastRoom("MESSAGE",this.desks[i].deskId,'玩家'+name+'已掉线',userObj.uid);
           this.broadCastRoom("SIT_CHANGE",this.desks[i].deskId,{target:null},userObj.uid);
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;

@@ -193,7 +193,7 @@ cc.Class({
         }, 1000 / 60);
 
         this.playerNodes = [this.player_node1,this.player_node2,this.player_node3,this.player_node4];
-        this.btn_ready.active = true;
+        // this.btn_ready.active = true;
         this.dice.active = false;
         this.dice.getComponent('Dice').isShow = false;
 

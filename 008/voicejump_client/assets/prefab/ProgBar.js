@@ -29,7 +29,7 @@ cc.Class({
     init: function () {
         var that = this;
         // that.node.active = true;
-        for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
+        for (let i = 0; i < cc.args['ready_count']; i++) {
             this['avator' + i].node.active = true;
             that['avator' + i].node.getChildByName("label").active = false;
             if(globalData.gameMgr.playerData[i].avatorUrl){
@@ -44,7 +44,7 @@ cc.Class({
     },
     refresh: function () {
         var that = this;
-        for (let i = 0; i < globalData.gameMgr.playerData.length; i++) {
+        for (let i = 0; i < cc.args['ready_count']; i++) {
             var data = globalData.gameMgr.playerData[i];
             if(data){
                 if(data.game_type == 'fall'){

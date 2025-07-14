@@ -10,8 +10,6 @@ cc.Class({
 
     onLoad () {
 
-        this.btn_ready.active = false
-
         let that = this;
         globalData.eventlister.on('GAME_OVER2',function(){
             that.render();
