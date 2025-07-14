@@ -392,6 +392,11 @@ const proto = {
     console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
     this.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
     this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId});
+    //继续检查下一个玩家是否断线
+    var nextUserObj = this.getPositionByPosId(desk,nextPosId);
+    if(nextUserObj.disconnectTime > 0){
+      this.makePass(desk,nextPosId);
+    }
   },
   checkDisconnect:function(){
     for (let i = 0; i < this.desks.length; i++) {
@@ -399,7 +404,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           userObj.uid = 0;
@@ -746,6 +751,9 @@ const proto = {
             }else{
                 nextPosId = self.getNextPosId(desk,curPosId);
             }
+
+            
+
             desk.out_cards.push(obj);
             var new_cards = [];
             var is_del = false;
@@ -765,7 +773,7 @@ const proto = {
             self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId})
 
             console.log("已经游玩了："+(Date.parse(new Date()) / 1000 - desk.start_time) +"秒");
-            console.log("玩家["+desk.positions[self.getPosId(socket)].name+"] 手牌：",desk.positions[curPosId].cards);
+            // console.log("玩家["+desk.positions[self.getPosId(socket)].name+"] 手牌：",desk.positions[curPosId].cards);
             //判断游戏结束
             if(desk.positions[curPosId].cards.length <= 0)
             {
@@ -823,10 +831,11 @@ const proto = {
               }else{
                 desk.play_index++;
               }
-              
             }else{
+              
               //轮到的玩家刚好掉线
               var nextUserObj = self.getPositionByPosId(desk,nextPosId);
+              console.log(nextUserObj.name,"nextUserObj.disconnectTime:",nextUserObj.disconnectTime)
               if(nextUserObj.disconnectTime > 0){
                 self.makePass(desk,nextPosId);
               }
