@@ -219,7 +219,7 @@ cc.Class({
 
 
       for (var _i6 = 0; _i6 < this._data.cards.length; _i6++) {
-        if (this._data.cards[_i6].color == last_card.color && this._data.cards[_i6].value != 'plus2' && this._data.cards[_i6].type == 2) {
+        if ((this._data.cards[_i6].value == last_card.value || this._data.cards[_i6].color == last_card.color) && this._data.cards[_i6].value != 'plus2' && this._data.cards[_i6].type == 2) {
           isFind = true;
           card = this._hand_cards[_i6];
           tips_cards.push(card);

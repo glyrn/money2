@@ -233,7 +233,8 @@ const socketMgr = function(){
 
                 var card_type = _gameMgr.roomState.ctxCard.type;
                 var card_len = _gameMgr.roomState.ctxCard.len;
-
+                console.log("card_type:"+card_type+"  "+card_len+"  "+data.ctxData.key);
+ 
                 //炸弹
                 if(card_type == 'AAAA' && card_len == 4){
                     cc.playEffect('sound/bomb',false,1);
@@ -264,6 +265,10 @@ const socketMgr = function(){
                         _gameMgr.posState.self.ratio += 2;
                     }
                     _eventMgr.fire("show_global_effect",{anim:"animAirplane"+_gameMgr.roomState.ctxPos,isAutoHide:true});
+                }else if(data.ctxData.key == 17){ //大王
+                    cc.playEffect("sound/king_big",false,1);
+                }else if(data.ctxData.key == 16){ //小王
+                    cc.playEffect("sound/king_small",false,1);
                 }else{
                     cc.playEffect("sound/singer_send_card",false,1);
                 }

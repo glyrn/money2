@@ -273,11 +273,10 @@ cc.Class({
         })
         //人机对战
         globalData.eventlister.on('PREPARE_SUCCESS',function(prepare_uid){
-            //准备成功
-            self.btn_ready.active = false;
-
+            
             if(globalData.gameMgr.play_mode == 0){ //人机
-                //
+                //准备成功
+                self.btn_ready.active = false;
             }else{ //人人
 
                 if(globalData.gameMgr.playerData.self.uid == prepare_uid){
