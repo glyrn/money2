@@ -219,7 +219,7 @@ cc.Class({
                 }
             //找功能牌
                 for (let i = 0; i < this._data.cards.length; i++) {
-                    if (this._data.cards[i].color == last_card.color && this._data.cards[i].value != 'plus2' && this._data.cards[i].type == 2) {
+                    if ((this._data.cards[i].value == last_card.value || this._data.cards[i].color == last_card.color) && this._data.cards[i].value != 'plus2' && this._data.cards[i].type == 2) {
                         isFind = true;
                         card = this._hand_cards[i];
                         tips_cards.push(card);

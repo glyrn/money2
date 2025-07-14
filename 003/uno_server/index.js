@@ -318,7 +318,7 @@ const proto = {
           desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
 
           if(score_total >= desk.specific_score){
-            self.sendYcGameOver({
+            this.sendYcGameOver({
               room_id:desk.name,
               game_id:3,
               score_list:desk.score_list

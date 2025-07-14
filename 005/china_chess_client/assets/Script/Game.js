@@ -179,10 +179,9 @@ cc.Class({
         })
         globalData.eventlister.on('PREPARE_SUCCESS',function(prepare_uid){
             //准备成功
-            that.btn_ready.active = false;
-
+            
             if(globalData.gameMgr.play_mode == 0){ //人机
-                //
+                that.btn_ready.active = false;
             }else{ //人人
                 if(globalData.gameMgr.playerData.self.uid == prepare_uid){
                     globalData.gameMgr.playerData.self.state = 2;
