@@ -394,7 +394,7 @@ const proto = {
     this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId});
     //继续检查下一个玩家是否断线
     var nextUserObj = this.getPositionByPosId(desk,nextPosId);
-    if(nextUserObj.disconnectTime > 0){
+    if(nextUserObj && nextUserObj.disconnectTime > 0){
       this.makePass(desk,nextPosId);
     }
   },
@@ -835,8 +835,7 @@ const proto = {
               
               //轮到的玩家刚好掉线
               var nextUserObj = self.getPositionByPosId(desk,nextPosId);
-              console.log(nextUserObj.name,"nextUserObj.disconnectTime:",nextUserObj.disconnectTime)
-              if(nextUserObj.disconnectTime > 0){
+              if(nextUserObj && nextUserObj.disconnectTime > 0){
                 self.makePass(desk,nextPosId);
               }
             }
