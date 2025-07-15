@@ -32,9 +32,9 @@ if (url.split('?').length > 1) {
   }
 
   cc.args = field; //    正式环境调试
-
-  defines.isDebug = true;
-  defines.isForce = true; // cc.args['gamedomain'] = "www.fsyctech.com";
+  // defines.isDebug = true;
+  // defines.isForce = true;
+  // cc.args['gamedomain'] = "www.fsyctech.com";
   // // // cc.args['ycdomain'] = "www.fsyctech.com";
   // // // cc.args['gamedomain'] = "www.woojey.com";
   // cc.args['ycdomain'] = "www.woojey.com";

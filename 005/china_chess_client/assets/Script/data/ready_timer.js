@@ -18,6 +18,11 @@ cc.Class({
             if(that._timer) clearInterval(that._timer);
             that._timer = setInterval(function(){
                 
+                if(globalData.gameMgr.is_quit){
+                    if(that._timer) clearInterval(that._timer);
+                    return;
+                }
+                
                 that.label.string = "准备("+that.timer_index+")";
 
                 if(that.timer_index <= 0){

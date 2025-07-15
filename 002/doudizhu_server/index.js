@@ -746,7 +746,7 @@ const proto = {
               if(game.getStatus() == 2) {
                 //玩家如果掉线中 自动出pass
                 var nextUserObj = self.getPosition(desk, game.getContextPosId());
-                if (nextUserObj.disconnectTime > 0) {
+                if (nextUserObj && nextUserObj.disconnectTime > 0) {
                   game.next(nextUserObj.posId, [], desk.islaizi);
                   self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
                     ctxData: {
@@ -787,6 +787,25 @@ const proto = {
               delete self.clients[userObj.uid];
               userObj.socket = null;
               userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
+              
+              const game = self.gameDatas[self.desks[i].deskId];
+              if(game && game.getContextPosId() == userObj.posId){
+                  game.next(game.getContextPosId(), [], self.desks[i].islaizi);
+                  var nextUserObj = self.getPosition(self.desks[i], game.getContextPosId());
+                  self.broadCastRoom('CTX_PLAY_CHANGE', self.desks[i].deskId, {
+                    ctxData: {
+                      len: 0,
+                      key: '',
+                      type: '',
+                      cards: [],
+                      posId: nextUserObj.posId,
+                    },
+                    posId: game.getContextPosId(),
+                    timeout: 15,
+                    isPass: true,
+                  })
+              }
+
               //通知其他人 该玩家掉线了
               self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);
               return;
