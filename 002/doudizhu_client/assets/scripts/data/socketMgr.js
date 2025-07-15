@@ -346,10 +346,14 @@ const socketMgr = function(){
             _eventMgr.fire('GAME_OVER2',data);
 
             _gameMgr.play_index++;
+            _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
+            console.log("game_over",_gameMgr.is_quit);
             if(_gameMgr.play_count < _gameMgr.play_index){ //剩余局数为0
                 _gameMgr.play_index = 1;
                 _gameMgr.score_list = [];
             }
+
+            
         });
 
         _socket.on('CALL_SCORE_SUCCESS',function(ratio){

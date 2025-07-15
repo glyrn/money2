@@ -227,11 +227,7 @@ const proto = {
       }
       this.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS", desk.deskId, {posId: desk.cur_posId});
 
-      //如果下一个是掉线ing 则继续跳下一个
-      // var nextUserObj = this.getPositionByPosId(desk, desk.cur_posId);
-      // if (nextUserObj.disconnectTime > 0) {
-      //   this.makeNextPlayerDice(desk);
-      // }
+      
     }
   },
   broadCastRoom:function(event,roomId,data,except){
@@ -608,7 +604,12 @@ const proto = {
               delete self.clients[userObj.uid];
               userObj.socket = null;
               userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
-
+              
+              //下一个玩家
+              if(self.desks[i].cur_posId == userObj.posId){
+                self.makeNextPlayerDice(self.desks[i]);
+              }
+              
               //通知其他人 该玩家掉线了
               self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);
               return;
@@ -671,6 +672,12 @@ const proto = {
         var desk = self.getDesk(socket);
         if(desk){
           self.makeNextPlayerDice(desk);
+
+          //如果下一个是掉线ing 则继续跳下一个
+          var nextUserObj = self.getPositionByPosId(desk, desk.cur_posId);
+          if (nextUserObj && nextUserObj.disconnectTime > 0) {
+            self.makeNextPlayerDice(desk);
+          }
         }
       })
     });

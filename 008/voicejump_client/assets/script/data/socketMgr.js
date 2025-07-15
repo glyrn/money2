@@ -46,7 +46,6 @@ const socketMgr = function(){
             _eventMgr.removeAllLister();
             cc.director.preloadScene("Game",function(){},function() {
 
-                // var enterGame = function(){
                     if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
 
                             cc.director.loadScene("Game",function(){
@@ -67,34 +66,12 @@ const socketMgr = function(){
                                     cc.director.loadScene("Game",function(){
                                         that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
                                             cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
-                                                // clearTimeout(that._handler);
-                                                
+
                                             });
                                     });
-
-                                    setTimeout(function(){
-                                        _eventMgr.removeAllLister();
-                                        cc.director.loadScene("Game",function(){
-                                            that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'],
-                                                cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
-                                                    // clearTimeout(that._handler);
-                                                    
-                                                });
-                                        });
-                                    },2000)
                                 }
                             });
                         }
-                // }
-                // if(cc.args['ob_uid'] != null && cc.args['ob_uid'] != undefined){
-                //     setTimeout(() => {
-                //         console.log("延迟开始")
-                //         enterGame();
-                //     }, 3000);
-                // }else{
-                //     console.log("马上！开始")
-                //     enterGame();
-                // }
             });
         });
         _socket.on('connect_error', (error) => {
@@ -198,6 +175,8 @@ const socketMgr = function(){
                     _gameMgr.playerData[posId].state = 1;
                 }
             }
+
+            _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
             _eventMgr.fire("GAME_OVER",data);
         });
 

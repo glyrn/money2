@@ -17,7 +17,11 @@ cc.Class({
             that.timer_index = that.timer_count - 1;
             if(that._timer) clearInterval(that._timer);
             that._timer = setInterval(function(){
-                
+
+                if(globalData.gameMgr.is_quit){
+                    if(that._timer) clearInterval(that._timer);
+                    return;
+                }
                 that.label.string = "准备("+that.timer_index+")";
 
                 if(that.timer_index <= 0){

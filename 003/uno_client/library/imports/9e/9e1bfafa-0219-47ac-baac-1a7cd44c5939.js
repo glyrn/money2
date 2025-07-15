@@ -191,7 +191,7 @@ cc.Class({
     } else if (findObj.type == 1) {
       var _isExist = function _isExist(check) {
         for (var _k in tips_cards) {
-          if (tips_cards[_k].value == check.value && tips_cards[_k].color == check.color && tips_cards[_k].type == check.type) {
+          if (tips_cards[_k] && tips_cards[_k].value == check.value && tips_cards[_k].color == check.color && tips_cards[_k].type == check.type) {
             return true;
           }
         }

@@ -198,6 +198,8 @@ const socketMgr = function(){
     that.reqGameOver = function(data){
         if(that.checkIsObserve()) return;
         _socket.emit("REQ_GAME_OVER", data);
+
+        _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
     }
     that.checkIsObserve = function(){
         if(_gameMgr.is_ob){

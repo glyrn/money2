@@ -192,7 +192,8 @@ cc.Class({
         }else if(findObj.type == 1){
                 var _isExist = function(check){
                     for (const _k in tips_cards) {
-                        if(tips_cards[_k].value == check.value &&
+                        if(tips_cards[_k] && 
+                            tips_cards[_k].value == check.value &&
                             tips_cards[_k].color == check.color &&
                             tips_cards[_k].type == check.type){
                             return true;

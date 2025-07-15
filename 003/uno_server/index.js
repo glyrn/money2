@@ -386,6 +386,7 @@ const proto = {
     var plus_cards = [];
     for (let i = 0; i < plusNum; i++) {
       var card = desk.cards.shift();
+      if(!card) return; // 没有牌了 要退出
       plus_cards.push(card);
       userObj.cards.push(card);
     }
