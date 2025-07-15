@@ -382,9 +382,11 @@ const proto = {
 
     var userObj = desk.positions[curPosId];
     var nextPosId = this.getNextPosId(desk,curPosId);
+    desk.cur_posId = nextPosId;
     var plus_cards = [];
     for (let i = 0; i < plusNum; i++) {
       var card = desk.cards.shift();
+      if(!card) return; // 没有牌了 要退出
       plus_cards.push(card);
       userObj.cards.push(card);
     }
@@ -751,8 +753,7 @@ const proto = {
             }else{
                 nextPosId = self.getNextPosId(desk,curPosId);
             }
-
-            
+            desk.cur_posId = nextPosId;
 
             desk.out_cards.push(obj);
             var new_cards = [];

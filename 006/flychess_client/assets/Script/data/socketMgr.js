@@ -159,6 +159,8 @@ const socketMgr = function(){
                     _gameMgr.playerData[posId].state = 1;
                 }
             }
+
+            _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
             _eventMgr.fire("GAME_OVER",data);
         });
 

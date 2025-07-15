@@ -10,24 +10,37 @@ cc.Class({
 
     onEnable(){
         var that = this;
-        that.timer_index = that.timer_count - 1;
-        if(that._timer) clearInterval(that._timer);
-        that._timer = setInterval(function(){
-            
-            that.label.string = "准备("+that.timer_index+")";
+        console.log("that.isRunningxx",that.isRunning)
+        if(!that.isRunning){
 
-            if(that.timer_index <= 0){
-                if(that._timer) clearInterval(that._timer);
-                globalData.socketMgr.prepare();
-            }else{
-                that.timer_index--;
-            }
-        },1000);
+            that.isRunning = true;
 
-        that.label.string = "准备("+that.timer_count+")";
+            that.timer_index = that.timer_count - 1;
+            if(that._timer) clearInterval(that._timer);
+            that._timer = setInterval(function(){
+                
+                if(globalData.gameMgr.is_quit){
+                    if(that._timer) clearInterval(that._timer);
+                    return;
+                }
+                
+                that.label.string = "准备("+that.timer_index+")";
+
+                if(that.timer_index <= 0){
+                    if(that._timer) clearInterval(that._timer);
+                    that.isRunning = false;
+                    globalData.socketMgr.prepare();
+                }else{
+                    that.timer_index--;
+                }
+            },1000);
+
+            that.label.string = "准备("+that.timer_count+")";
+        }
     },
     onDisable(){
         var that = this;
         if(that._timer) clearInterval(that._timer);
+        that.isRunning = false;
     }
 });
