@@ -377,20 +377,13 @@ const proto = {
           var isClean = true;
           var winerPosId = 0;
           var winerUserObj = null;
-          var score_list = [];
+
           for (let k = 0; k < this.desks[i].positions.length; k++) {
              if(this.desks[i].positions[k].uid > 0 ){
                isClean = false;
                winerUserObj = this.desks[i].positions[k];
                winerPosId = winerUserObj.posId;
-
-               score_list.push({uid:this.desks[i].positions[winerPosId].uid,
-                name:this.desks[i].positions[winerPosId].name,
-                avatorUrl:this.desks[i].positions[winerPosId].avatorUrl,
-                score:10,
-                is_win:1});
               }
-             
           }
 
           if(isClean){
@@ -409,7 +402,8 @@ const proto = {
               this.desks[i].chequer[k].idx = -1;
             }
             // 还剩一个
-            this.broadCastRoom('GAME_OVER',this.desks[i].deskId,{winer:winerPosId,score:0});
+            this.gameOver(this.desks[i].deskId,null,winerPosId);
+            this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
           }
         }
       }

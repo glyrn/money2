@@ -219,22 +219,48 @@ const proto = {
 
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
+          var desk = this.desks[i];
           var winerPosId = 0;
-          for (let k = 0; k < this.desks[i].positions.length; k++) {
-            if(this.desks[i].positions[k].uid > 0 ){
+          for (let k = 0; k < desk.positions.length; k++) {
+            if(desk.positions[k].uid > 0 ){
               isClean = false;
-              winerPosId = this.desks[i].positions[k].posId;
+              winerPosId = desk.positions[k].posId;
             }
           }
           if(isClean){
-            this.desks[i].name = '';
-            this.desks[i].state = 0;
-            this.desks[i].play_index = 0;
-            this.desks[i].play_mode = -1;
-            this.desks[i].ob_socket_map = {};
+            desk.name = '';
+            desk.state = 0;
+            desk.play_index = 0;
+            desk.play_mode = -1;
+            desk.ob_socket_map = {};
           }else{
             // 还剩一个
-            this.broadCastRoom('GAME_OVER',this.desks[i].deskId,{winer:winerPosId,score:0});
+            this.broadCastRoom('GAME_OVER',desk.deskId,{winer:winerPosId,score:0});
+            this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
+
+            desk.state = 0;
+            var ycscore_list = [];
+            for (let i = 0; i < desk.positions.length; i++) {
+              desk.positions[i].state = 1;
+              if(desk.positions[i].uid >0) {
+                ycscore_list.push({
+                  uid: desk.positions[i].uid,
+                  name: desk.positions[i].name,
+                  score: desk.positions[i].gain_score,
+                  is_win: 0,
+                  avatorUrl:desk.positions[i].avatorUrl,
+                })
+              }
+            }
+            if(!desk.score_list) desk.score_list = [];
+            desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+            if(desk.play_index == desk.play_count){
+              this.sendYcGameOver({
+                room_id:desk.name,
+                game_id:5,
+                score_list:desk.score_list,
+              });
+            }
           }
         }
       }

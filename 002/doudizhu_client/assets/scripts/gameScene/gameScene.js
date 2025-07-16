@@ -162,8 +162,8 @@ cc.Class({
         this._player_node_list[0].getComponent('PlayerNode').checkEffectCardAnim(globalData.gameMgr.posState.self);
     },
     renderRoom(){
-        this.lab_roomid.string = "版本:1.0.1 "+
-            "  底分:"+globalData.gameMgr.base_score +
+        this.lab_roomid.string = 
+            "底分:"+globalData.gameMgr.base_score +
             "  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         this.labTopCardScore.string = '';
     },

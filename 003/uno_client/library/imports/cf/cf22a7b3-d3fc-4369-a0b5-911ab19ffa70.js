@@ -239,7 +239,7 @@ cc.Class({
   },
   renderRoomTitle: function renderRoomTitle() {
     var distance = _globalData["default"].gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
-    this.lab_roomid.string = "版本:1.0.1 局数:" + _globalData["default"].gameMgr.play_index + " 特定分数:" + cc.args['specific_score'];
+    this.lab_roomid.string = "局数:" + _globalData["default"].gameMgr.play_index + "  特定分数:" + cc.args['specific_score'];
 
     if (distance > 0) {
       var minutes = Math.floor(distance % (60 * 60) / 60);
