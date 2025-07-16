@@ -377,7 +377,7 @@ const proto = {
           var isClean = true;
           var winerPosId = 0;
           var winerUserObj = null;
-
+          var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
              if(this.desks[i].positions[k].uid > 0 ){
                isClean = false;
@@ -665,6 +665,8 @@ const proto = {
             if(roomObj.play_index == 1){
               roomObj.score_list = [];
             }
+            //从玩家1开始
+            roomObj.cur_posId = 1;
             self.broadCastRoom("GAME_START",self.getDeskId(socket),1);
           }
         }
