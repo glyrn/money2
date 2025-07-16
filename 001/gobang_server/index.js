@@ -402,8 +402,30 @@ const proto = {
               this.desks[i].chequer[k].idx = -1;
             }
             // 还剩一个
-            this.gameOver(this.desks[i].deskId,null,winerPosId);
             this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
+
+            desk.state = 0;
+            var ycscore_list = [];
+            for (let i = 0; i < desk.positions.length; i++) {
+              desk.positions[i].state = 1;
+              if(desk.positions[i].uid >0) {
+                ycscore_list.push({
+                  uid: desk.positions[i].uid,
+                  name: desk.positions[i].name,
+                  score: desk.positions[i].gain_score,
+                  is_win: 0,
+                  avatorUrl:desk.positions[i].avatorUrl,
+                })
+              }
+            }
+            if(!desk.score_list) desk.score_list = [];
+            desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+            this.sendYcGameOver({
+              room_id:desk.name,
+              game_id:1,
+              score_list:desk.score_list,
+            });
+            
           }
         }
       }
