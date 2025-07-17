@@ -234,7 +234,7 @@ const proto = {
       if(roomObj.deskId == roomId){
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.socket){
+          if(userObj.socket || userObj.disconnectTime > 0){
             if(except){
               if(userObj.uid != except){
                 this.socketEmit(userObj,event,data);
@@ -269,19 +269,48 @@ const proto = {
 
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
+          var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
             if(this.desks[i].positions[k].uid > 0 ){
               isClean = false;
             }
           }
           if(isClean){
-            this.desks[i].name = '';
-            this.desks[i].state = 0;
-            this.desks[i].play_index = 1;
-            this.desks[i].ready_count = -1;
+            desk.name = '';
+            desk.state = 0;
+            desk.play_index = 1;
+            desk.ready_count = -1;
           }
+
+          this.broadCastRoom("GAME_OVER", desk.deskId,  {winner: [],loser: [],score: 0,ratio: 0});
+          this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
+
+          desk.state = 0;
+          var ycscore_list = [];
+          for (let i = 0; i < desk.positions.length; i++) {
+            desk.positions[i].state = 1;
+            if(desk.positions[i].uid >0) {
+              ycscore_list.push({
+                uid: desk.positions[i].uid,
+                name: desk.positions[i].name,
+                score: desk.positions[i].gain_score,
+                is_win: 0,
+                avatorUrl:desk.positions[i].avatorUrl,
+              })
+            }
+          }
+          if(!desk.score_list) desk.score_list = [];
+          desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+    
+            this.sendYcGameOver({
+              room_id:desk.name,
+              game_id:2,
+              score_list:desk.score_list,
+            });
+          
         }
       }
+      
     }
   },
   //切换房间
@@ -783,11 +812,7 @@ const proto = {
             if(userObj.state > 0 && userObj.socket && userObj.socket.id == socket.id){
 
               console.log('用户 '+userObj.name+" "+userObj.uid+' 断线');
-              //记录掉线时间
-              delete self.clients[userObj.uid];
-              userObj.socket = null;
-              userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
-              
+
               const game = self.gameDatas[self.desks[i].deskId];
               if(game && game.getContextPosId() == userObj.posId){
                   game.next(game.getContextPosId(), [], self.desks[i].islaizi);
@@ -806,6 +831,11 @@ const proto = {
                   })
               }
 
+              //记录掉线时间
+              delete self.clients[userObj.uid];
+              userObj.socket = null;
+              userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
+              
               //通知其他人 该玩家掉线了
               self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);
               return;

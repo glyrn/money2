@@ -119,6 +119,7 @@ const socketMgr = function(){
             _eventMgr.fire('MAKE_DICE_NUM_SUCCESS', data);
         })
         _socket.on('PLAY_MOVE_STEP_SUCCESS',function(data){
+            console.log("PLAY_MOVE_STEP_SUCCESS:!!",data)
             _eventMgr.fire('PLAY_MOVE_STEP_SUCCESS', data);
         })
 
@@ -140,6 +141,9 @@ const socketMgr = function(){
         _socket.on('NEXT_PLAYER_DICE_SUCCESS',function(data){
             _eventMgr.fire("NEXT_PLAYER_DICE_SUCCESS",data);
         });
+        _socket.on("FINISH_CHESS_SUCCESS",function(data){
+            _eventMgr.fire("FINISH_CHESS_SUCCESS",data);
+        })
         _socket.on('GAME_START',function(data){
             _gameMgr.roomState.state = 1;//进行中
 
@@ -205,6 +209,10 @@ const socketMgr = function(){
         if(that.checkIsObserve()) return;
         _socket.emit('FINISH_CHESS', {posId:posId,idx:chess_idx});
     }
+    // that.standUpChess = function(posId,chess_idx){
+    //     if(that.checkIsObserve()) return;
+    //     _socket.emit('STANDUP_CHESS', {posId:posId,idx:chess_idx});
+    // }
     that.getSocket = function(){
         return _socket;
     }

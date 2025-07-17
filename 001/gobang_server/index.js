@@ -377,20 +377,13 @@ const proto = {
           var isClean = true;
           var winerPosId = 0;
           var winerUserObj = null;
-          var score_list = [];
+          var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
              if(this.desks[i].positions[k].uid > 0 ){
                isClean = false;
                winerUserObj = this.desks[i].positions[k];
                winerPosId = winerUserObj.posId;
-
-               score_list.push({uid:this.desks[i].positions[winerPosId].uid,
-                name:this.desks[i].positions[winerPosId].name,
-                avatorUrl:this.desks[i].positions[winerPosId].avatorUrl,
-                score:10,
-                is_win:1});
               }
-             
           }
 
           if(isClean){
@@ -409,7 +402,30 @@ const proto = {
               this.desks[i].chequer[k].idx = -1;
             }
             // 还剩一个
-            this.broadCastRoom('GAME_OVER',this.desks[i].deskId,{winer:winerPosId,score:0});
+            this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
+
+            desk.state = 0;
+            var ycscore_list = [];
+            for (let i = 0; i < desk.positions.length; i++) {
+              desk.positions[i].state = 1;
+              if(desk.positions[i].uid >0) {
+                ycscore_list.push({
+                  uid: desk.positions[i].uid,
+                  name: desk.positions[i].name,
+                  score: desk.positions[i].gain_score,
+                  is_win: 0,
+                  avatorUrl:desk.positions[i].avatorUrl,
+                })
+              }
+            }
+            if(!desk.score_list) desk.score_list = [];
+            desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+            this.sendYcGameOver({
+              room_id:desk.name,
+              game_id:1,
+              score_list:desk.score_list,
+            });
+            
           }
         }
       }
@@ -671,6 +687,8 @@ const proto = {
             if(roomObj.play_index == 1){
               roomObj.score_list = [];
             }
+            //从玩家1开始
+            roomObj.cur_posId = 1;
             self.broadCastRoom("GAME_START",self.getDeskId(socket),1);
           }
         }

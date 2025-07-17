@@ -140,11 +140,17 @@ cc.Class({
             }
         }
     },
+    finishChess(idx){
+        console.log("finishChess:",idx)
+        this.finish_tags[idx].active = true;
+        this.chess_status[idx] = 3;
+    },
+
     standUpChess(idx,cbFunc){
         //起
         this.chess_steps[idx] = 0;
         this.chess_status[idx] = 1;
-
+        
         this.cur_run_idx = idx;
         var moveTo = this.chess_list[this.cur_run_idx].parent.convertToNodeSpaceAR(this.standup_pos.parent.convertToWorldSpaceAR(this.standup_pos.position));
 
@@ -331,10 +337,12 @@ cc.Class({
             return is_special;
         }
 
-        function moveOnNum(num){
-            
-            function moveOnNumSimple(num){
+        
 
+        function moveOnNum(num){
+            console.log("移动-》",num)
+            function moveOnNumSimple(num){
+                
                 cc.playEffect("sound/run",false,1);
 
                 if(that.chess_steps[idx] > 0 || (that.chess_status[idx] == 2)){
@@ -359,7 +367,6 @@ cc.Class({
                             that.chess_steps[idx]--;
                         }
                     }
-
                     var target_place_node = all_places[that.chess_steps[idx]];
                     if(target_place_node) {
                         target_place = target_place_node.getComponent('Place');
@@ -368,8 +375,8 @@ cc.Class({
                         var angle = target_place.angle;
 
                         if(globalData.gameMgr.isRecover){
-                            that.chess_list[that.cur_run_idx].position = moveTo;
-                            that.chess_list[that.cur_run_idx].setRotation(angle);
+                            that.chess_list[idx].position = moveTo;
+                            that.chess_list[idx].setRotation(angle);
 
                         }else{
                             var act1 = cc.rotateTo(0.2, angle)
