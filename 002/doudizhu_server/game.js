@@ -340,8 +340,6 @@ Object.assign(
       const posIds = [0, 1, 2];
       var winnerId = '';
       var ret = {
-
-
         winner: [],
         loser: [],
         score: diZhuData.score,

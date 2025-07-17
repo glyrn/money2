@@ -257,7 +257,7 @@ cc.Class({
                 this.avator_target.getComponent("Avator").setData(globalData.gameMgr.playerData.self,'self');
             }
         }
-        this.lab_room.string = "版本:1.0 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
     },
     gameStart:function(){
 

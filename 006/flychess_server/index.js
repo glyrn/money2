@@ -216,18 +216,10 @@ const proto = {
       if (desk.cur_dice_num != 6) {
         desk.cur_posId++;
       }
-      var count = 0;
-      for (let i = 0; i < desk.positions.length; i++) {
-        if (desk.positions[i].state == 2) { //游戏中
-          count++;
-        }
-      }
-      if (desk.cur_posId >= count) {
+      if (desk.cur_posId >= desk.ready_count) {
         desk.cur_posId = 0;
       }
       this.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS", desk.deskId, {posId: desk.cur_posId});
-
-      
     }
   },
   broadCastRoom:function(event,roomId,data,except){
@@ -236,7 +228,7 @@ const proto = {
       if(roomObj.deskId == roomId){
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.socket){
+          if(userObj.socket || userObj.disconnectTime > 0){
             if(except){
               if(userObj.uid != except){
                 this.socketEmit(userObj,event,data);
@@ -255,7 +247,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           userObj.uid = 0;
@@ -272,6 +264,7 @@ const proto = {
 
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
+          var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
             if(this.desks[i].positions[k].uid > 0 ){
               isClean = false;
@@ -284,11 +277,36 @@ const proto = {
             this.desks[i].play_mode = -1;
             this.desks[i].ready_count = -1;
             this.desks[i].ob_socket_map = {};
-          }else{
-            this.broadCastRoom("GAME_OVER", this.desks[i].deskId, {invalid:1,winer: -1, score_list: []});
+          }
+            this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
+            this.broadCastRoom("MESSAGE",desk.deskId,"中途有人逃跑本局成绩作废");
+
+            desk.state = 0;
+            var ycscore_list = [];
+            for (let i = 0; i < desk.positions.length; i++) {
+              desk.positions[i].state = 1;
+              if(desk.positions[i].uid >0) {
+                ycscore_list.push({
+                  uid: desk.positions[i].uid,
+                  name: desk.positions[i].name,
+                  score: desk.positions[i].gain_score,
+                  is_win: 0,
+                  avatorUrl:desk.positions[i].avatorUrl,
+                })
+              }
+            }
+            if(!desk.score_list) desk.score_list = [];
+            desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+          
+              this.sendYcGameOver({
+                room_id:desk.name,
+                game_id:6,
+                score_list:desk.score_list,
+              });
+            
           }
         }
-      }
+      
     }
   },
   //切换房间
@@ -599,19 +617,24 @@ const proto = {
 
             if(userObj.state > 0 && userObj.socket && userObj.socket.id == socket.id) {
 
+              //下一个玩家
+              if(self.desks[i].cur_posId == userObj.posId){
+                //重置点数
+                self.desks[i].cur_dice_num = 5;
+                self.broadCastRoom("MAKE_DICE_NUM_SUCCESS",self.desks[i].deskId,{num:5,posId:userObj.posId});
+
+                self.makeNextPlayerDice(self.desks[i]);
+              }
+
+              //通知其他人 该玩家掉线了
+              self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);
+
               console.log('用户 ' + userObj.name + " " + userObj.uid + ' 断线');
               //记录掉线时间
               delete self.clients[userObj.uid];
               userObj.socket = null;
               userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
-              
-              //下一个玩家
-              if(self.desks[i].cur_posId == userObj.posId){
-                self.makeNextPlayerDice(self.desks[i]);
-              }
-              
-              //通知其他人 该玩家掉线了
-              self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);
+
               return;
             }
           }
@@ -628,13 +651,17 @@ const proto = {
       });
       socket.on('PLAY_MOVE_STEP',function(data){
         data.posId = self.getPosId(socket);
-        self.broadCastRoom("PLAY_MOVE_STEP_SUCCESS",self.getDeskId(socket),data);
+        var desk = self.getDesk(socket);
+        if(desk){
+            self.broadCastRoom("PLAY_MOVE_STEP_SUCCESS",desk.deskId,data);  
+        }
       });
       socket.on('FINISH_CHESS',function(data){
         var desk = self.getDesk(socket);
         if(desk){
           var posId = data.posId;
           desk.positions[posId].finish_chess[data.idx] = 1;
+          self.broadCastRoom("FINISH_CHESS_SUCCESS",desk.deskId,data);
 
           if(self.checkOver(desk.deskId,posId) && desk.state == 1){
             desk.state = 2; //游戏结束
