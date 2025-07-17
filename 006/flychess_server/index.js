@@ -216,18 +216,10 @@ const proto = {
       if (desk.cur_dice_num != 6) {
         desk.cur_posId++;
       }
-      var count = 0;
-      for (let i = 0; i < desk.positions.length; i++) {
-        if (desk.positions[i].state == 2) { //游戏中
-          count++;
-        }
-      }
-      if (desk.cur_posId >= count) {
+      if (desk.cur_posId >= desk.ready_count) {
         desk.cur_posId = 0;
       }
       this.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS", desk.deskId, {posId: desk.cur_posId});
-
-      
     }
   },
   broadCastRoom:function(event,roomId,data,except){
@@ -236,7 +228,7 @@ const proto = {
       if(roomObj.deskId == roomId){
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.socket){
+          if(userObj.socket || userObj.disconnectTime > 0){
             if(except){
               if(userObj.uid != except){
                 this.socketEmit(userObj,event,data);
@@ -255,7 +247,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           userObj.uid = 0;
@@ -627,6 +619,10 @@ const proto = {
 
               //下一个玩家
               if(self.desks[i].cur_posId == userObj.posId){
+                //重置点数
+                self.desks[i].cur_dice_num = 5;
+                self.broadCastRoom("MAKE_DICE_NUM_SUCCESS",self.desks[i].deskId,{num:5,posId:userObj.posId});
+
                 self.makeNextPlayerDice(self.desks[i]);
               }
 
@@ -655,13 +651,17 @@ const proto = {
       });
       socket.on('PLAY_MOVE_STEP',function(data){
         data.posId = self.getPosId(socket);
-        self.broadCastRoom("PLAY_MOVE_STEP_SUCCESS",self.getDeskId(socket),data);
+        var desk = self.getDesk(socket);
+        if(desk){
+            self.broadCastRoom("PLAY_MOVE_STEP_SUCCESS",desk.deskId,data);  
+        }
       });
       socket.on('FINISH_CHESS',function(data){
         var desk = self.getDesk(socket);
         if(desk){
           var posId = data.posId;
           desk.positions[posId].finish_chess[data.idx] = 1;
+          self.broadCastRoom("FINISH_CHESS_SUCCESS",desk.deskId,data);
 
           if(self.checkOver(desk.deskId,posId) && desk.state == 1){
             desk.state = 2; //游戏结束

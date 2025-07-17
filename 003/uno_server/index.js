@@ -337,7 +337,7 @@ const proto = {
       if(roomObj.deskId == roomId){
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.socket){
+          // if(userObj.socket){
             if(except){
               if(userObj.uid != except){
                 this.socketEmit(userObj,event,data);
@@ -345,7 +345,7 @@ const proto = {
             }else{
               this.socketEmit(userObj,event,data);
             }
-          }
+          // }
         }
       }
     }

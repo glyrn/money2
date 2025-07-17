@@ -119,7 +119,7 @@ cc.Class({
     },
     onMakeDiceNumSuccess(data){
         var that = this;
-
+        console.log("MakeDiceNumSuccess 骰子： ",data.num)
         if(!cc.gameInBackgroud){
             this.showDiceNum(data.num,function(){
                 that.playerNodes[data.posId].render()
@@ -221,6 +221,12 @@ cc.Class({
         globalData.eventlister.on('PLAY_MOVE_STEP_SUCCESS',function(data){
             that.playerNodes[data.posId].onPlayMoveStepAnim(data.idx,data.num)
         });
+        globalData.eventlister.on('FINISH_CHESS_SUCCESS',function(data){
+            that.playerNodes[data.posId].finishChess(data.idx);
+        });
+        // globalData.eventlister.on("STANDUP_CHESS_SUCCESS",function(data){
+        //     that.playerNodes[data.posId]._standUpChess(data.idx);
+        // })
         globalData.eventlister.on('GAME_OVER',function(data){
             that.onGameOver(data)
         });
@@ -264,6 +270,7 @@ cc.Class({
     nextPlayerDice(data){
 
         this._isCanMakeDiceLock = false;
+        console.log(data.posId)
         this.onShowTips("请【"+globalData.gameMgr.playerData[data.posId].name+"】骰筛子");
         for (const i in globalData.gameMgr.playerData) {
             this.playerNodes[globalData.gameMgr.playerData[i].posId].setTurnFlag(data.posId == i);
