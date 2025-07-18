@@ -106,7 +106,7 @@ const socketMgr = function(){
             _gameMgr.play_mode = data.play_mode;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
-            _gameMgr.checkBeat();
+            // _gameMgr.checkBeat();
             
             console.log(data)
             _eventMgr.fire("LOGIN_SUCCESS");

@@ -29,6 +29,8 @@ cc.Class({
         btn_score:cc.Node,
         tips:cc.Node,
         lab_room:cc.Label,
+        lab_warning:cc.Node,
+        lab_contents:cc.Node,
         map:Map,
     },
     //退出游戏
@@ -156,32 +158,37 @@ cc.Class({
         this.lab_room.string = "局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
 
         //发送退出游戏事件
-        if(isQuit){
-            window.parent.postMessage({'quitGame':1}, "*");
-            console.log("发送退出事件")
-        }
+        // if(isQuit){
+        //     window.parent.postMessage({'quitGame':1}, "*");
+        //     console.log("发送退出事件")
+        // }
     },
     renderScorePanel(){
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
         var lab_title = this.panel_game_over.getChildByName('lab_title').getComponent(cc.Label);
         if(data.invalid == 1){
-            lab_title.string = "有玩家逃跑，本局无效";
+            // lab_title.string = "有玩家逃跑，本局无效";
+            this.lab_warning.active = true;
+            this.lab_contents.active = false;
         }else{
+            this.lab_warning.active = false;
+            this.lab_contents.active = true;
+
             if(data.winer == globalData.gameMgr.posId){
                 lab_title.string = "恭喜，你赢了！";
             }else{
                 lab_title.string = "你输了，加油~";
             }
-        }
 
-        for (let i = 0; i < 4; i++) {
-            var item = this.panel_game_over.getChildByName('container').getChildByName('player'+(i+1))
-            var playerData = globalData.gameMgr.playerData[i];
-            if(playerData && data.invalid != 1){
-                item.active = true;
-                item.getComponent(cc.Label).string = playerData.name + " " + "+"+data.score_list[playerData.posId]+"分";
-            }else{
-                item.active = false;
+            for (let i = 0; i < 4; i++) {
+                var item = this.panel_game_over.getChildByName('container').getChildByName('player'+(i+1))
+                var playerData = globalData.gameMgr.playerData[i];
+                if(playerData && data.invalid != 1){
+                    item.active = true;
+                    item.getComponent(cc.Label).string = playerData.name + " " + "+"+data.score_list[playerData.posId]+"分";
+                }else{
+                    item.active = false;
+                }
             }
         }
     },

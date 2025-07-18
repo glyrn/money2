@@ -8,6 +8,8 @@ cc.Class({
         lab_score_2:cc.Label,
         lab_score_3:cc.Label,
         // lab_title:cc.Label,
+        lab_warning:cc.Node,
+        lab_contents:cc.Node,
     },
     onLoad(){
         this.cur_idx = 0;
@@ -24,21 +26,32 @@ cc.Class({
         this.refresh();
     },
     refresh(){
-        var score_list = globalData.gameMgr.score_list[this.cur_idx];
-        for (let i = 0; i < 4; i++) {
-            this['lab_score_'+i].node.active = false;
-        }
+        var data = globalData.gameMgr.score_list[this.cur_idx];
+        //有人逃跑
+        if(data.invalid == 1){
+            this.lab_warning.active = true;
+            this.lab_contents.active = false;
+        }else{
 
-        var cur_sort = 0;
-        for (let i = 0; i < score_list.length; i++) {
-            var info = score_list[i];
-            this['lab_score_'+i].node.active = true;
-            this['lab_score_'+i].string = "Top"+(i+1)+"："+info.name+"："+info.score;
+            this.lab_warning.active = false;
+            this.lab_contents.active = true;
 
-            if(info.posId == globalData.gameMgr.posId){
-                cur_sort = i+1;
+            var score_list = data.score_list;
+
+            for (let i = 0; i < 4; i++) {
+                this['lab_score_'+i].node.active = false;
+            }
+
+            var cur_sort = 0;
+            for (let i = 0; i < score_list.length; i++) {
+                var info = score_list[i];
+                this['lab_score_'+i].node.active = true;
+                this['lab_score_'+i].string = "Top"+(i+1)+"："+info.name+"："+info.score;
+
+                if(info.posId == globalData.gameMgr.posId){
+                    cur_sort = i+1;
+                }
             }
         }
-        // this.lab_title.string = "太棒了，您获得了第"+cur_sort+"名！";
     },
 });

@@ -100,7 +100,7 @@ const socketMgr = function(){
         });
 
         _socket.on("LOGIN_SUCCESS", function (data) {
-            console.log("socket:LOGIN_SUCCESS")
+  
             _gameMgr.playerData = JSON.parse(JSON.stringify(data.playerData));
             _gameMgr.roomState.roomId = data.roomId;
             _gameMgr.playerData = data.playerData;
@@ -108,7 +108,7 @@ const socketMgr = function(){
             _gameMgr.posId = data.posId;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
-            _gameMgr.checkBeat();
+            // _gameMgr.checkBeat();
             
             _eventMgr.fire("LOGIN_SUCCESS");
             if (_cbLogin) {

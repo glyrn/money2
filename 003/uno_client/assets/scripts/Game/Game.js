@@ -33,6 +33,8 @@ cc.Class({
         sp_clock_color4:cc.SpriteFrame,
         panel_continue:cc.Node,
         globalAnim:cc.Animation,
+        lab_warninig:cc.Node,
+        lab_items:cc.Node,
     },
     onLoad() {
 
@@ -437,24 +439,22 @@ cc.Class({
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
 
         //有玩家逃跑 无效回合
-        // if(data.invalid == 1){
-        //     this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "有玩家逃跑，本局无效";
-        // }else{
-        //     if(data.winer == globalData.gameMgr.playerData.self.posId){
-        //         this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "恭喜，你赢了！";
-        //     }else{
-        //         this.panel_score.getChildByName("lab_title").getComponent(cc.Label).string = "你输了，加油~";
-        //     }
-        // }
+        if(data.invalid == 1){
+            this.lab_warninig.active = true;
+            this.lab_items.active = false;
+        }else{
+            this.lab_warninig.active = false;
+            this.lab_items.active = true;
 
-        for (let i = 0; i < 4; i++) {
-            var label = this.panel_score.getChildByName('items').getChildByName('label'+i);
-            if(data.score_list[i] && globalData.gameMgr.getPlayerData(i)){
-                label.active = true;
-                var option = i == data.winer ? "+" : "-";
-                label.getComponent(cc.Label).string = globalData.gameMgr.getPlayerData(i).name + " " + option + data.score_list[i]+ "分";
-            }else{
-                label.active = false;
+            for (let i = 0; i < 4; i++) {
+                var label = this.panel_score.getChildByName('items').getChildByName('label'+i);
+                if(data.score_list[i] && globalData.gameMgr.getPlayerData(i)){
+                    label.active = true;
+                    var option = i == data.winer ? "+" : "-";
+                    label.getComponent(cc.Label).string = globalData.gameMgr.getPlayerData(i).name + " " + option + data.score_list[i]+ "分";
+                }else{
+                    label.active = false;
+                }
             }
         }
     },
