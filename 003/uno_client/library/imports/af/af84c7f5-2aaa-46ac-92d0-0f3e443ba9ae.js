@@ -124,9 +124,7 @@ var socketMgr = function socketMgr() {
         }
       }
 
-      _gameMgr.play_index = 0;
-
-      _gameMgr.checkBeat();
+      _gameMgr.play_index = 0; // _gameMgr.checkBeat();
 
       _eventMgr.fire("LOGIN_SUCCESS");
 

@@ -101,8 +101,8 @@ const socketMgr = function(){
             _gameMgr.posId = data.posId;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
-            console.log(_gameMgr.playerData)
-            _gameMgr.checkBeat();
+            // console.log(_gameMgr.playerData)
+            // _gameMgr.checkBeat();
             _eventMgr.fire("LOGIN_SUCCESS");
             if (_cbLogin) {
                 _cbLogin();

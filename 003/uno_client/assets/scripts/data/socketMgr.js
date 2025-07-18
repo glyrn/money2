@@ -105,7 +105,7 @@ const socketMgr = function(){
                 }
             }
             _gameMgr.play_index = 0;
-            _gameMgr.checkBeat();
+            // _gameMgr.checkBeat();
 
             _eventMgr.fire("LOGIN_SUCCESS")
             if (_cbLogin) {

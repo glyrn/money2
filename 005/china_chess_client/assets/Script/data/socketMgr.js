@@ -106,7 +106,7 @@ const socketMgr = function(){
             _gameMgr.play_mode = data.play_mode;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
-            _gameMgr.checkBeat();
+            // _gameMgr.checkBeat();
             _eventMgr.fire("LOGIN_SUCCESS");
             if (_cbLogin) {
                 _cbLogin();
@@ -126,7 +126,7 @@ const socketMgr = function(){
             _eventMgr.fire("SIT_CHANGE",data);
             //对手逃跑 游戏结束
             if(data.target == null){
-                _eventMgr.fire('GAME_OVER',{score:100,winer:globalData.gameMgr.playerData.self.posId});
+                _eventMgr.fire('GAME_OVER',{invalid:1,score:0,winer:globalData.gameMgr.playerData.self.posId});
             }
         })
 

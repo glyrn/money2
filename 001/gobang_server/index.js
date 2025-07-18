@@ -402,7 +402,8 @@ const proto = {
               this.desks[i].chequer[k].idx = -1;
             }
             // 还剩一个
-            this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
+            this.broadCastRoom('GAME_OVER',desk.deskId,{invalid:1,winer:-1,score:0});
+            // this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
 
             desk.state = 0;
             var ycscore_list = [];

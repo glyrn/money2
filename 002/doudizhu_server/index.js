@@ -282,8 +282,8 @@ const proto = {
             desk.ready_count = -1;
           }
 
-          this.broadCastRoom("GAME_OVER", desk.deskId,  {winner: [],loser: [],score: 0,ratio: 0});
-          this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
+          this.broadCastRoom("GAME_OVER", desk.deskId,  {invalid:1,winner: [],loser: [],score: 0,ratio: 0});
+          // this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
 
           desk.state = 0;
           var ycscore_list = [];

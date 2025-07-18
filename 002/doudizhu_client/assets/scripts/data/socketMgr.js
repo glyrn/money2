@@ -101,7 +101,7 @@ const socketMgr = function(){
             _gameMgr.posState.self.isDizhu = false;
             _eventMgr.fire("POS_STATUS_CHANGE");
 
-            _gameMgr.checkBeat();
+            // _gameMgr.checkBeat();
 
             if(_cbLogin) {
                 _cbLogin();
