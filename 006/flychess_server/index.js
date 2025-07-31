@@ -247,7 +247,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           userObj.uid = 0;
@@ -279,7 +279,7 @@ const proto = {
             this.desks[i].ob_socket_map = {};
           }
             this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
-            this.broadCastRoom("MESSAGE",desk.deskId,"中途有人逃跑本局成绩作废");
+            // this.broadCastRoom("MESSAGE",desk.deskId,"中途有人逃跑本局成绩作废");
 
             desk.state = 0;
             var ycscore_list = [];

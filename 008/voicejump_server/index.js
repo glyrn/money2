@@ -233,7 +233,7 @@ const proto = {
       }
     }
     desk.state = 0;
-    this.broadCastRoom("GAME_OVER",desk.deskId,score_list);
+    this.broadCastRoom("GAME_OVER",desk.deskId,{score_list:score_list});
     if(!desk.score_list) desk.score_list = [];
     desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
     if(desk.play_index == desk.play_count){
@@ -282,7 +282,7 @@ const proto = {
             desk.ready_count = -1;
           }else{
             this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
-            this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
+            // this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
 
             desk.state = 0;
             var ycscore_list = [];

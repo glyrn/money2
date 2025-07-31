@@ -41,8 +41,10 @@ cc.Class({
         lab_room:cc.Label,
         btn_ready:cc.Node,
         btn_score:cc.Node,
-        btn_quit:cc.Node,
+        // btn_quit:cc.Node,
         target_node:cc.Node,
+        my_node:cc.Node,
+        lab_warning:cc.Node,
         avator_mini1:AvatorMini,
         avator_mini2:AvatorMini,
         lab_player1:cc.Label,
@@ -72,24 +74,24 @@ cc.Class({
         note_item_content:cc.Node,
     },
     //退出游戏
-    onBtnQuit(){
-        window.close();
-        cc.director.end();
-    },
+    // onBtnQuit(){
+    //     window.close();
+    //     cc.director.end();
+    // },
     onBtnReady(){
         globalData.socketMgr.prepare()
     },
-    onBtnScore(){
-        this.overSprite.active = true;
-    },
-    onBtnCurScore(){
-        this._cur_score_idx = globalData.gameMgr.score_list.length -1;
-        this.renderScorePanel()
-    },
-    onBtnLastScore(){
-        this._cur_score_idx = Math.max(0,this._cur_score_idx-1);
-        this.renderScorePanel()
-    },
+    // onBtnScore(){
+    //     this.overSprite.active = true;
+    // },
+    // onBtnCurScore(){
+    //     this._cur_score_idx = globalData.gameMgr.score_list.length -1;
+    //     this.renderScorePanel()
+    // },
+    // onBtnLastScore(){
+    //     this._cur_score_idx = Math.max(0,this._cur_score_idx-1);
+    //     this.renderScorePanel()
+    // },
     onBtnCloseScore(){
         this.overSprite.active = false;
     },
@@ -142,7 +144,7 @@ cc.Class({
         this.game_start.node.active = false;
         this.select_icon.active = false;
         this.overSprite.active = false;
-        this.btn_quit.active = false;
+        // this.btn_quit.active = false;
         this.btn_score.active = false;
         this.dialog_retrack.active = false;
         this.dialog_note.active = false;
@@ -359,7 +361,7 @@ cc.Class({
 
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
             globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
-        this.btn_quit.active = false;
+        // this.btn_quit.active = false;
         this.avator_my.active = true;
 
         this.avator_my.getComponent("Avator").setData(globalData.gameMgr.playerData.self,"self");
@@ -493,36 +495,48 @@ cc.Class({
 
         this.overSprite.active = true;
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
-        this.avator_mini1.setData(globalData.gameMgr.playerData.self,"self");
-        var flag = "target"
-        if(globalData.gameMgr.play_mode == 0){ //人机
-            flag = "pc"
-        }
-        if(globalData.gameMgr.playerData.target){
-            this.target_node.active = true;
-            this.avator_mini2.setData(globalData.gameMgr.playerData.target,flag);
-        }else{
-            this.target_node.active = false;
-        }
 
-        if(data.winer == globalData.gameMgr.playerData.self.posId){
-            this.lab_player1.string = "+" + data.score;
-            this.lab_player2.string = "-" + data.score;
-            this.lab_player1.color = cc.color(253,223,0);
-            this.lab_player2.color = cc.color(213,213,213);
-            this.icon_player1.spriteFrame = this.icon_win;
-            this.icon_player2.spriteFrame = this.icon_lost;
-            this.img_yuanbao1.spriteFrame = this.yuanbao_win;
-            this.img_yuanbao2.spriteFrame = this.yuanbao_lost;
+        //弃局
+        if(data.invalid == 1){
+
+            this.my_node.active = false;
+            this.target_node.active = false;
+            this.lab_warning.active = true;
         }else{
-            this.lab_player1.string = "-" + data.score;
-            this.lab_player2.string = "+" + data.score;
-            this.lab_player1.color = cc.color(213,213,213);
-            this.lab_player2.color =  cc.color(253,223,0);
-            this.icon_player1.spriteFrame = this.icon_lost;
-            this.icon_player2.spriteFrame = this.icon_win;
-            this.img_yuanbao1.spriteFrame = this.yuanbao_lost;
-            this.img_yuanbao2.spriteFrame = this.yuanbao_win;
+
+            this.lab_warning.active = false;
+            this.my_node.active = true;
+            this.avator_mini1.setData(globalData.gameMgr.playerData.self,"self");
+            var flag = "target"
+            if(globalData.gameMgr.play_mode == 0){ //人机
+                flag = "pc"
+            }
+            if(globalData.gameMgr.playerData.target){
+                this.target_node.active = true;
+                this.avator_mini2.setData(globalData.gameMgr.playerData.target,flag);
+            }else{
+                this.target_node.active = false;
+            }
+
+            if(data.winer == globalData.gameMgr.playerData.self.posId){
+                this.lab_player1.string = "+" + data.score;
+                this.lab_player2.string = "-" + data.score;
+                this.lab_player1.color = cc.color(253,223,0);
+                this.lab_player2.color = cc.color(213,213,213);
+                this.icon_player1.spriteFrame = this.icon_win;
+                this.icon_player2.spriteFrame = this.icon_lost;
+                this.img_yuanbao1.spriteFrame = this.yuanbao_win;
+                this.img_yuanbao2.spriteFrame = this.yuanbao_lost;
+            }else{
+                this.lab_player1.string = "-" + data.score;
+                this.lab_player2.string = "+" + data.score;
+                this.lab_player1.color = cc.color(213,213,213);
+                this.lab_player2.color =  cc.color(253,223,0);
+                this.icon_player1.spriteFrame = this.icon_lost;
+                this.icon_player2.spriteFrame = this.icon_win;
+                this.img_yuanbao1.spriteFrame = this.yuanbao_lost;
+                this.img_yuanbao2.spriteFrame = this.yuanbao_win;
+            }
         }
     },
     gameOver:function(data){
@@ -530,7 +544,10 @@ cc.Class({
         this.pushNoteMsg("游戏结束！");
         globalData.gameMgr.roomState.state = 2; //结束
         globalData.gameMgr.score_list.push(data);
+        
+        
 
+            
         globalData.gameMgr.playerData.self.score = parseInt(globalData.gameMgr.playerData.self.score);
         if(globalData.gameMgr.play_mode == 0){ //人机
             globalData.gameMgr.playerData.target = globalData.gameMgr.playerData.pc;
@@ -551,11 +568,11 @@ cc.Class({
                 globalData.gameMgr.playerData.target.score += data.score;
             }
         }
+        
 
         this._cur_score_idx = globalData.gameMgr.score_list.length -1;
         this.renderScorePanel()
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
-
 
         globalData.gameMgr.playerData.self.state = 1;
         if(globalData.gameMgr.playerData.target){
@@ -564,13 +581,9 @@ cc.Class({
         this.select_icon.active = false;
         this.touchChess = null;
         this.render()
-        this.btn_quit.active = false;
-        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
-        //发送退出游戏事件
-        if(isQuit){
-            window.parent.postMessage({'quitGame':1}, "*");
-            console.log("发送退出事件")
-        }
+        // this.btn_quit.active = false;
+        // var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
+
     },
     judgeOver:function(tag){
 

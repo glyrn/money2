@@ -25,9 +25,11 @@ cc.Class({
         btn_score1:cc.Button,
         btn_score2:cc.Button,
         btn_score3:cc.Button,
-        btn_last_score:cc.Button,
-        btn_curr_score:cc.Button,
+        // btn_last_score:cc.Button,
+        // btn_curr_score:cc.Button,
         btn_score:cc.Node,
+        lab_contents:cc.Node,
+        lab_warning:cc.Node,
     },
 
     onLoad (){
@@ -90,13 +92,13 @@ cc.Class({
     onBtnCloseSettle(){
         this.panel_gameover.active = false;
     },
-    onBtnScoreLast(){
-        this.game_over_select_idx--;
-        if(this.game_over_select_idx == 0){
-            this.game_over_select_idx = 1;
-        }
-        this.renderGameOverPlane(this.game_over_select_idx);
-    },
+    // onBtnScoreLast(){
+    //     this.game_over_select_idx--;
+    //     if(this.game_over_select_idx == 0){
+    //         this.game_over_select_idx = 1;
+    //     }
+    //     this.renderGameOverPlane(this.game_over_select_idx);
+    // },
     onBtnScoreCurrent(){
         this.renderGameOverPlane(this.current_play_index);
     },
@@ -148,8 +150,12 @@ cc.Class({
 
         //有人逃跑 无效局
         if(data && data.invalid == 1){
-            this.lab_title.string = '第'+index+'局：'+ "本局有玩家逃跑，请重新开始";
+            this.lab_contents.active = false;
+            this.lab_warning.active = true;
+
         }else{
+            this.lab_contents.active = true;
+            this.lab_warning.active = false;
             var isWin = data.winner.indexOf(globalData.gameMgr.posId) > -1;
             this.lab_title.string = '第'+index+'局：'+ (isWin ? '恭喜你，你赢了' : '很遗憾，你输了');
         }

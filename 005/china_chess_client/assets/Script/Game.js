@@ -46,7 +46,8 @@ cc.Class({
         img_jiangjun:cc.Node,
         lab_tips:cc.Label,
         tips:cc.Node,
-
+        lab_warning:cc.Node,
+        lab_contents:cc.Node,
 
     },
     //退出游戏
@@ -321,45 +322,55 @@ cc.Class({
         globalData.socketMgr.reqGameOver(data);
 
         //发送退出游戏事件
-        if(isQuit){
-            window.parent.postMessage({'quitGame':1}, "*");
-            console.log("发送退出事件")
-        }
+        // if(isQuit){
+        //     window.parent.postMessage({'quitGame':1}, "*");
+        //     console.log("发送退出事件")
+        // }
     },
     renderScorePanel(){
 
         this.panel_over.active = true;
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
-        this.avator_mini1.setData(globalData.gameMgr.playerData.self,"self");
-        var flag = "target"
-        if(globalData.gameMgr.play_mode == 0){ //人机
-            flag = "pc"
-        }
-        if(globalData.gameMgr.playerData.target){
-            this.target_node.active = true;
-            this.avator_mini2.setData(globalData.gameMgr.playerData.target,flag);
+        //有人逃跑
+        if(data.invalid == 1){
+            this.lab_warning.active = true;
+            this.lab_contents.active = false;
         }else{
-            this.target_node.active = false;
-        }
 
-        if(data.winer == globalData.gameMgr.playerData.self.posId){
-            this.lab_player1.string = "+" + data.score;
-            this.lab_player2.string = "-" + data.score;
-            this.lab_player1.color = cc.color(253,223,0);
-            this.lab_player2.color = cc.color(213,213,213);
-            this.icon_player1.spriteFrame = this.icon_win;
-            this.icon_player2.spriteFrame = this.icon_lost;
-            this.img_yuanbao1.spriteFrame = this.yuanbao_win;
-            this.img_yuanbao2.spriteFrame = this.yuanbao_lost;
-        }else{
-            this.lab_player1.string = "-" + data.score;
-            this.lab_player2.string = "+" + data.score;
-            this.lab_player1.color = cc.color(213,213,213);
-            this.lab_player2.color =  cc.color(253,223,0);
-            this.icon_player1.spriteFrame = this.icon_lost;
-            this.icon_player2.spriteFrame = this.icon_win;
-            this.img_yuanbao1.spriteFrame = this.yuanbao_lost;
-            this.img_yuanbao2.spriteFrame = this.yuanbao_win;
+            this.lab_warning.active = false;
+            this.lab_contents.active = true;
+
+            this.avator_mini1.setData(globalData.gameMgr.playerData.self,"self");
+            var flag = "target"
+            if(globalData.gameMgr.play_mode == 0){ //人机
+                flag = "pc"
+            }
+            if(globalData.gameMgr.playerData.target){
+                this.target_node.active = true;
+                this.avator_mini2.setData(globalData.gameMgr.playerData.target,flag);
+            }else{
+                this.target_node.active = false;
+            }
+
+            if(data.winer == globalData.gameMgr.playerData.self.posId){
+                this.lab_player1.string = "+" + data.score;
+                this.lab_player2.string = "-" + data.score;
+                this.lab_player1.color = cc.color(253,223,0);
+                this.lab_player2.color = cc.color(213,213,213);
+                this.icon_player1.spriteFrame = this.icon_win;
+                this.icon_player2.spriteFrame = this.icon_lost;
+                this.img_yuanbao1.spriteFrame = this.yuanbao_win;
+                this.img_yuanbao2.spriteFrame = this.yuanbao_lost;
+            }else{
+                this.lab_player1.string = "-" + data.score;
+                this.lab_player2.string = "+" + data.score;
+                this.lab_player1.color = cc.color(213,213,213);
+                this.lab_player2.color =  cc.color(253,223,0);
+                this.icon_player1.spriteFrame = this.icon_lost;
+                this.icon_player2.spriteFrame = this.icon_win;
+                this.img_yuanbao1.spriteFrame = this.yuanbao_lost;
+                this.img_yuanbao2.spriteFrame = this.yuanbao_win;
+            }
         }
     },
     showTips:function(msg){

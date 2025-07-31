@@ -317,16 +317,14 @@ const proto = {
           if(!desk.score_list) desk.score_list = [];
           desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
 
-          if(score_total >= desk.specific_score){
-            this.sendYcGameOver({
-              room_id:desk.name,
-              game_id:3,
-              score_list:desk.score_list
-            });
-            desk.play_index = 1;
-          }else{
-            desk.play_index++;
-          }
+          //超时直接结束游戏
+          this.sendYcGameOver({
+            room_id:desk.name,
+            game_id:3,
+            score_list:desk.score_list
+          });
+          desk.play_index = 1;
+
         }
       }
     }
@@ -406,7 +404,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           userObj.uid = 0;
@@ -437,7 +435,7 @@ const proto = {
             desk.ob_socket_map = {};
           }
             this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: [],cards_list:[]});
-            this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
+            // this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
 
             desk.state = 0;
             var ycscore_list = [];
@@ -726,7 +724,11 @@ const proto = {
           var isOk = false;
 
           if(desk.positions[curPosId].cards.length == 1 && obj.type == 2){  //最后一张不能出功能牌
-            isOk = false;
+            //补摸一张
+            var card = desk.cards.shift();
+            desk.positions[curPosId].cards.push(card);
+            self.broadCastRoom("PLUS_CARD_ONLY",{card:card,posId:curPosId});
+            isOk = true;
           }else {
             //数字牌
             if (last_card.type == 1) {
@@ -797,6 +799,7 @@ const proto = {
             desk.positions[curPosId].cards = new_cards;
             self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId})
 
+
             console.log("已经游玩了："+(Date.parse(new Date()) / 1000 - desk.start_time) +"秒");
             // console.log("玩家["+desk.positions[self.getPosId(socket)].name+"] 手牌：",desk.positions[curPosId].cards);
             //判断游戏结束
@@ -845,8 +848,26 @@ const proto = {
               self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list});
               if(!desk.score_list) desk.score_list = [];
               desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list})
-              
-              if(score_total >= desk.specific_score){
+              //找出是否有人累计超过特定分数
+              var is_over_specific_score = false;
+              var score_map = {};
+              for (let i = 0; i < desk.score_list.length; i++) {
+                const ycscore_list = desk.score_list[i];
+                for (let j = 0; j < ycscore_list.length; j++) {
+                  if(!score_map[ycscore_list[j].uid]){
+                    score_map[ycscore_list[j].uid] = 0;
+                  }
+                  score_map[ycscore_list[j].uid] += parseInt(ycscore_list[j].score);
+                }
+              }
+
+              for (const key in score_map) {
+                if(score_map[key] >= desk.specific_score){
+                  is_over_specific_score = true;
+                }
+              }
+
+              if(is_over_specific_score >= desk.specific_score){
                 self.sendYcGameOver({
                   room_id:desk.name,
                   game_id:3,
