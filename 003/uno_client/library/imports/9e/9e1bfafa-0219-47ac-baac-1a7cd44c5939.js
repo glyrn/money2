@@ -87,10 +87,13 @@ cc.Class({
           card.node.active = true;
 
           if (this._flag == 'self') {
-            var gap = 55;
-            var offsetY = _i > 10 ? -40 : 0;
-            var offsetX = _i > 10 ? -gap * 11 : 0;
-            card.node.position = cc.v2(basePos.x + _i * gap + offsetX, basePos.y + offsetY);
+            var gapX = 55;
+            var gapY = 40; // var offsetY = i > 10 ? -40:0;
+            // var offsetX = i > 10 ? -gap * 11 : 0; 
+
+            var offsetX = -Math.floor(_i / 11) * gapX * 11;
+            var offsetY = -Math.floor(_i / 11) * gapY;
+            card.node.position = cc.v2(basePos.x + _i * gapX + offsetX, basePos.y + offsetY);
           } else if (this._flag == 'left') {
             var gap = _i > 12 ? 15 : 30;
             card.node.position = cc.v2(basePos.x, basePos.y + 105 - _i * gap);
@@ -147,7 +150,7 @@ cc.Class({
   },
   selectTips: function selectTips(last_card, only_check) {
     // console.log("selectTips",only_check);
-    // console.log(last_card);
+    console.log(last_card);
     if (!last_card) return;
 
     _globalData["default"].eventlister.fire('HIDE_SELECT_COLOR');
@@ -279,7 +282,10 @@ cc.Class({
       _globalData["default"].eventlister.fire('MESSAGE', '无牌可出，摸牌跳过');
     }
 
-    console.log(isFind, tips_cards);
+    if (only_check) {
+      console.log("检测是否能出牌：", isFind, tips_cards);
+    }
+
     return isFind;
   },
   resetCard: function resetCard(except) {

@@ -138,6 +138,16 @@ const proto = {
       }
     }
   },
+  getPosIdByUid:function(uid){
+    for (let i = 0; i < this.desks.length; i++) {
+      for (let j = 0; j < this.desks[i].positions.length; j++) {
+        var userObj = this.desks[i].positions[j];
+        if (userObj.uid == uid) {
+          return userObj.posId;
+        }
+      }
+    }
+  },
   getPositionByPosId(desk, posId) {
     if(desk) {
       for (let i = 0, len = desk.positions.length; i < len; i++) {
@@ -724,5 +734,20 @@ app.get('/fxq/quit',function(req,res){
   const uid = req.query.uid;
   var deskId = gameServer.clearRoomByUid(uid);
   console.log("清空房间:"+deskId);
-  res.send({state:0,msg:"退出成功",uid:uid});
+  res.send({state:0,msg:"退出成功1",uid:uid});
+})
+
+app.get("/fxq/debug",function(req,res){
+
+  const uid = req.query.uid;
+  const num = req.query.num;
+  const room = req.query.room;
+  var posId = gameServer.getPosIdByUid(uid)
+  var desk = gameServer.getDeskByName(room);
+  if(desk && desk.state == 1){
+    desk.cur_dice_num = num;
+    gameServer.broadCastRoom("MAKE_DICE_NUM_SUCCESS",desk.deskId,{num:num,posId:posId});
+  }
+
+  res.send({state:0,msg:"调试完成"});
 })

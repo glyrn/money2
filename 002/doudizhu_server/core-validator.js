@@ -759,48 +759,74 @@ function laizi_check_list(cards,list,idx,laizis,cur_arr){
         return list;
     }
 }
-
+//癞子算法
 module.exports.validate_laizi = function(cards,laizis) {
 
-    let hasLaizi = false;
-    var is_all_laizi;
-    var has_laizi_num = 0;
-    laizis.forEach(val => {
-        if (cards.indexOf(val) != -1) {
-            hasLaizi = true;
-            has_laizi_num ++;
+    var normal_cards = [];
+    var laizi_cards = [];
+    
+    cards.forEach(function(_card){
+        if(laizis.includes(_card)){
+            laizi_cards.push(_card);
+        }else{
+            normal_cards.push(_card);
         }
     });
 
-    is_all_laizi = cards.length === has_laizi_num;
-
-    // 癞子算法
-    if (hasLaizi && !is_all_laizi) {
-        var list = [];
-        var check_list = laizi_check_list(cards, list, 0, laizis, []);
-
-        var result = null;
-        check_list.forEach(val => {
-            var ret = exports.validate(val);
-            if (ret.status) {
-                if (result) {
-                    if (result.types[0].key < ret.types[0].key) result = ret;
-                } else {
-                    result = ret;
-                }
+    var is_same_normal = normal_cards.every((element) => element === normal_cards[0]);
+    
+    //纯软炸弹
+    if(normal_cards.length == 0 && laizi_cards.length >= 4){
+        //4张癞子
+        if(laizi_cards.length == 4){
+             var is_same_laizi = laizi_cards.every((element) => element === laizi_cards[0]);
+            //4张相同
+            if(is_same_laizi){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:cards.length * 13 + laizi_cards[0],type:"AAAA"}] 
+                };
+            //4张不一定相同
+            }else{
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:cards.length * 13,type:"AAAA"}] 
+                };
             }
-        });
-        if (result == null) {
-            result = {
-                status: false,
+        //大于4张
+        }else{
+            return {
+                status: true,
                 len: cards.length,
-                types: []
+                types: [{key:cards.length * 13,type:"AAAA"}] 
             };
         }
-    }else { //普通校验
-        result = exports.validate(cards);
     }
-    return result;
+    //普通软炸弹
+    if(is_same_normal && normal_cards.length == 3){
+        //4软炸
+        if(cards.length == 4){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:normal_cards[0]-0.5,type:"AAAA"}] 
+            };
+        }else{
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:(cards.length-1) * 13 + normal_cards[0],type:"AAAA"}] 
+            };
+        }
+    }
+
+    return {
+        status: false,
+        len: cards.length,
+        types: []
+    };
 }
 
 module.exports.validate = function (cards) {
