@@ -346,7 +346,7 @@ cc.Class({
         })
 
         globalData.eventlister.on("RETRACK_CHESS_REQ",function(data){
-            self.dialog_retrack.active = data.posId == globalData.gameMgr.playerData.self.posId;
+            self.dialog_retrack.active = data.posId == globalData.gameMgr.playerData.self.posId && !globalData.gameMgr.is_ob;
         })
 
         globalData.eventlister.on("CONNECT_STATE",function(data){
@@ -545,9 +545,6 @@ cc.Class({
         globalData.gameMgr.roomState.state = 2; //结束
         globalData.gameMgr.score_list.push(data);
         
-        
-
-            
         globalData.gameMgr.playerData.self.score = parseInt(globalData.gameMgr.playerData.self.score);
         if(globalData.gameMgr.play_mode == 0){ //人机
             globalData.gameMgr.playerData.target = globalData.gameMgr.playerData.pc;

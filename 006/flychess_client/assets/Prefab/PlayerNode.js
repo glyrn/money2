@@ -340,7 +340,7 @@ cc.Class({
         
 
         function moveOnNum(num){
-            console.log("移动-》",num)
+            console.log("移动步数:",num)
             function moveOnNumSimple(num){
                 
                 cc.playEffect("sound/run",false,1);
@@ -472,6 +472,8 @@ cc.Class({
     backHome(chess_idx){
 
         if(globalData.gameMgr.isRecover){
+            this.chess_steps[chess_idx] = -1;
+            this.chess_status[chess_idx] = 0;
             this.chess_list[chess_idx].angle = 0;
             this.chess_list[chess_idx].position = this.finish_tags[chess_idx].position;
         }else{

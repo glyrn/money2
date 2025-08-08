@@ -246,10 +246,9 @@ var socketMgr = function socketMgr() {
       _eventMgr.fire('PLAY_CARD_SUCCESS', data);
 
       _gameMgr.getPlayerData(data.nextPosId).target_timer_value = Date.parse(new Date()) / 1000 + _gameMgr.roomState.timeout;
-      _gameMgr.playerData.turn = data.nextPosId; // setTimeout(function(){
+      _gameMgr.playerData.turn = data.nextPosId;
 
-      _eventMgr.fire('CHANGE_TURN'); // },1000);
-
+      _eventMgr.fire('CHANGE_TURN');
     });
 
     _socket.on('PLAY_PASS_SUCCESS', function (data) {
@@ -278,6 +277,12 @@ var socketMgr = function socketMgr() {
 
         _eventMgr.fire('CHANGE_TURN');
       }, 1000);
+    });
+
+    _socket.on("PLUS_CARD_ONLY", function (data) {
+      _gameMgr.getPlayerData(data.posId).cards.push(data.card);
+
+      _eventMgr.fire('PLUS_CARD', data);
     });
 
     _socket.on("CONNECT_STATE", function (data) {

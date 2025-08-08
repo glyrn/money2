@@ -6,6 +6,20 @@ cc.Class({
         progressbar_bg:cc.ProgressBar,
         progressbar_effect:cc.ProgressBar,
     },
+    start:function(){
+        if (cc.sys.isBrowser && cc.sys.os === cc.sys.OS_IOS && cc.sys.isMobile) {
+            cc.game.on(cc.game.EVENT_GAME_INITED, () => {
+                cc.game.on(cc.game.EVENT_SHOW, () => {
+                    setTimeout(() => {
+                        cc.audioEngine.pauseAll();
+                    }, 50);
+                    setTimeout(() => {
+                        cc.audioEngine.resumeAll();
+                    }, 100);
+                });
+            });
+        }
+    },
     onBtnClose:function(){
         this.node.active = false;
     },

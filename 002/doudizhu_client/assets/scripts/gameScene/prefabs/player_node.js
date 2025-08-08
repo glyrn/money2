@@ -76,6 +76,8 @@ cc.Class({
     },
     selectTips(playerData,isShowTips){
 
+        console.log("上一手：",globalData.gameMgr.roomState.ctxCard);
+
         if(globalData.gameMgr.roomState.ctxCard.key > 0){
 
             for (let i = 1; i <= 13; i++) {
@@ -107,25 +109,26 @@ cc.Class({
                                         is_find = true;
                                     }
                                 }
-                            } // 3带2
-                        }else if(globalData.gameMgr.roomState.ctxCard.type == 'AAABB') {
-
+                            } 
+                        // 3带2 
+                        }else if(globalData.gameMgr.roomState.ctxCard.type == 'AAABB' ) {
+                            //尝试3带2
                             if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
                                 find_count++;
                                 select_card_list.push(card);
-
+                                console.log("尝试3带2",find_count,card)
                                 if (find_count == 3) {
                                     var checkCards = [];
-                                    playerData.cards.forEach(card => {
+                                    playerData.cards.forEach(__card => {
                                         //跳过AAA牌
                                         var isSkipCard = false;
                                         select_card_list.forEach(_card => {
-                                            if (_card.value == card) {
+                                            if (_card.value == __card.value) {
                                                 isSkipCard = true;
                                             }
                                         });
                                         if (!isSkipCard) {
-                                            checkCards.push(card);
+                                            checkCards.push(__card);
                                         }
                                     })
                                     var elementsCount = {};
@@ -138,10 +141,11 @@ cc.Class({
                                         }
                                         elementsCount[_card.value] = element;
                                     });
-
+                                    
                                     for (const k in elementsCount) {
                                         var element = elementsCount[k];
-                                        if (element.length > 1) {
+                                        //跳过AAA牌
+                                        if (element.length > 1 && element[0].value != card.value) {
                                             for (let l = 0; l < 2; l++) {
                                                 select_card_list.push(element[l]);
                                             }
@@ -149,30 +153,129 @@ cc.Class({
                                             break;
                                         }
                                     }
+
                                 }
                             }
-                        //顺子
-                        }else if(globalData.gameMgr.roomState.ctxCard.type == "ABCDE"){
+                            // 4带2
+                        }else if (globalData.gameMgr.roomState.ctxCard.type == 'AAAABC') {
 
-                            for (let k = 1; k <= globalData.gameMgr.roomState.ctxCard.len; k++) {
-                                if(card.value == globalData.gameMgr.roomState.ctxCard.key + i + k){
-                                    var isExist = false;
-                                    select_card_list.forEach(_card => {
-                                        if(_card.value == card.value ){
-                                            isExist = true;
+                            if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
+                                find_count++;
+                                select_card_list.push(card);
+
+                                if (find_count == 4) {
+                                    var twoCards = [];
+
+                                    for(let i=playerData.cards.length-1;i>=0;i--){
+                                        var card = playerData.cards[i];
+                                        //与备选中的牌不同 可以添加
+                                        var isCanAdd = false;
+                                        select_card_list.forEach(_card => {
+                                            if (card.value != _card.value) {
+                                                isCanAdd = true;
+                                            }
+                                        })
+                                        if(twoCards.length < 2 && isCanAdd){
+                                            twoCards.push(card);
                                         }
-                                    });
-                                    if(isExist == false && card.value != 15){//2不能顺子
-                                        select_card_list.push(card);
+                                    }
+                                    if (twoCards.length == 2) {
+                                        select_card_list.push(twoCards[0]);
+                                        select_card_list.push(twoCards[1]);
+                                        is_find = true;
                                     }
                                 }
                             }
-                            if(select_card_list.length == globalData.gameMgr.roomState.ctxCard.len){
-                                is_find = true;
-                                break;
+                        
+                            
+                       //顺子
+                    }else if(globalData.gameMgr.roomState.ctxCard.type == "ABCDE" ||
+                             globalData.gameMgr.roomState.ctxCard.type == 'AABBCC'
+                    ){
+                        console.log("检查顺子")
+                        function findCardByValue(value){
+                            var ret = null;
+                            playerData.cards.forEach(_card => {
+                                if(_card.value == value){
+                                    ret = _card;
+                                }
+                            });
+                            return ret;
+                        }
+                        function findTwoCardByValue(value){
+                            var ret = [];
+                            playerData.cards.forEach(_card => {
+                                if(_card.value == value){
+                                    ret.push(_card);
+                                }
+                            });
+                            return ret;
+                        }
+                        //获取当前癞子
+                        var curLaiziCards = [];
+                        let laiziCards = globalData.gameMgr.posState.laizi.cards;
+                        playerData.cards.forEach(_card=>{
+                            for(var laizi_card_key in laiziCards){
+                                if(laiziCards[laizi_card_key].value == _card.value){
+                                    curLaiziCards.push(_card);
+                                }
                             }
-                        //多张
-                        }else if(globalData.gameMgr.roomState.ctxCard.type == 'A' ||
+                        });
+                        //单顺子
+                        if(globalData.gameMgr.roomState.ctxCard.type == "ABCDE"){
+                            if(card.value > globalData.gameMgr.roomState.ctxCard.key){
+                                for (let k = 0; k < globalData.gameMgr.roomState.ctxCard.len; k++) {
+                                    //单顺子
+                                    var tcard = findCardByValue(parseInt(card.value)+k)
+                                    if(tcard && tcard.value != 15 && tcard.value != 16 && tcard.value != 17){
+                                        select_card_list.push(tcard);
+                                    }
+                                }
+                            }
+                        //双顺子
+                        }else if(globalData.gameMgr.roomState.ctxCard.type == 'AABBCC'){
+                            let len = globalData.gameMgr.roomState.ctxCard.len / 2;
+                            if(card.value > globalData.gameMgr.roomState.ctxCard.key){
+                                for (let k = 0; k < len; k++) {
+                                    //找对
+                                    var _twoCards = findTwoCardByValue(parseInt(card.value)+k);
+                                    if(_twoCards[0]) select_card_list.push(_twoCards[0]);
+                                    if(_twoCards[1]) select_card_list.push(_twoCards[1]);
+                                }
+                            }
+                        }
+                        if(select_card_list.length == globalData.gameMgr.roomState.ctxCard.len){
+                            is_find = true;
+                            break;
+                        }else{
+                            //获取未使用的癞子
+                            let remainLaiziCards = [];
+                            curLaiziCards.forEach(function(__card){
+                                var isExist = false;
+                                select_card_list.forEach(function(_card){
+                                    if(_card.value == __card.value){
+                                        isExist = true;
+                                    }
+                                })
+                                if(isExist==false){
+                                    remainLaiziCards.push(__card);
+                                }
+                            })
+
+                            //尝试找癞子补
+                            if(select_card_list.length + remainLaiziCards.length >= globalData.gameMgr.roomState.ctxCard.len)
+                            {
+                                is_find = true;
+                                let len = globalData.gameMgr.roomState.ctxCard.len - select_card_list.length;
+                                for (var _i = 0; _i < len; _i++) {
+                                    select_card_list.push(remainLaiziCards[_i]);
+                                }
+                            }else{
+                                select_card_list = [];
+                            }
+                        }
+                    //纯多张
+                    }else if(globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                                 globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
                                 globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
                                 globalData.gameMgr.roomState.ctxCard.type == 'AAAA'){
@@ -206,6 +309,132 @@ cc.Class({
                     return true;
                 }
             }
+            
+            //顺子和3带2 尝试找AAAA(炸弹)
+            var select_card_list = [];
+            if((globalData.gameMgr.roomState.ctxCard.type == "ABCDE" || 
+                globalData.gameMgr.roomState.ctxCard.type == 'AAABB' || 
+                globalData.gameMgr.roomState.ctxCard.type == 'A' ||
+                globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
+                globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
+                globalData.gameMgr.roomState.ctxCard.type == 'AAAA'
+            ) && is_find == false){
+                console.log("尝试找AAAA炸弹：");
+
+                var check_card_map = {};
+                playerData.cards.forEach(_card=>{
+                    if(!check_card_map[_card.value]){
+                        check_card_map[_card.value] = 0;
+                    }
+                    check_card_map[_card.value]++;
+                });
+
+                console.log("check_card_map:",check_card_map)
+                for (const value in check_card_map) {
+                    if(check_card_map[value] == 4 && value > globalData.gameMgr.roomState.ctxCard.key){
+                        is_find = true;
+
+                        playerData.cards.forEach(_card=>{
+                            if(_card.value == value){
+                                select_card_list.push(_card);
+                            }
+                        });
+                        break;
+                    }
+                }
+
+                //尝试找软炸弹
+                if(is_find == false){
+                    console.log("尝试找软炸弹：");
+
+                    select_card_list = [];
+                    var hasAAA = false;
+                    var hasLaizi = false;
+                    var curLaiziCards = [];
+                    let laiziCards = globalData.gameMgr.posState.laizi.cards;
+                    playerData.cards.forEach(_card=>{
+                        for(var laizi_card_key in laiziCards){
+                            if(laiziCards[laizi_card_key].value == _card.value){
+                                hasLaizi = true;
+                                curLaiziCards.push(_card);
+                                //剔除癞子 只算普通AAA
+                                delete check_card_map[_card.value];
+                            }
+                        }
+                    });
+
+                    for (const value in check_card_map) {
+                        console.log("检查AAA：",value , globalData.gameMgr.roomState.ctxCard.key)
+
+                        if(check_card_map[value] == 3 && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)){
+                            hasAAA = true;
+                           
+                            //癞子+AAA的数量 等于 出牌数量
+                            if(hasAAA && hasLaizi && curLaiziCards.length + 3 >= globalData.gameMgr.roomState.ctxCard.len){
+                                playerData.cards.forEach(_card=>{
+                                    if(_card.value == value){
+                                        select_card_list.push(_card);
+                                    }
+                                });
+                                for(var i=0;i<globalData.gameMgr.roomState.ctxCard.len - 3;i++){
+                                    select_card_list.push(curLaiziCards[i]);
+                                }
+                                is_find = true;
+                                break;
+                            }
+
+                        }else if(check_card_map[value] == 2 && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)){
+                            hasAAA = true;
+                           
+                            //癞子+AAA的数量 等于 出牌数量
+                            if(hasAAA && hasLaizi && curLaiziCards.length + 2 >= globalData.gameMgr.roomState.ctxCard.len){
+                                playerData.cards.forEach(_card=>{
+                                    if(_card.value == value){
+                                        select_card_list.push(_card);
+                                    }
+                                });
+                                for(var i=0;i<globalData.gameMgr.roomState.ctxCard.len - 2;i++){
+                                    select_card_list.push(curLaiziCards[i]);
+                                }
+                                is_find = true;
+                                break;
+                            }
+
+                        }else if(check_card_map[value] == 1 && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)){
+                            hasAAA = true;
+                           
+                            //癞子+AAA的数量 等于 出牌数量
+                            if(hasAAA && hasLaizi && curLaiziCards.length + 1 >= globalData.gameMgr.roomState.ctxCard.len){
+                                playerData.cards.forEach(_card=>{
+                                    if(_card.value == value){
+                                        select_card_list.push(_card);
+                                    }
+                                });
+                                for(var i=0;i<globalData.gameMgr.roomState.ctxCard.len - 1;i++){
+                                    select_card_list.push(curLaiziCards[i]);
+                                }
+                                is_find = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+
+                if(is_find){
+                    playerData.cards.forEach(card=>{
+                        card.selected = false;
+                    });
+                    select_card_list.forEach(card=>{
+                        card.selected = true;
+                    });
+                    for (let i = 0; i < playerData.cards.length; i++) {
+                        this._cardNodeList[i].getComponent('Card').renderSelectCard()
+                    }
+                    return true;
+                }
+            }
+           
             // 都找不到就找一下王炸
             var select_card_list = [];
             playerData.cards.forEach(card=>{

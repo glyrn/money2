@@ -86,13 +86,8 @@ cc.Class({
     });
 
     _globalData["default"].eventlister.on("PLAY_CARD_SUCCESS", function (data) {
-      // var key = globalData.gameMgr.getPlayerDataKey(data.posId);
-      // if(key != 'self'){
-      //     that._player_list[key].getComponent('Player').selectCardAnim(data.card.color,function(){
-      //         that.pushCardToDesk(data.card,data.posId);
-      //     });
-      // }else{
-      that.pushCardToDesk(data.card, data.posId); // }
+      that.pushCardToDesk(data.card, data.posId);
+      that.renderPlayer();
     });
 
     _globalData["default"].eventlister.on('GAME_OVER', function (data) {
@@ -308,7 +303,13 @@ cc.Class({
     if (posId == -1) {
       node.position = deck_pos;
       actions.push(cc.callFunc(function () {
-        node.getComponent("Card").render(card);
+        node.getComponent("Card").render(card); // 轮到自己
+
+        if (_globalData["default"].gameMgr.playerData.turn == _globalData["default"].gameMgr.playerData.self.posId) {
+          if (!that._onBtnTips(true)) {
+            that.onBtnPass();
+          }
+        }
       }, that));
       _globalData["default"].gameMgr.card_remain--;
       this.renderRemainCard();
@@ -324,8 +325,7 @@ cc.Class({
           }
         }
       }, that));
-      console.log("from:", _globalData["default"].gameMgr.getPlayerDataKey(posId));
-      node.position = this._player_list[_globalData["default"].gameMgr.getPlayerDataKey(posId)].position;
+      if (_globalData["default"].gameMgr.getPlayerDataKey(posId)) node.position = this._player_list[_globalData["default"].gameMgr.getPlayerDataKey(posId)].position;
     }
 
     node.runAction(cc.sequence(actions));
