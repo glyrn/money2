@@ -76,7 +76,6 @@ Object.assign(
     },
     //验证牌型 posId座位号
     validate(posId, cards,islaizi) {
-
       var int_cards = cards.map(function (card) {
         return card.value;
       });
@@ -193,6 +192,19 @@ Object.assign(
         }
       }
       return null;
+    },
+    getMinCardsByPosId(posId){
+      var cards = this.getCardsByPosId(posId);
+      let min = null;
+      if(cards){
+        min = cards[0];
+        for (let i = 1; i < cards.length; i++) {
+            if (cards[i].value < min.value) {
+              min = cards[i];
+            }
+        }
+      }
+      return min;
     },
     getCardIndexByPosId(card, posId) {
       var cards = this.getCardsByPosId(posId);
