@@ -741,66 +741,156 @@ var cardValidator = {
     ]
 }
 
-function laizi_check_list(cards,list,idx,laizis,cur_arr){
-    if(idx < cards.length){
-        if(laizis.includes(cards[idx])){
-            for (let i = 1; i <= 13; i++) {
-                var clone = cur_arr.slice();
-                clone.push(i);
-                laizi_check_list(cards,list,idx+1,laizis,clone);
-            }
-        }else{
-            cur_arr.push(cards[idx]);
-            laizi_check_list(cards,list,idx+1,laizis,cur_arr);
-        }
-        return list;
-    }else{
-        list.push(cur_arr);
-        return list;
-    }
-}
-
+// function laizi_check_list(cards,list,idx,laizis,cur_arr){
+//     if(idx < cards.length){
+//         if(laizis.includes(cards[idx])){
+//             for (let i = 1; i <= 13; i++) {
+//                 var clone = cur_arr.slice();
+//                 clone.push(i);
+//                 laizi_check_list(cards,list,idx+1,laizis,clone);
+//             }
+//         }else{
+//             cur_arr.push(cards[idx]);
+//             laizi_check_list(cards,list,idx+1,laizis,cur_arr);
+//         }
+//         return list;
+//     }else{
+//         list.push(cur_arr);
+//         return list;
+//     }
+// }
+//癞子算法
 module.exports.validate_laizi = function(cards,laizis) {
 
-    let hasLaizi = false;
-    var is_all_laizi;
-    var has_laizi_num = 0;
-    laizis.forEach(val => {
-        if (cards.indexOf(val) != -1) {
-            hasLaizi = true;
-            has_laizi_num ++;
+    var normal_cards = [];
+    var laizi_cards = [];
+    
+    cards.forEach(function(_card){
+        if(laizis.includes(_card)){
+            laizi_cards.push(_card);
+        }else{
+            normal_cards.push(_card);
         }
     });
 
-    is_all_laizi = cards.length === has_laizi_num;
-
-    // 癞子算法
-    if (hasLaizi && !is_all_laizi) {
-        var list = [];
-        var check_list = laizi_check_list(cards, list, 0, laizis, []);
-
-        var result = null;
-        check_list.forEach(val => {
-            var ret = exports.validate(val);
-            if (ret.status) {
-                if (result) {
-                    if (result.types[0].key < ret.types[0].key) result = ret;
-                } else {
-                    result = ret;
-                }
+    var is_same_normal = normal_cards.every((element) => element === normal_cards[0]);
+    
+    //纯软炸弹
+    if(normal_cards.length == 0 && laizi_cards.length >= 4){
+        //4张癞子
+        if(laizi_cards.length == 4){
+             var is_same_laizi = laizi_cards.every((element) => element === laizi_cards[0]);
+            //4张相同
+            if(is_same_laizi){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:cards.length * 13 + laizi_cards[0],type:"AAAA"}] 
+                };
+            //4张不一定相同
+            }else{
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:cards.length * 13,type:"AAAA"}] 
+                };
             }
-        });
-        if (result == null) {
-            result = {
-                status: false,
+        //大于4张
+        }else{
+            return {
+                status: true,
                 len: cards.length,
-                types: []
+                types: [{key:cards.length * 13,type:"AAAA"}] 
             };
         }
-    }else { //普通校验
-        result = exports.validate(cards);
     }
-    return result;
+    //普通软炸弹
+    if(is_same_normal && cards.length >= 4){
+        //4软炸
+        if(cards.length == 4){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:normal_cards[0]-0.5,type:"AAAA"}] 
+            };
+        }else{
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:(cards.length-1) * 13 + normal_cards[0],type:"AAAA"}] 
+            };
+        }
+    }
+
+    //检测顺子
+    if(!is_same_normal && cards.length >= 5){
+
+        let set_normal_check = {};
+        //是否有相同超过2张的牌
+        let hasMoreThan2 = false;
+        normal_cards.forEach(function(_card){
+            if(!set_normal_check[_card]){
+                set_normal_check[_card] = 1;
+            }else{
+                set_normal_check[_card]++;
+            }
+            if(set_normal_check[_card] > 2){
+                hasMoreThan2 = true;
+            }
+        });
+
+        
+        if(cards.length % 2 != 0){
+
+            let min_value = Math.min.apply(Math,normal_cards);
+            //单顺子
+            
+            let find_shunzi = 0;
+            for (let i = 0; i < cards.length; i++) {
+                for (const value in set_normal_check) {
+                    if(value == min_value + i){
+                        find_shunzi++;
+                    }
+                }
+            }
+            //单顺子满足
+            if(cards.length - find_shunzi == laizi_cards.length){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:min_value,type:"ABCDE"}] 
+                };
+            }
+        }else if(hasMoreThan2 == false){
+            let min_value = Math.min.apply(Math,normal_cards);
+            //双顺子
+            let _find_shunzi = 0;
+            let max_card_length = 0;
+            
+            for (let i = 0; i < (cards.length / 2); i++) {
+                normal_cards.forEach(function(value){
+                    if(value == min_value + i){
+                        _find_shunzi++;
+                    }
+                });
+                max_card_length++;
+            }
+            max_card_length = max_card_length*2;
+            if(laizi_cards.length + _find_shunzi == max_card_length){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:min_value,type:"AABBCC"}] 
+                };
+            }
+        }
+    }
+
+    return {
+        status: false,
+        len: cards.length,
+        types: []
+    };
 }
 
 module.exports.validate = function (cards) {

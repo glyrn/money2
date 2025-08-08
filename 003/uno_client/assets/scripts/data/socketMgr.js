@@ -214,9 +214,9 @@ const socketMgr = function(){
             _eventMgr.fire('PLAY_CARD_SUCCESS',data);
             _gameMgr.getPlayerData(data.nextPosId).target_timer_value = Date.parse(new Date()) / 1000 + _gameMgr.roomState.timeout;
             _gameMgr.playerData.turn = data.nextPosId;
-            // setTimeout(function(){
-                _eventMgr.fire('CHANGE_TURN');
-            // },1000);
+
+            _eventMgr.fire('CHANGE_TURN');
+
         });
         _socket.on('PLAY_PASS_SUCCESS',function(data){
             console.log("手牌增加：",data.plus_cards);
@@ -241,6 +241,11 @@ const socketMgr = function(){
                 _eventMgr.fire('CHANGE_TURN');
             },1000);
         });
+
+        _socket.on("PLUS_CARD_ONLY",function(data){
+            _gameMgr.getPlayerData(data.posId).cards.push(data.card);
+            _eventMgr.fire('PLUS_CARD',data);
+        })
 
         _socket.on("CONNECT_STATE",function(data){
             if(_gameMgr.getPlayerData(data.posId)){

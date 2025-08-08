@@ -95,8 +95,7 @@ Object.assign(
       });
       is_all_laizi = int_cards.length === has_laizi_num;
       var ret ;
-
-      if(islaizi && !is_all_laizi) {
+      if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 4 && is_all_laizi)) {
         ret = validator.validate_laizi(int_cards,laizi_values);
       }else{
         ret = validator.validate(int_cards);
@@ -440,7 +439,7 @@ Object.assign(
             this.lastCardInfo.key = key;
             this.lastCardInfo.posId = posId;
 
-            if(type === 'AAAA' && len === 4 ||
+            if(type === 'AAAA' && len >= 4 ||
                 type === 'AAABBB' && len === 6 ||
                 type === 'AAABBB' && len === 9 ||
                 type === 'AAAB' && len === 8 ||

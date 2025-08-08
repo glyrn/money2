@@ -4,7 +4,7 @@ const gameMgr = function(){
     var that = {};
     var _socketMgr = null;
     var _eventMgr = null;
-    var _validateMgr = null
+    // var _validateMgr = null
 
     that.setSocketMgr = function(socketMgr){
         _socketMgr = socketMgr
@@ -12,9 +12,9 @@ const gameMgr = function(){
     that.setEventlister = function(eventMgr){
         _eventMgr = eventMgr
     }
-    that.setValidateMgr = function(validateMgr){
-        _validateMgr = validateMgr
-    }
+    // that.setValidateMgr = function(validateMgr){
+    //     _validateMgr = validateMgr
+    // }
 
     that.where = 0;//0登录界面 1大厅 2房间,
     that.posId =  '';//座位号
@@ -291,24 +291,6 @@ const gameMgr = function(){
         }
 
         var cards = that.getSelectdCards();
-        var ret;
-        var card_values = cards.map(function(card){
-            return card.value;
-        })
-        if(that.isLaizi == 0){
-            ret = _validateMgr.validate_base(card_values);
-        }else{
-            var laizi_values = that.posState.laizi.cards.map(function(card){
-                return card.value;
-            })
-            ret = _validateMgr.validate_laizi(card_values,laizi_values);
-        }
-
-        if (!ret.status) {
-
-            _eventMgr.fire('PLAY_CARD_ERROR','你的牌不符合规则');
-            return console.log('你的牌不符合规则');
-        }
 
         _socketMgr.getSocket().emit('PLAY_CARD', cards);
     }

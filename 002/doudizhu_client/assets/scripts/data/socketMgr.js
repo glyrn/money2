@@ -236,7 +236,7 @@ const socketMgr = function(){
                 console.log("card_type:"+card_type+"  "+card_len+"  "+data.ctxData.key);
  
                 //炸弹
-                if(card_type == 'AAAA' && card_len == 4){
+                if(card_type == 'AAAA' && card_len >= 4){
                     cc.playEffect('sound/bomb',false,1);
 
                     if (_gameMgr.roomState.ctxPos === 'self') {
@@ -312,7 +312,7 @@ const socketMgr = function(){
                 _eventMgr.fire("show_global_effect",{anim:'animAirpanel'});
             }else if (ret.type == 'KING') {
                 _eventMgr.fire("show_global_effect",{anim:'animKing'});
-            }else if (ret.type == 'AAAA' && ret.len == 4) {
+            }else if (ret.type == 'AAAA' && ret.len >= 4) {
                 _eventMgr.fire("show_global_effect",{anim:'animBoom'});
             }else{
                 _eventMgr.fire("show_global_effect",{isHide:true});

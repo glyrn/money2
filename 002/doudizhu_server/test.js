@@ -1,3 +1,236 @@
+//数组排序
+function arraySort(array, asc) {
+    return array.sort(function (a, b) {
+        return asc === 'asc' ? a - b : b - a;
+    })
+}
+
+
+//计算数组中每个成员出现的次数，返回一个去重的次数数组
+function getCountArrayForGroupByCard(array, asc) {
+    var ret = getGroupByCard(array);
+    var r = [];
+    for (var i in ret) {
+        (r.indexOf(ret[i]) === -1) && r.push(ret[i]);
+    }
+    r = arraySort(r, asc);
+    return r;
+}
+
+//统计数组中每个成员出现的次数
+function getGroupByCard(array) {
+    var ret = {};
+    array.forEach(function (item) {
+        if (ret[item] === undefined) {
+            ret[item] = 0;
+        }
+        ret[item]++;
+    });
+    return ret;
+}
+
+//数组去重
+function arrayClearRepeat(array) {
+    var ret = [];
+    array.forEach(function (item) {
+        if (ret.indexOf(item) === -1) {
+            ret.push(item);
+        }
+    });
+    return ret;
+}
+
+//从一个数组中过滤掉 >=n 的成员
+function removeItemOverOf(array, n) {
+    return array.filter(function (item) {
+        return item < n;
+    });
+}
+
+
+///数组的最大成员是否 < n;
+function maxItemLessThan(array, n) {
+    return Math.max.apply(Math, array) < n;
+}
+
+///数组的最大成员是否 >= n;
+function maxItemMoreThan(array, n) {
+    return Math.max.apply(Math, array) >= n;
+}
+
+//获取数组中最小的成员;
+function getMinItem(array) {
+    if (!array.length) {
+        return undefined;
+    }
+    return Math.min.apply(Math, array);
+}
+//获取数组中最大的成员
+function getMaxItem(array) {
+    if (!array.length) {
+        return undefined;
+    }
+    return Math.max.apply(Math, array);
+}
+
+//筛选数组中累计出现过至少n次的成员
+function getCardByCountOverOf(array, n) {
+    var ret = getGroupByCard(array);
+    var r = [];
+    for (var i in ret) {
+        if (ret[i] >= n) {
+            r.push(parseInt(i));
+        }
+    }
+    return r;
+}
+
+//筛选数组中出现过n次的成员
+function getCardByCount(array, n) {
+    var ret = getGroupByCard(array);
+    var r = [];
+    for (var i in ret) {
+        if (ret[i] === n) {
+            r.push(parseInt(i));
+        }
+    }
+    return r;
+}
+
+//筛选数组中出现n次的成员与其它出现n次的成员，
+//若能组成等差数组，则返回这些成员的list（最长的那个等差数列,若长度一致，取最大的那一列）
+function getSequence(array, n) {
+    var r = arraySort(getCardByCount(array, n), 'asc');
+    var rets = [];
+    var ret = [];
+    var maxIndex = r.length - 1;
+    for (var i = 0; i < maxIndex; i++) {
+        var prev = r[i];
+        var curr = r[i + 1];
+        if (curr - prev === 1 && curr < 15) {
+            if (ret.indexOf(prev) === -1) {
+                ret.push(prev);
+            }
+            if (ret.indexOf(curr) === -1) {
+                ret.push(curr);
+            }
+            if (i === maxIndex - 1) {
+                rets.push(ret);
+            }
+        } else {
+            rets.push(ret);
+            ret = [];
+        }
+    }
+    rets = rets.sort(function (a, b) {
+        return a.length - b.length;
+    });
+    return rets.pop() || [];
+
+}
+
+//检查数组是否为等差数组 （差值 1）
+// {Array} param
+// {boolean} return
+function checkSequence(array) {
+    array = arraySort(array, 'asc');
+    for (var i = 0, len = array.length - 1; i < len; i++) {
+        var prev = array[i];
+        var current = array[i + 1];
+        if (current - prev !== 1) {
+            return false;
+        }
+    }
+    return true;
+}
+//顺子 N 张
+function ABCDE_N(cards, count) {
+    var cards = arraySort(cards, 'asc');
+
+    if (maxItemMoreThan(cards, 15)) {
+        return false;
+    }
+    var ret = checkSequence(cards);
+    if (count === undefined) {
+        return ret;
+    } else {
+        return ret && cards.length === count;
+    }
+}
+//连对N对
+function AABBCC_N(cards, count) {
+    var ret = getGroupByCard(cards);
+    var retKeys = arraySort(Object.keys(ret), 'asc');
+    if (maxItemMoreThan(retKeys, 15)) {
+        return false;
+    }
+    var flag = checkSequence(retKeys);
+    if (!flag) {
+        return false;
+    }
+    var r = getCountArrayForGroupByCard(cards, 'asc');
+    return r.length === 1 && r[0] === 2 && cards.length === count && count % 2 === 0;
+}
+//飞机不带翅膀N飞
+function AAABBB_N(cards, count) {
+    var countList = getCountArrayForGroupByCard(cards, 'asc');
+    var mCards = getGroupByCard(cards);
+    mCards = arraySort(Object.keys(mCards), 'asc');
+    if (maxItemMoreThan(mCards, 15)) {
+        return false;
+    }
+    var ret = checkSequence(mCards);
+    return ret && countList.length === 1 && countList[0] === 3 && cards.length === count;
+}
+
+//飞机带单N飞
+function AAABBB_N_CD_N(cards, count) {
+    var ret = arraySort(getCardByCountOverOf(cards, 3), 'asc');
+    ret = removeItemOverOf(ret, 15);
+    if (ret.length < count / 4) {
+        return {
+            status: false
+        };
+    }
+    var r = getSequence(ret, 1);
+    if (r.length < count / 4) {
+        return { status: false };
+    }
+    var key = getMinItem(r);
+    var status = cards.length === count;
+    return {
+        key: key,
+        status: status
+    }
+}
+
+//双飞以上带对
+function AAABB_N(cards, count) {
+    cards = cards.slice(0);
+    if (count % 5 !== 0) {
+        return false;
+    }
+    var ret = getSequence(cards, 3);
+    if (ret.length !== count / 5) {
+        return false;
+    }
+    var r = [];
+    cards.forEach(function (item) {
+        (ret.indexOf(item) === -1) && r.push(item);
+    });
+    r = arraySort(r, 'asc');
+    if (r.length !== (count / 5) * 2) {
+        return false;
+    }
+    r = getCountArrayForGroupByCard(r, 'asc');
+    for (var i = 0, len = r.length; i < len; i++) {
+        if (r[i] !== 4 && r[i] !== 2) {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 const TYPES = {
 
@@ -440,8 +673,8 @@ const TYPES = {
             key: getMinItem(ret),
             status: status
         }
-    }
-
+    },
+    
 }
 
 
@@ -619,26 +852,190 @@ function laizi_check_list(cards,list,idx,laizis,cur_arr){
     }
 }
 
+//癞子检测
 function validate_laizi(cards,laizis){
 
-    var list = [];
-    var check_list = laizi_check_list(cards,list,0,laizis,[]);
+    // var list = [];
+    // var check_list = laizi_check_list(cards,list,0,laizis,[]);
+    // var validate_list = [];//可行方案
+    // var result = null;
+    // check_list.forEach(val => {
+    //     var ret = validator(val);
+    //     if(ret.status){
+    //         if(result){
+    //              //优先炸弹
+    //             if(ret.types[0].type == 'AAAA'){
+    //                 validate_list.unshift(ret);
+    //             }else{
+    //                 validate_list.push(ret);
+    //             }
+    //             if(result.types[0].key < ret.types[0].key) result = ret;
+    //         }else{
+    //             result = ret;
+    //         }
+    //     }
+    // });
+    // //炸弹优先
+    // if(validate_list.length > 0 && validate_list[0].types[0].type == "AAAA"){
+    //     result = validate_list[0];
+    // } //否则不变
+    // return result;
 
-    var result = null;
-    check_list.forEach(val => {
-        var ret = validator(val);
-        if(ret.status){
-            if(result){
-                if(result.types[0].key < ret.types[0].key) result = ret;
-            }else{
-                result = ret;
-            }
+    var normal_cards = [];
+    var laizi_cards = [];
+    
+    cards.forEach(function(_card){
+        if(laizis.includes(_card)){
+            laizi_cards.push(_card);
+        }else{
+            normal_cards.push(_card);
         }
     });
 
-    return result;
+    var is_same_normal = normal_cards.every((element) => element === normal_cards[0]);
+    
+    //纯软炸弹
+    if(normal_cards.length == 0 && laizi_cards.length >= 4){
+        //4张癞子
+        if(laizi_cards.length == 4){
+             var is_same_laizi = laizi_cards.every((element) => element === laizi_cards[0]);
+            //4张相同
+            if(is_same_laizi){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:cards.length * 13 + laizi_cards[0],type:"AAAA"}] 
+                };
+            //4张不一定相同
+            }else{
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:cards.length * 13,type:"AAAA"}] 
+                };
+            }
+        //大于4张
+        }else{
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:cards.length * 13,type:"AAAA"}] 
+            };
+        }
+    }
+    //普通软炸弹
+    if(is_same_normal && cards.length >= 4){
+        //4软炸
+        if(cards.length == 4){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:normal_cards[0]-0.5,type:"AAAA"}] 
+            };
+        }else{
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:(cards.length-1) * 13 + normal_cards[0],type:"AAAA"}] 
+            };
+        }
+    }
+
+    //检测顺子
+    if(!is_same_normal && cards.length >= 5){
+
+        let set_normal_check = {};
+        //是否有相同超过2张的牌
+        let hasMoreThan2 = false;
+        normal_cards.forEach(function(_card){
+            if(!set_normal_check[_card]){
+                set_normal_check[_card] = 1;
+            }else{
+                set_normal_check[_card]++;
+            }
+            if(set_normal_check[_card] > 2){
+                hasMoreThan2 = true;
+            }
+        });
+
+        
+        if(cards.length % 2 != 0){
+
+            let min_value = Math.min.apply(Math,normal_cards);
+            //单顺子
+            
+            let find_shunzi = 0;
+            for (let i = 0; i < cards.length; i++) {
+                for (const value in set_normal_check) {
+                    if(value == min_value + i){
+                        find_shunzi++;
+                    }
+                }
+            }
+            //单顺子满足
+            if(cards.length - find_shunzi == laizi_cards.length){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:min_value,type:"ABCDE"}] 
+                };
+            }
+        }else if(hasMoreThan2 == false){
+            let min_value = Math.min.apply(Math,normal_cards);
+            //双顺子
+            let _find_shunzi = 0;
+            let max_card_length = 0;
+            
+            for (let i = 0; i < (cards.length / 2); i++) {
+                normal_cards.forEach(function(value){
+                    if(value == min_value + i){
+                        _find_shunzi++;
+                    }
+                });
+                max_card_length++;
+            }
+            max_card_length = max_card_length*2;
+            if(laizi_cards.length + _find_shunzi == max_card_length){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:min_value,type:"AABBCC"}] 
+                };
+            }
+        }
+    }
+
+    return {
+        status: false,
+        len: cards.length,
+        types: []
+    };
 }
 
-var laizis = [6,7];
-var cards = [4,5,6,9];
-console.log(validate_laizi(cards,laizis));
+var laizis = [2,5];
+var cards1 = [2,2,2,2,5,5,5,5];
+var cards2 = [8,8,8,2,5,5,5,5];
+var cards3 = [2,2,2,2,5,5,5];
+var cards4 = [8,8,8,2,5,5,5];
+var cards5 = [2,2,2,2,5,5];
+var cards6 = [8,8,8,2,5,5];
+var cards7 = [2,2,2,2];
+var cards8 = [2,2,2,5];
+var cards9 = [8,8,8,8];
+var cards10 = [8,5,2,2];
+var cards11 = [2,2,2,8,8,8];
+var cards12 = [5,4,6,7,2];
+var cards13 = [6,6,5,2,8,9,9,5];
+// console.log(validate_laizi(cards1,laizis));
+// console.log(validate_laizi(cards2,laizis));
+// console.log(validate_laizi(cards3,laizis));
+// console.log(validate_laizi(cards4,laizis));
+// console.log(validate_laizi(cards5,laizis));
+// console.log(validate_laizi(cards6,laizis));
+// console.log(validate_laizi(cards7,laizis));
+// console.log(validate_laizi(cards8,laizis));
+// console.log(validator(cards9));
+// console.log(validate_laizi(cards10,laizis));
+// console.log(validate_laizi(cards11,laizis));
+// console.log(validate_laizi(cards12,laizis));
+console.log(validate_laizi(cards13,laizis));
