@@ -253,7 +253,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           userObj.uid = 0;
@@ -450,6 +450,52 @@ const proto = {
     }
     
     return false;
+  },
+  doGameOver:function(desk,game){
+
+    var deskId = desk.deskId;
+    var gameResult = game.getResult();
+    console.log("游戏结果：",gameResult);
+    this.broadCastRoom('GAME_OVER', deskId, gameResult);
+
+    var score = desk.base_score * gameResult.score * gameResult.ratio;
+    var score_list = [];
+    for (let j = 0; j < gameResult.winner.length; j++) {
+      for (let i = 0; i < desk.positions.length; i++) {
+        if(desk.positions[i].posId == gameResult.winner[j]){
+          score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.winner.length,is_win:1,avatorUrl:desk.positions[i].avatarUrl})
+        }
+      }
+    }
+    for (let j = 0; j < gameResult.loser.length; j++) {
+      for (let i = 0; i < desk.positions.length; i++) {
+        if(desk.positions[i].posId == gameResult.loser[j]){
+          score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.loser.length,is_win:0,avatorUrl:desk.positions[i].avatarUrl})
+        }
+      }
+    }
+    
+    score_list.sort((a, b) => {
+      return b.score - a.score;
+    });
+    if(!desk.score_list) desk.score_list = [];
+    desk.score_list.push({play_index:desk.play_index,score_list:score_list})
+    if(desk.play_index == desk.play_count){
+      this.sendYcGameOver({
+        room_id:desk.name,
+        game_id:2,
+        score_list:desk.score_list
+      })
+    }
+
+    desk.play_index++;
+    if(desk.play_count < desk.play_index){ //剩余局数为0
+      desk.play_index = 1;
+    }
+    this.updatePosStatus(deskId, 0, 1);
+    this.updatePosStatus(deskId, 1, 1);
+    this.updatePosStatus(deskId, 2, 1);
+    game.init();
   },
   //发送给云村数据
   sendYcGameOver:function(data){
@@ -728,67 +774,53 @@ const proto = {
             self.socketEmit(self.getUserObj(socket),'PLAY_CARD_SUCCESS', data);
 
             if (game.getStatus() === 3) {
-              var gameResult = game.getResult();
-              console.log("游戏结果：",gameResult);
-              self.broadCastRoom('GAME_OVER', deskId, gameResult);
-
-              var score = desk.base_score * gameResult.score * gameResult.ratio;
-              var score_list = [];
-              for (let j = 0; j < gameResult.winner.length; j++) {
-                for (let i = 0; i < desk.positions.length; i++) {
-                  if(desk.positions[i].posId == gameResult.winner[j]){
-                    score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.winner.length,is_win:1,avatorUrl:desk.positions[i].avatarUrl})
-                  }
-                }
-              }
-              for (let j = 0; j < gameResult.loser.length; j++) {
-                for (let i = 0; i < desk.positions.length; i++) {
-                  if(desk.positions[i].posId == gameResult.loser[j]){
-                    score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.loser.length,is_win:0,avatorUrl:desk.positions[i].avatarUrl})
-                  }
-                }
-              }
-              
-              score_list.sort((a, b) => {
-                return b.score - a.score;
-              });
-              if(!desk.score_list) desk.score_list = [];
-              desk.score_list.push({play_index:desk.play_index,score_list:score_list})
-              if(desk.play_index == desk.play_count){
-                self.sendYcGameOver({
-                  room_id:desk.name,
-                  game_id:2,
-                  score_list:desk.score_list
-                })
-              }
-
-              desk.play_index++;
-              if(desk.play_count < desk.play_index){ //剩余局数为0
-                desk.play_index = 1;
-              }
-              self.updatePosStatus(deskId, 0, 1);
-              self.updatePosStatus(deskId, 1, 1);
-              self.updatePosStatus(deskId, 2, 1);
-              game.init();
+              //游戏结束
+              self.doGameOver(desk,game);
             }else{
               //游戏中
               if(game.getStatus() == 2) {
                 //玩家如果掉线中 自动出pass
                 var nextUserObj = self.getPosition(desk, game.getContextPosId());
                 if (nextUserObj && nextUserObj.disconnectTime > 0) {
-                  game.next(nextUserObj.posId, [], desk.islaizi);
-                  self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
-                    ctxData: {
-                      len: 0,
-                      key: '',
-                      type: '',
-                      cards: [],
-                      posId: nextUserObj.posId,
-                    },
-                    posId: game.getContextPosId(),
-                    timeout: 15,
-                    isPass: true,
-                  })
+
+                  //上一手不是他自己出的
+                  if(game.lastCardInfo.posId != nextUserObj.posId){
+                    game.next(nextUserObj.posId, [], desk.islaizi);
+                    self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
+                      ctxData: {
+                        len: 0,
+                        key: '',
+                        type: '',
+                        cards: [],
+                        posId: nextUserObj.posId,
+                      },
+                      posId: game.getContextPosId(),
+                      timeout: 15,
+                      isPass: true,
+                    })
+                  }else{ //上一手是他自己出的
+                    var minCard = game.getMinCardsByPosId(nextUserObj.posId);
+                    if(minCard){
+                      game.next(nextUserObj.posId, [minCard], desk.islaizi);
+                      self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
+                        ctxData: {
+                          len: 1,
+                          key: minCard.value,
+                          type: 'A',
+                          cards: [minCard],
+                          posId: nextUserObj.posId,
+                        },
+                        posId: game.getContextPosId(),
+                        timeout: 15,
+                        isPass: false,
+                      })
+
+                      if (game.getStatus() === 3) {
+                        //游戏结束
+                        self.doGameOver(desk,game);
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -814,8 +846,10 @@ const proto = {
               console.log('用户 '+userObj.name+" "+userObj.uid+' 断线');
 
               const game = self.gameDatas[self.desks[i].deskId];
-              if(game && game.getContextPosId() == userObj.posId){
-                  game.next(game.getContextPosId(), [], self.desks[i].islaizi);
+              if(game && game.getStatus() === 2 && game.getContextPosId() == userObj.posId){
+                //上一手不是他自己出的
+                if(game.lastCardInfo.posId != game.getContextPosId()){
+                  game.next(userObj.posId, [], self.desks[i].islaizi);
                   var nextUserObj = self.getPosition(self.desks[i], game.getContextPosId());
                   self.broadCastRoom('CTX_PLAY_CHANGE', self.desks[i].deskId, {
                     ctxData: {
@@ -825,10 +859,34 @@ const proto = {
                       cards: [],
                       posId: nextUserObj.posId,
                     },
-                    posId: game.getContextPosId(),
+                    posId: userObj.posId,
                     timeout: 15,
                     isPass: true,
                   })
+                }else{ //上一手是他自己出的
+                  //出最小的牌
+                  var minCard = game.getMinCardsByPosId(userObj.posId);
+                  if(minCard){
+                    game.next(game.getContextPosId(), [minCard], self.desks[i].islaizi);
+                    var nextUserObj = self.getPosition(self.desks[i], game.getContextPosId());
+                    self.broadCastRoom('CTX_PLAY_CHANGE', self.desks[i].deskId, {
+                      ctxData: {
+                        len: 1,
+                        key: minCard.value,
+                        type: 'A',
+                        cards: [minCard],
+                        posId: nextUserObj.posId,
+                      },
+                      posId: userObj.posId,
+                      timeout: 15,
+                      isPass: false,
+                    });
+                    if (game.getStatus() === 3) {
+                      //游戏结束
+                      self.doGameOver(self.desks[i],game);
+                    }
+                  }
+                }
               }
 
               //记录掉线时间
