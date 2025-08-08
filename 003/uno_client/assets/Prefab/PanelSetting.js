@@ -3,42 +3,60 @@ cc.Class({
     extends: cc.Component,
     name:"PanelSetting",
     properties: {
-        progressbar_bg:cc.ProgressBar,
-        progressbar_effect:cc.ProgressBar,
+        // progressbar_bg:cc.ProgressBar,
+        // progressbar_effect:cc.ProgressBar,
     },
-    start:function(){
-        if (cc.sys.isBrowser && cc.sys.os === cc.sys.OS_IOS && cc.sys.isMobile) {
+    // start:function(){
+    //     if (cc.sys.isBrowser && cc.sys.os === cc.sys.OS_IOS && cc.sys.isMobile) {
 
-            cc.game.on(cc.game.EVENT_SHOW, () => {
-                setTimeout(() => {
-                    cc.audioEngine.stopMusic();
-                }, 50);
-                setTimeout(() => {
-                    cc.playMusic("sound/bg",true,1);
-                }, 100);
-            });
-        }
-    },
-    onBtnReset:function(){
-        setTimeout(() => {
-            cc.audioEngine.stopMusic();
-        }, 50);
-        setTimeout(() => {
-            cc.playMusic("sound/bg",true,1);
-        }, 100);
-    },
+    //         cc.game.on(cc.game.EVENT_SHOW, () => {
+    //             setTimeout(() => {
+    //                 cc.audioEngine.stopMusic();
+    //             }, 50);
+    //             setTimeout(() => {
+    //                 cc.playMusic("sound/bg",true,1);
+    //             }, 100);
+    //         });
+    //     }
+    // },
+    // onBtnReset:function(){
+    //     setTimeout(() => {
+    //         cc.audioEngine.stopAll();
+    //         cc.audioEngine.stopMusic();
+
+    //         // cc.audioEngine.stopAllEffects();
+    //     }, 50);
+    //     setTimeout(() => {
+    //         cc.playMusic("sound/bg",true,1);
+    //     }, 100);
+    // },
     onBtnClose:function(){
         this.node.active = false;
     },
     onShowPanel:function(){
         this.node.active = true;
     },
-    onProgressBg:function(slider) {
-        this.progressbar_bg.progress = slider.progress;
-        cc.audioEngine.setMusicVolume(slider.progress);
+    onToggleBg:function(toggle, customEventData){
+        if(toggle.isChecked){
+            cc.audioEngine.stopMusic();
+            cc.playMusic("sound/bg",true,1);
+        }else{
+            cc.audioEngine.stopMusic();
+        }
     },
-    onProgressEffect:function(slider) {
-        this.progressbar_effect.progress = slider.progress;
-        cc.audioEngine.setEffectsVolume(slider.progress);
-    }
+    onToggleEffect:function(toggle, customEventData){
+       if(toggle.isChecked){
+            cc.audioEngine.setEffectsVolume(1);
+        }else{
+            cc.audioEngine.setEffectsVolume(0.001);
+        }
+    },
+    // onProgressBg:function(slider) {
+    //     this.progressbar_bg.progress = slider.progress;
+    //     cc.audioEngine.setMusicVolume(slider.progress);
+    // },
+    // onProgressEffect:function(slider) {
+    //     this.progressbar_effect.progress = slider.progress;
+    //     cc.audioEngine.setEffectsVolume(slider.progress);
+    // }
 });

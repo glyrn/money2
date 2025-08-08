@@ -3,7 +3,6 @@ var validator = require('./core-validator');
 
 //获取 0-num范围的随机整数
 function getRandomNumForRange(num) {
-  // return 0;
   return Math.round(Math.random() * num);
 }
 
@@ -87,16 +86,16 @@ Object.assign(
       var laizi_values = this.contextLaiziCards.map(function(card){
         return card.value;
       })
-      // var is_all_laizi = false;
+      var is_all_laizi = false;
       var has_laizi_num = 0;
       int_cards.forEach(function(card){
         if(laizi_values.indexOf(card) !== -1){
           has_laizi_num ++;
         }
       });
-      // is_all_laizi = int_cards.length === has_laizi_num;
+      is_all_laizi = int_cards.length === has_laizi_num;
       var ret ;
-      if(has_laizi_num > 0) {
+      if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 4 && is_all_laizi)) {
         ret = validator.validate_laizi(int_cards,laizi_values);
       }else{
         ret = validator.validate(int_cards);
@@ -440,7 +439,7 @@ Object.assign(
             this.lastCardInfo.key = key;
             this.lastCardInfo.posId = posId;
 
-            if(type === 'AAAA' && len === 4 ||
+            if(type === 'AAAA' && len >= 4 ||
                 type === 'AAABBB' && len === 6 ||
                 type === 'AAABBB' && len === 9 ||
                 type === 'AAAB' && len === 8 ||

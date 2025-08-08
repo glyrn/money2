@@ -924,7 +924,7 @@ function validate_laizi(cards,laizis){
         }
     }
     //普通软炸弹
-    if(is_same_normal && normal_cards.length == 3){
+    if(is_same_normal && cards.length >= 4){
         //4软炸
         if(cards.length == 4){
             return {
@@ -938,6 +938,70 @@ function validate_laizi(cards,laizis){
                 len: cards.length,
                 types: [{key:(cards.length-1) * 13 + normal_cards[0],type:"AAAA"}] 
             };
+        }
+    }
+
+    //检测顺子
+    if(!is_same_normal && cards.length >= 5){
+
+        let set_normal_check = {};
+        //是否有相同超过2张的牌
+        let hasMoreThan2 = false;
+        normal_cards.forEach(function(_card){
+            if(!set_normal_check[_card]){
+                set_normal_check[_card] = 1;
+            }else{
+                set_normal_check[_card]++;
+            }
+            if(set_normal_check[_card] > 2){
+                hasMoreThan2 = true;
+            }
+        });
+
+        
+        if(cards.length % 2 != 0){
+
+            let min_value = Math.min.apply(Math,normal_cards);
+            //单顺子
+            
+            let find_shunzi = 0;
+            for (let i = 0; i < cards.length; i++) {
+                for (const value in set_normal_check) {
+                    if(value == min_value + i){
+                        find_shunzi++;
+                    }
+                }
+            }
+            //单顺子满足
+            if(cards.length - find_shunzi == laizi_cards.length){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:min_value,type:"ABCDE"}] 
+                };
+            }
+        }else if(hasMoreThan2 == false){
+            let min_value = Math.min.apply(Math,normal_cards);
+            //双顺子
+            let _find_shunzi = 0;
+            let max_card_length = 0;
+            
+            for (let i = 0; i < (cards.length / 2); i++) {
+                normal_cards.forEach(function(value){
+                    if(value == min_value + i){
+                        _find_shunzi++;
+                    }
+                });
+                max_card_length++;
+            }
+            max_card_length = max_card_length*2;
+            if(laizi_cards.length + _find_shunzi == max_card_length){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:min_value,type:"AABBCC"}] 
+                };
+            }
         }
     }
 
@@ -958,14 +1022,20 @@ var cards6 = [8,8,8,2,5,5];
 var cards7 = [2,2,2,2];
 var cards8 = [2,2,2,5];
 var cards9 = [8,8,8,8];
-var cards10 = [8,8,8,2];
-console.log(validate_laizi(cards1,laizis));
-console.log(validate_laizi(cards2,laizis));
-console.log(validate_laizi(cards3,laizis));
-console.log(validate_laizi(cards4,laizis));
-console.log(validate_laizi(cards5,laizis));
-console.log(validate_laizi(cards6,laizis));
-console.log(validate_laizi(cards7,laizis));
-console.log(validate_laizi(cards8,laizis));
-console.log(validator(cards9));
-console.log(validate_laizi(cards10,laizis));
+var cards10 = [8,5,2,2];
+var cards11 = [2,2,2,8,8,8];
+var cards12 = [5,4,6,7,2];
+var cards13 = [6,6,5,2,8,9,9,5];
+// console.log(validate_laizi(cards1,laizis));
+// console.log(validate_laizi(cards2,laizis));
+// console.log(validate_laizi(cards3,laizis));
+// console.log(validate_laizi(cards4,laizis));
+// console.log(validate_laizi(cards5,laizis));
+// console.log(validate_laizi(cards6,laizis));
+// console.log(validate_laizi(cards7,laizis));
+// console.log(validate_laizi(cards8,laizis));
+// console.log(validator(cards9));
+// console.log(validate_laizi(cards10,laizis));
+// console.log(validate_laizi(cards11,laizis));
+// console.log(validate_laizi(cards12,laizis));
+console.log(validate_laizi(cards13,laizis));
