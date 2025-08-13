@@ -840,28 +840,27 @@ module.exports.validate_laizi = function(cards,laizis) {
         });
 
         
-        if(cards.length % 2 != 0){
-
-            let min_value = Math.min.apply(Math,normal_cards);
-            //单顺子
-            
-            let find_shunzi = 0;
-            for (let i = 0; i < cards.length; i++) {
-                for (const value in set_normal_check) {
-                    if(value == min_value + i){
-                        find_shunzi++;
-                    }
+        //尝试检测单顺子
+        let min_value = Math.min.apply(Math,normal_cards);
+        //单顺子
+        let find_shunzi = 0;
+        for (let i = 0; i < cards.length; i++) {
+            for (const value in set_normal_check) {
+                if(value == min_value + i){
+                    find_shunzi++;
                 }
             }
-            //单顺子满足
-            if(cards.length - find_shunzi == laizi_cards.length){
-                return {
-                    status: true,
-                    len: cards.length,
-                    types: [{key:min_value,type:"ABCDE"}] 
-                };
-            }
-        }else if(hasMoreThan2 == false){
+        }
+        //单顺子满足
+        if(cards.length - find_shunzi == laizi_cards.length){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:min_value,type:"ABCDE"}] 
+            };
+        }
+        //尝试检测双顺子
+        if(hasMoreThan2 == false){
             let min_value = Math.min.apply(Math,normal_cards);
             //双顺子
             let _find_shunzi = 0;
