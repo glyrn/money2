@@ -230,35 +230,76 @@ function selectTips(playerData){
         //顺子和3带2 尝试找AAAA(炸弹)
         var select_card_list = [];
         if((globalData.gameMgr.roomState.ctxCard.type == "ABCDE" || 
+            globalData.gameMgr.roomState.ctxCard.type == 'AAAB' || 
             globalData.gameMgr.roomState.ctxCard.type == 'AAABB' || 
+            globalData.gameMgr.roomState.ctxCard.type == 'AAABBB' || 
+            globalData.gameMgr.roomState.ctxCard.type == 'AABBCC' || 
             globalData.gameMgr.roomState.ctxCard.type == 'A' ||
             globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
             globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
             globalData.gameMgr.roomState.ctxCard.type == 'AAAA'
         ) && is_find == false){
             console.log("尝试找AAAA炸弹：");
+            
+            let laiziCards = globalData.gameMgr.posState.laizi.cards;
 
             var check_card_map = {};
             playerData.cards.forEach(_card=>{
-                if(!check_card_map[_card.value]){
-                    check_card_map[_card.value] = 0;
+                if(_card.value <= 15){
+                    if(!check_card_map[_card.value]){
+                        check_card_map[_card.value] = 0;
+                    }
+                    check_card_map[_card.value]++;
                 }
-                check_card_map[_card.value]++;
             });
 
-            for (const value in check_card_map) {
-                if(check_card_map[value] == 4 && value > globalData.gameMgr.roomState.ctxCard.key){
-                    is_find = true;
+            let ctxCards = globalData.gameMgr.posState[globalData.gameMgr.roomState.ctxCard.ctxPos].ctxCards;
+            let ctxHasLaizi = false;
+            let ctxLaiziNum = 0;
+            ctxCards.forEach(_card=>{
+                for(var laizi_card_key in laiziCards){
+                    if(laiziCards[laizi_card_key].value == _card.value){
+                        ctxHasLaizi = true;
+                        ctxLaiziNum++;
+                    }
+                }
+            });
+            let isAllLaizi = ctxLaiziNum == ctxCards.length;
+            
+            //对手出炸弹 判断是否AAAA硬炸
+            if(globalData.gameMgr.roomState.ctxCard.type == 'AAAA'){
+                //是硬炸
+                if(ctxHasLaizi == false){
+                    for (const value in check_card_map) {
+                        if(check_card_map[value] == 4 && value > globalData.gameMgr.roomState.ctxCard.key){
+                            is_find = true;
 
-                    playerData.cards.forEach(_card=>{
-                        if(_card.value == value){
-                            select_card_list.push(_card);
+                            playerData.cards.forEach(_card=>{
+                                if(_card.value == value){
+                                    select_card_list.push(_card);
+                                }
+                            });
+                            return true;
                         }
-                    });
-                    break;
+                    }
+                }
+            //不是炸弹的其他类型，A AA AAA 连对 顺子等等
+            }else{
+                for (const value in check_card_map) {
+                    if(check_card_map[value] == 4 && value > globalData.gameMgr.roomState.ctxCard.key){
+                        is_find = true;
+
+                        playerData.cards.forEach(_card=>{
+                            if(_card.value == value){
+                                select_card_list.push(_card);
+                            }
+                        });
+                        break;
+                    }
                 }
             }
 
+            
             //尝试找软炸弹
             if(is_find == false){
                 console.log("尝试找软炸弹：");
@@ -267,7 +308,22 @@ function selectTips(playerData){
                 var hasAAA = false;
                 var hasLaizi = false;
                 var curLaiziCards = [];
-                let laiziCards = globalData.gameMgr.posState.laizi.cards;
+                
+                let check_match_len = globalData.gameMgr.roomState.ctxCard.len;
+                var isOffset = true;
+                //飞机类型 A AA AAA 都需要强制找4张软炸
+                if(globalData.gameMgr.roomState.ctxCard.type == 'AAAB' && globalData.gameMgr.roomState.ctxCard.len == 8 ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'AAABB' && globalData.gameMgr.roomState.ctxCard.len == 10 || 
+                    globalData.gameMgr.roomState.ctxCard.type == 'AAABBB' && globalData.gameMgr.roomState.ctxCard.len == 6 ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'A' ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'AAA'
+                )
+                {
+                    check_match_len = 4;
+                    isOffset = false;
+                }
+                
                 playerData.cards.forEach(_card=>{
                     for(var laizi_card_key in laiziCards){
                         if(laiziCards[laizi_card_key].value == _card.value){
@@ -278,61 +334,39 @@ function selectTips(playerData){
                         }
                     }
                 });
-
+                //如果对手是纯癞子或硬炸弹 那么尝试找+1的软炸
+                let offset = (isAllLaizi || ctxHasLaizi == false) && isOffset ? 1:0;
                 for (const value in check_card_map) {
-                    console.log("检查AAA：",value , globalData.gameMgr.roomState.ctxCard.key)
+                    console.log("检查AAA：",value , globalData.gameMgr.roomState.ctxCard.key,offset)
 
-                    if(check_card_map[value] == 3 && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)){
+                    if((!isAllLaizi && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)) || isAllLaizi || !ctxHasLaizi ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'A' ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAA' ){
                         hasAAA = true;
                         
                         //癞子+AAA的数量 等于 出牌数量
-                        if(hasAAA && hasLaizi && curLaiziCards.length + 3 >= globalData.gameMgr.roomState.ctxCard.len){
+                        if(hasAAA && hasLaizi && curLaiziCards.length + check_card_map[value] >= check_match_len + offset){
+
                             playerData.cards.forEach(_card=>{
                                 if(_card.value == value){
                                     select_card_list.push(_card);
                                 }
                             });
-                            for(var i=0;i<globalData.gameMgr.roomState.ctxCard.len - 3;i++){
-                                select_card_list.push(curLaiziCards[i]);
-                            }
-                            is_find = true;
-                            break;
-                        }
-
-                    }else if(check_card_map[value] == 2 && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)){
-                        hasAAA = true;
-                        
-                        //癞子+AAA的数量 等于 出牌数量
-                        if(hasAAA && hasLaizi && curLaiziCards.length + 2 >= globalData.gameMgr.roomState.ctxCard.len){
-                            playerData.cards.forEach(_card=>{
-                                if(_card.value == value){
-                                    select_card_list.push(_card);
-                                }
-                            });
-                            for(var i=0;i<globalData.gameMgr.roomState.ctxCard.len - 2;i++){
-                                select_card_list.push(curLaiziCards[i]);
-                            }
-                            is_find = true;
-                            break;
-                        }
-
-                    }else if(check_card_map[value] == 1 && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)){
-                        hasAAA = true;
-                        
-                        //癞子+AAA的数量 等于 出牌数量
-                        if(hasAAA && hasLaizi && curLaiziCards.length + 1 >= globalData.gameMgr.roomState.ctxCard.len){
-                            playerData.cards.forEach(_card=>{
-                                if(_card.value == value){
-                                    select_card_list.push(_card);
-                                }
-                            });
-                            for(var i=0;i<globalData.gameMgr.roomState.ctxCard.len - 1;i++){
+                            for(var i=0;i<check_match_len - check_card_map[value] + offset;i++){
                                 select_card_list.push(curLaiziCards[i]);
                             }
                             is_find = true;
                             break;
                         }
                     }
+                }
+                //最后试下找自己的纯软炸
+                if(is_find == false && curLaiziCards.length >= check_match_len){
+                    for (let i = 0; i < check_match_len; i++) {
+                        select_card_list.push(curLaiziCards[i]);
+                    }
+                    is_find = true;
                 }
             }
 
@@ -353,22 +387,37 @@ function selectTips(playerData){
 let globalData = {
     gameMgr:{
         roomState:{
-            ctxCard:{
-                type:"ABCDE",
-                key:3, //34567
-                len:5,
-            },
             // ctxCard:{
-            //     type:"AABBCC",
-            //     key:3, //334455
-            //     len:6,
+            //     type:"ABCDE",
+            //     key:3, //34567
+            //     len:5,
+            // },
+            ctxCard:{
+                type:"AAAA",
+                key:13, //4455667788
+                len:4,
+                ctxPos:'left'
+            }
+            // ctxCard:{
+            //     type:"AA",
+            //     key:16, //4455667788
+            //     len:2,
+            //     ctxPos:'left'
             // }
         },
         posState:{
             laizi:{
                 cards:[
-                    {value:11},
+                    {value:5},
                     {value:3}
+                ]
+            },
+            left:{
+                ctxCards:[
+                    {value:13},
+                    {value:13},
+                    {value:13},
+                    {value:13},
                 ]
             }
         }
@@ -376,7 +425,9 @@ let globalData = {
 };
 
 let playerData = {
-    cards:[{value:11},{value:11},{value:11},{value:4},{value:4},{value:4},{value:3},{value:13},{value:12}]
+    // cards:[{value:14},{value:14}, {value:15},{value:12},{value:11},{value:10},{value:10},{value:9},{value:9},{value:8},{value:7},{value:7},{value:6},{value:6},{value:6},{value:4},{value:4}]
+    cards:[{value:3},{value:3},{value:5},{value:6},{value:4},{value:6},{value:7}]
+    // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }
 
 let isFind = selectTips(playerData);

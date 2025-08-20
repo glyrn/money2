@@ -132,15 +132,30 @@ Object.assign(
         }
 
         if (this.lastCardInfo.type === 'AAAA') {
-          if (type === 'AAAA' && key > this.lastCardInfo.key) {
-            return {
-              status: true,
-              key,
-              type,
-              len: ret.len
+          if (type === 'AAAA'){
+            //硬炸
+            if( this.lastCardInfo.isAAAA){
+                if(has_laizi_num > 0 && ret.len > this.lastCardInfo.len){
+                    return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len
+                    }
+                }
+            }else{
+              //正常情况
+              if ( key > this.lastCardInfo.key) {
+                return {
+                  status: true,
+                  key,
+                  type,
+                  len: ret.len
+                }
+              }
             }
-
           }
+          
         } else {
           if (type === 'AAAA') {
             return {
@@ -444,12 +459,13 @@ Object.assign(
             this.contextPosId = 0;
           }
 
-          const { type, len, key, status } = this.validate(posId, data, islaizi);
+          const { type, len, key, status,isAAAA } = this.validate(posId, data, islaizi);
           if (status) {
             this.lastCardInfo.type = type
             this.lastCardInfo.len = len
             this.lastCardInfo.key = key;
             this.lastCardInfo.posId = posId;
+            this.lastCardInfo.isAAAA = isAAAA;
 
             if(type === 'AAAA' && len >= 4 ||
                 type === 'AAABBB' && len === 6 ||
