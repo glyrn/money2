@@ -810,6 +810,7 @@ function validator(cards) {
     var ret = [];
     validators.forEach(function (array) {
         var type = array[0];
+        console.log(type)
         var validator = array[1];
         var result = validator(cards);
         if (result.status) {
@@ -855,32 +856,6 @@ function laizi_check_list(cards,list,idx,laizis,cur_arr){
 //癞子检测
 function validate_laizi(cards,laizis){
 
-    // var list = [];
-    // var check_list = laizi_check_list(cards,list,0,laizis,[]);
-    // var validate_list = [];//可行方案
-    // var result = null;
-    // check_list.forEach(val => {
-    //     var ret = validator(val);
-    //     if(ret.status){
-    //         if(result){
-    //              //优先炸弹
-    //             if(ret.types[0].type == 'AAAA'){
-    //                 validate_list.unshift(ret);
-    //             }else{
-    //                 validate_list.push(ret);
-    //             }
-    //             if(result.types[0].key < ret.types[0].key) result = ret;
-    //         }else{
-    //             result = ret;
-    //         }
-    //     }
-    // });
-    // //炸弹优先
-    // if(validate_list.length > 0 && validate_list[0].types[0].type == "AAAA"){
-    //     result = validate_list[0];
-    // } //否则不变
-    // return result;
-
     var normal_cards = [];
     var laizi_cards = [];
     
@@ -888,7 +863,9 @@ function validate_laizi(cards,laizis){
         if(laizis.includes(_card)){
             laizi_cards.push(_card);
         }else{
-            normal_cards.push(_card);
+            if(_card <= 15){
+                normal_cards.push(_card);
+            }
         }
     });
 
@@ -924,11 +901,13 @@ function validate_laizi(cards,laizis){
         }
     }
     //普通软炸弹
+    
     if(is_same_normal && cards.length >= 4){
-        //4软炸
+        //4硬/软炸
         if(cards.length == 4){
             return {
                 status: true,
+                isAAAA: normal_cards.length == 4,
                 len: cards.length,
                 types: [{key:normal_cards[0]-0.5,type:"AAAA"}] 
             };
@@ -959,28 +938,28 @@ function validate_laizi(cards,laizis){
         });
 
         
-        if(cards.length % 2 != 0){
-
-            let min_value = Math.min.apply(Math,normal_cards);
-            //单顺子
-            
-            let find_shunzi = 0;
-            for (let i = 0; i < cards.length; i++) {
-                for (const value in set_normal_check) {
-                    if(value == min_value + i){
-                        find_shunzi++;
-                    }
+        //尝试检测单顺子
+        let min_value = Math.min.apply(Math,normal_cards);
+        //单顺子
+        let find_shunzi = 0;
+        for (let i = 0; i < cards.length; i++) {
+            for (const value in set_normal_check) {
+                if(value == min_value + i){
+                    find_shunzi++;
                 }
             }
-            //单顺子满足
-            if(cards.length - find_shunzi == laizi_cards.length){
-                return {
-                    status: true,
-                    len: cards.length,
-                    types: [{key:min_value,type:"ABCDE"}] 
-                };
-            }
-        }else if(hasMoreThan2 == false){
+        }
+        //单顺子满足
+        if(cards.length - find_shunzi == laizi_cards.length){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:min_value,type:"ABCDE"}] 
+            };
+        }
+        //尝试检测双顺子
+        console.log("尝试检测双顺子")
+        if(hasMoreThan2 == false){
             let min_value = Math.min.apply(Math,normal_cards);
             //双顺子
             let _find_shunzi = 0;
@@ -1003,6 +982,227 @@ function validate_laizi(cards,laizis){
                 };
             }
         }
+        //尝试检测三顺子
+        console.log("尝试检测三顺子")
+        if(cards.length % 3 == 0){
+            let min_value = Math.min.apply(Math,normal_cards);
+            //3顺子
+            let _find_shunzi = 0;
+            let max_card_length = 0;
+            for (let i = 0; i < (cards.length / 3); i++) {
+                normal_cards.forEach(function(value){
+                    if(value == min_value + i){
+                        _find_shunzi++;
+                    }
+                });
+                max_card_length++;
+            }
+            max_card_length = max_card_length*3;
+            if(laizi_cards.length + _find_shunzi == max_card_length){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:min_value,type:"AABBCC"}] 
+                };
+            }
+        }
+    }
+    //尝试找飞机
+    console.log("尝试找飞机%2")
+    if(cards.length % 2 == 0)
+    {
+        let set_normal_check = {};
+        let maxLengthValue = 0;
+        normal_cards.forEach(function(_card){
+            if(!set_normal_check[_card]){
+                set_normal_check[_card] = 1;
+            }else{
+                set_normal_check[_card]++;
+            }
+            if(set_normal_check[_card] >= 3){
+                maxLengthValue = _card;
+            }
+        });
+
+        let has_airplane = false;
+        let normal_left = {};
+        let card_key = 0;
+        if(set_normal_check[maxLengthValue+1] == 3 || set_normal_check[maxLengthValue-1] == 3){
+            //满足飞机
+            has_airplane = true;
+            if(set_normal_check[maxLengthValue+1] == 3){
+                card_key = maxLengthValue;
+            }else{
+                card_key = maxLengthValue - 1;
+            }
+        }else{
+            set_normal_check[maxLengthValue+1] = set_normal_check[maxLengthValue+1] ?? 0;
+            set_normal_check[maxLengthValue-1] = set_normal_check[maxLengthValue-1] ?? 0;
+            var diff1 = 3 - set_normal_check[maxLengthValue+1];
+            var diff2 = 3 - set_normal_check[maxLengthValue-1];
+            //满足飞机
+
+            if(diff1 <= laizi_cards.length){
+                has_airplane = true;
+                card_key = maxLengthValue;
+                for (const _card in set_normal_check) {
+                    if (_card != maxLengthValue+1 && _card != maxLengthValue) {
+                        normal_left[_card] = set_normal_check[_card];
+                    }
+                }
+
+            }else if(diff2 <= laizi_cards.length){
+                has_airplane = true;
+                card_key = maxLengthValue - 1;
+                for (const _card in set_normal_check) {
+                    if (_card != maxLengthValue-1 && _card != maxLengthValue) {
+                        normal_left[_card] = set_normal_check[_card];
+                    }
+                }
+            }
+        }
+        if(has_airplane){
+            if(cards.length == 6){
+                return {
+                    status: true,
+                    len: 6,
+                    types: [{key:card_key,type:"AAABBB"}] 
+                }
+            }else if(cards.length == 8){
+                return {
+                    status: true,
+                    len: 8,
+                    types: [{key:card_key,type:"AAAB"}] 
+                }
+            }else if(cards.length == 10){
+                let left_kind_len = 0;
+                let has_morethan3 = false;
+                for (const _card in normal_left) {
+                    left_kind_len++;
+                    if(normal_left[_card] >= 3)
+                    {
+                        has_morethan3 = true;
+                    }
+                }
+                //剩余牌必须成对
+                if(left_kind_len <= 2 && !has_morethan3){
+                    return {
+                        status: true,
+                        len: 10,
+                        types: [{key:card_key,type:"AAABB"}] 
+                    }
+                }
+            }
+        }
+    }
+
+    //尝试找飞机
+    console.log("尝试找飞机%3")
+    if(cards.length % 3 == 0)
+    {
+        let set_normal_check = {};
+        let maxLengthValue = 0;
+        normal_cards.forEach(function(_card){
+            if(!set_normal_check[_card]){
+                set_normal_check[_card] = 1;
+            }else{
+                set_normal_check[_card]++;
+            }
+            if(set_normal_check[_card] >= 3){
+                maxLengthValue = _card;
+            }
+        });
+
+        let has_airplane = false;
+        let normal_left = {};
+        let card_key = 0;
+        if(set_normal_check[maxLengthValue+1] == 3 && set_normal_check[maxLengthValue+2] == 3 ||
+           set_normal_check[maxLengthValue-1] == 3 && set_normal_check[maxLengthValue+1] == 3 ||
+           set_normal_check[maxLengthValue-2] == 3 && set_normal_check[maxLengthValue-1] == 3
+        ){
+            //满足飞机
+            has_airplane = true;
+            if(set_normal_check[maxLengthValue+1] == 3 && set_normal_check[maxLengthValue+2] == 3){
+                card_key = maxLengthValue;
+            }else if(set_normal_check[maxLengthValue-1] == 3 && set_normal_check[maxLengthValue+1] == 3){
+                card_key = maxLengthValue - 1;
+            }else if(set_normal_check[maxLengthValue-2] == 3 && set_normal_check[maxLengthValue-1] == 3){
+                card_key = maxLengthValue - 2;
+            }
+
+        }else{
+            
+            set_normal_check[maxLengthValue+1] = set_normal_check[maxLengthValue+1] ?? 0;
+            set_normal_check[maxLengthValue+2] = set_normal_check[maxLengthValue+2] ?? 0;
+            set_normal_check[maxLengthValue-1] = set_normal_check[maxLengthValue-1] ?? 0;
+            set_normal_check[maxLengthValue-2] = set_normal_check[maxLengthValue-2] ?? 0;
+            var diff1 = 3 - set_normal_check[maxLengthValue+1];
+            var diff2 = 3 - set_normal_check[maxLengthValue+2];
+            var diff3 = 3 - set_normal_check[maxLengthValue-1];
+            var diff4 = 3 - set_normal_check[maxLengthValue-2];
+            //满足飞机
+
+            if(diff1 + diff2 <= laizi_cards.length){
+                has_airplane = true;
+                card_key = maxLengthValue;
+                for (const _card in set_normal_check) {
+                    if (_card != maxLengthValue+1 && _card != maxLengthValue+2 && _card != maxLengthValue && set_normal_check[_card] > 0 ) {
+                        normal_left[_card] = set_normal_check[_card];
+                    }
+                }
+            }else if(diff1 + diff3 <= laizi_cards.length){
+                has_airplane = true;
+                card_key = maxLengthValue - 1;
+                for (const _card in set_normal_check) {
+                    if (_card != maxLengthValue-1 && _card != maxLengthValue+1 && _card != maxLengthValue && set_normal_check[_card] > 0) {
+                        normal_left[_card] = set_normal_check[_card];
+                    }
+                }
+            }else if(diff3 + diff4 <= laizi_cards.length){
+                has_airplane = true;
+                card_key = maxLengthValue - 2;
+                for (const _card in set_normal_check) {
+                    if (_card != maxLengthValue-2 && _card != maxLengthValue-1 && _card != maxLengthValue && set_normal_check[_card] > 0) {
+                        normal_left[_card] = set_normal_check[_card];
+                    }
+                }
+            }
+        }
+
+        if(has_airplane){
+            if(cards.length == 9){
+                return {
+                    status: true,
+                    len: 9,
+                    types: [{key:card_key,type:"AAABBB"}] 
+                }
+            }else if(cards.length == 12){
+                return {
+                    status: true,
+                    len: 12,
+                    types: [{key:card_key,type:"AAAB"}] 
+                }
+            }else if(cards.length == 15){
+                
+                let left_kind_len = 0;
+                let has_morethan3 = false;
+                for (const _card in normal_left) {
+                    left_kind_len++;
+                    if(normal_left[_card] >= 3)
+                    {
+                        has_morethan3 = true;
+                    }
+                }
+                //剩余牌必须成对
+                if(left_kind_len <= 3 && !has_morethan3){
+                    return {
+                        status: true,
+                        len: 15,
+                        types: [{key:card_key,type:"AAABB"}] 
+                    }
+                }
+            }
+        }
     }
 
     return {
@@ -1021,11 +1221,15 @@ var cards5 = [2,2,2,2,5,5];
 var cards6 = [8,8,8,2,5,5];
 var cards7 = [2,2,2,2];
 var cards8 = [2,2,2,5];
-var cards9 = [8,8,8,8];
-var cards10 = [8,5,2,2];
+var cards9 = [10,10,10,2];
+var cards10 = [13,5,2,2];
 var cards11 = [2,2,2,8,8,8];
 var cards12 = [5,4,6,7,2];
 var cards13 = [6,6,5,2,8,9,9,5];
+var cards14 = [3,4,5,6,7];
+var cards15 = [10,10,10,5,5,8,8,8,2];
+var cards16 = [10,10,5,9,9,8,8,2,2];
+var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
 // console.log(validate_laizi(cards1,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));
@@ -1034,8 +1238,82 @@ var cards13 = [6,6,5,2,8,9,9,5];
 // console.log(validate_laizi(cards6,laizis));
 // console.log(validate_laizi(cards7,laizis));
 // console.log(validate_laizi(cards8,laizis));
+// console.log(validate_laizi(cards9,laizis));
 // console.log(validator(cards9));
 // console.log(validate_laizi(cards10,laizis));
 // console.log(validate_laizi(cards11,laizis));
 // console.log(validate_laizi(cards12,laizis));
-console.log(validate_laizi(cards13,laizis));
+// console.log(validate_laizi(cards15,laizis));
+console.log(validate_laizi(cards17,laizis));
+
+function test(cards,laizis){
+
+    var int_cards = cards;
+
+    var laizi_values = laizis;
+    var has_laizi_num = 0;
+    int_cards.forEach(function(card){
+        if(laizi_values.indexOf(card) !== -1){
+            has_laizi_num ++;
+        }
+    });
+
+    let is_all_laizi = int_cards.length === has_laizi_num;
+
+    let ret = validate_laizi(cards,laizis);
+    let type = ret.types[0].type;
+    let len = ret.len;
+    let key = ret.types[0].key;
+
+    let lastCardInfo = {type:'AAAA',key:9,len:4,isAAAA:true};
+
+    if (lastCardInfo.type === 'AAAA') {
+        
+        if (type === 'AAAA'){
+            console.log(has_laizi_num)
+            //硬炸
+            if( lastCardInfo.isAAAA){
+                if(has_laizi_num > 0 && ret.len > lastCardInfo.len){
+                    return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len
+                    }
+                }
+            }else{
+                //正常情况
+                if ( key > lastCardInfo.key) {
+                    return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len
+                        }
+                }
+            }
+        }
+        
+    } else {
+        if (type === 'AAAA') {
+            return {
+                status: true,
+                key,
+                type,
+                len: ret.len
+            }
+        } else {
+            if (type === lastCardInfo.type && ret.len === lastCardInfo.len && key > lastCardInfo.key) {
+                return {
+                    status: true,
+                    key,
+                    type,
+                    len: ret.len
+                }
+            }
+        }
+    }  
+    return { status: false }
+}
+
+// console.log("测试结果：",test(cards9,laizis))

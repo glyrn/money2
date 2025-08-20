@@ -843,7 +843,7 @@ const proto = {
 
             if(userObj.state > 0 && userObj.socket && userObj.socket.id == socket.id){
 
-              console.log('用户 '+userObj.name+" "+userObj.uid+' 断线');
+              console.log('用户 '+userObj.name+" "+userObj.uid+' '+userObj.posId+' 断线');
 
               const game = self.gameDatas[self.desks[i].deskId];
               if(game && game.getStatus() === 2 && game.getContextPosId() == userObj.posId){
@@ -867,17 +867,16 @@ const proto = {
                   //出最小的牌
                   var minCard = game.getMinCardsByPosId(userObj.posId);
                   if(minCard){
-                    game.next(game.getContextPosId(), [minCard], self.desks[i].islaizi);
-                    var nextUserObj = self.getPosition(self.desks[i], game.getContextPosId());
+                    game.next(userObj.posId, [minCard], self.desks[i].islaizi);
                     self.broadCastRoom('CTX_PLAY_CHANGE', self.desks[i].deskId, {
                       ctxData: {
                         len: 1,
                         key: minCard.value,
                         type: 'A',
                         cards: [minCard],
-                        posId: nextUserObj.posId,
+                        posId: userObj.posId,
                       },
-                      posId: userObj.posId,
+                      posId: game.getContextPosId(),
                       timeout: 15,
                       isPass: false,
                     });
