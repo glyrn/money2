@@ -10,6 +10,7 @@ cc.Class({
         // lab_title:cc.Label,
         lab_warning:cc.Node,
         lab_contents:cc.Node,
+        btn_score_close:cc.Node,
     },
     onLoad(){
         this.cur_idx = 0;
@@ -53,5 +54,6 @@ cc.Class({
                 }
             }
         }
+        this.btn_score_close.active = globalData.gameMgr.play_index < globalData.gameMgr.play_count;
     },
 });

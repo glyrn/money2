@@ -255,6 +255,7 @@ const socketMgr = function(){
                     card_type == 'AAAB' && card_len == 8 ||
                     card_type == 'AAABB' && card_len == 10 ||
                     card_type == 'AAABB' && card_len == 12 ||
+                    card_type == 'AAAB' && card_len == 12 ||
                     card_type == 'AAABB' && card_len == 15 ||
                     card_type == 'AAABB' && card_len == 18 ||
                     card_type == 'AAABB' && card_len == 20
@@ -305,6 +306,7 @@ const socketMgr = function(){
                     ret.type == 'AAAB' && ret.len == 8 ||
                     ret.type == 'AAABB' && ret.len == 10 ||
                     ret.type == 'AAABB' && ret.len == 12 ||
+                    ret.type == 'AAAB' && ret.len == 12 ||
                     ret.type == 'AAABB' && ret.len == 15 ||
                     ret.type == 'AAABB' && ret.len == 18 ||
                     ret.type == 'AAABB' && ret.len == 20
@@ -368,6 +370,16 @@ const socketMgr = function(){
                 _eventMgr.fire('CONNECT_STATE',data);
             }
         });
+
+        // 监听游戏回到前台事件
+        cc.game.off(cc.game.EVENT_SHOW);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            setTimeout(() => {
+                _eventMgr.removeAllLister();
+                cc.assetManager.releaseAll();
+                cc.game.restart();
+            }, 0);
+        }, that);
     }
 
     that.login = function(uid,name,avatorUrl,score,ob_uid,room,base_score,play_count,play_mode,cbFunc){

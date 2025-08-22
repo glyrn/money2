@@ -31,6 +31,7 @@ cc.Class({
         lab_room:cc.Label,
         lab_warning:cc.Node,
         lab_contents:cc.Node,
+        btn_score_close:cc.Node,
         map:Map,
     },
     //退出游戏
@@ -191,6 +192,7 @@ cc.Class({
                 }
             }
         }
+        this.btn_score_close.active = globalData.gameMgr.play_index < globalData.gameMgr.play_count;
     },
     onLoad(){
         var that = this;

@@ -35,15 +35,11 @@ cc.Class({
         globalAnim:cc.Animation,
         lab_warninig:cc.Node,
         lab_items:cc.Node,
+        // btn_score_close:cc.Node,
     },
     onLoad() {
 
         let that = this;
-
-        //进入后台继续动画
-        that.handleMainLoopTimer=setInterval(()=>{
-            cc.director.mainLoop();
-        }, 1000 / 60);
 
         this._player_list['self'] = cc.find('seat_node_1',this.players_seat)
         this._player_list['left'] = cc.find('seat_node_2',this.players_seat)

@@ -174,6 +174,16 @@ const socketMgr = function(){
             }
             _eventMgr.fire('CONNECT_STATE',data);
         });
+
+        // 监听游戏回到前台事件
+        cc.game.off(cc.game.EVENT_SHOW);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            setTimeout(() => {
+                _eventMgr.removeAllLister();
+                cc.assetManager.releaseAll();
+                cc.game.restart();
+            }, 0);
+        }, that);
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,ready_count,play_count,ob_uid,cbFunc){

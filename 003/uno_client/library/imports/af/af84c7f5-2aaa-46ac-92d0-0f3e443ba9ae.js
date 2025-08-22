@@ -34,6 +34,31 @@ var socketMgr = function socketMgr() {
     _utils = utils;
   };
 
+  that.loadGameScene = function () {
+    _eventMgr.removeAllLister();
+
+    cc.director.preloadScene("Game", function () {}, function () {
+      if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
+        cc.director.loadScene("Game", function () {
+          that.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {});
+        });
+      } else {
+        console.log("开始请求用户信息：");
+
+        _utils.post(defines.yc_domain + "/client/alchemy/callback/checkSign", {
+          sign: cc.args['sign']
+        }, function (isOk, data) {
+          if (isOk) {
+            console.log("用户信息：", data);
+            cc.director.loadScene("Game", function () {
+              that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {});
+            });
+          }
+        });
+      }
+    });
+  };
+
   that.initSocket = function () {
     var opts = {
       'reconnection': true,
@@ -56,29 +81,7 @@ var socketMgr = function socketMgr() {
 
     _socket.on('connect', function () {
       console.log('Connected to the server!');
-
-      _eventMgr.removeAllLister();
-
-      cc.director.preloadScene("Game", function () {}, function () {
-        if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
-          cc.director.loadScene("Game", function () {
-            that.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {});
-          });
-        } else {
-          console.log("开始请求用户信息：");
-
-          _utils.post(defines.yc_domain + "/client/alchemy/callback/checkSign", {
-            sign: cc.args['sign']
-          }, function (isOk, data) {
-            if (isOk) {
-              console.log("用户信息：", data);
-              cc.director.loadScene("Game", function () {
-                that.login(data.data.userId, data.data.nickname, data.data.avatar, cc.args['score'], cc.args['room'], cc.args['ready_count'], cc.args['game_time'], cc.args['specific_score'], cc.args['ob_uid'], function () {});
-              });
-            }
-          });
-        }
-      });
+      that.loadGameScene();
     });
 
     _socket.on('connect_error', function (error) {
@@ -291,7 +294,18 @@ var socketMgr = function socketMgr() {
 
         _eventMgr.fire('CONNECT_STATE');
       }
-    });
+    }); // 监听游戏回到前台事件
+
+
+    cc.game.off(cc.game.EVENT_SHOW);
+    cc.game.on(cc.game.EVENT_SHOW, function () {
+      setTimeout(function () {
+        _eventMgr.removeAllLister();
+
+        cc.assetManager.releaseAll();
+        cc.game.restart();
+      }, 0);
+    }, that);
   };
 
   that.login = function (uid, name, avatorUrl, score, room, ready_count, game_time, specific_score, ob_uid, cbFunc) {

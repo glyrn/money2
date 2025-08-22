@@ -4,10 +4,7 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        btnRestart:{
-            default: null,
-            type: cc.Button
-        },
+        btn_score_close:cc.Node,
         overSprite:cc.Node,
 
     
@@ -538,6 +535,8 @@ cc.Class({
                 this.img_yuanbao2.spriteFrame = this.yuanbao_win;
             }
         }
+
+        this.btn_score_close.active = globalData.gameMgr.play_index < globalData.gameMgr.play_count;
     },
     gameOver:function(data){
 

@@ -169,6 +169,7 @@ const socketMgr = function(){
             }
             _eventMgr.fire('CONNECT_STATE',data);
         });
+
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
