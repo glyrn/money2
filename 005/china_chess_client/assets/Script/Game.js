@@ -48,7 +48,7 @@ cc.Class({
         tips:cc.Node,
         lab_warning:cc.Node,
         lab_contents:cc.Node,
-
+        btn_score_close:cc.Node,
     },
     //退出游戏
     onBtnQuit(){
@@ -372,6 +372,7 @@ cc.Class({
                 this.img_yuanbao2.spriteFrame = this.yuanbao_win;
             }
         }
+        this.btn_score_close.active = globalData.gameMgr.play_index < globalData.gameMgr.play_count;
     },
     showTips:function(msg){
 

@@ -273,10 +273,11 @@ Object.assign(
       return this;
 
     },
-    start(isRestart) {
+    start(isRestart,forcePosId) {
       this.status = 1;
       if(isRestart){
-        this.contextPosId = this.getNextPosId(this.lastContextPosId);
+        // this.contextPosId = this.getNextPosId(this.lastContextPosId);
+        this.contextPosId = forcePosId;
       }else{
         this.contextPosId = getRandomNumForRange(2);
       }

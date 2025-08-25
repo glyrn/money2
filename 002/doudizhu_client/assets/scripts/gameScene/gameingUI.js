@@ -30,6 +30,7 @@ cc.Class({
         btn_score:cc.Node,
         lab_contents:cc.Node,
         lab_warning:cc.Node,
+        btn_score_close:cc.Node,
     },
 
     onLoad (){
@@ -174,6 +175,8 @@ cc.Class({
             lab_names.shift().string = globalData.gameMgr.posState[direct].name;
             lab_scores.shift().string = '-'+(score / data.loser.length);
         });
+
+        this.btn_score_close.active = globalData.gameMgr.play_index < globalData.gameMgr.play_count;
     },
     pushGameOverData(data) {
 

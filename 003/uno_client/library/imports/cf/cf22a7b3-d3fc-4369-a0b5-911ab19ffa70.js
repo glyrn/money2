@@ -41,14 +41,11 @@ cc.Class({
     panel_continue: cc.Node,
     globalAnim: cc.Animation,
     lab_warninig: cc.Node,
-    lab_items: cc.Node
+    lab_items: cc.Node // btn_score_close:cc.Node,
+
   },
   onLoad: function onLoad() {
-    var that = this; //进入后台继续动画
-
-    that.handleMainLoopTimer = setInterval(function () {
-      cc.director.mainLoop();
-    }, 1000 / 60);
+    var that = this;
     this._player_list['self'] = cc.find('seat_node_1', this.players_seat);
     this._player_list['left'] = cc.find('seat_node_2', this.players_seat);
     this._player_list['top'] = cc.find('seat_node_3', this.players_seat);

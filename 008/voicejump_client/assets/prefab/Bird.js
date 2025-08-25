@@ -35,6 +35,33 @@ cc.Class({
             type: State,
         },
     },
+    onResize(){
+        var that = this;
+        console.log("onResize")
+            var isDeadCameraFlow = false;
+            if(globalData.gameMgr.playerData[globalData.gameMgr.posId].game_type == 'fall') {
+                var sortItems = [];
+                for (let i = 0; i < cc.args['ready_count']; i++) {
+                    var playerData = globalData.gameMgr.playerData[i];
+                    if(playerData && playerData.game_type != 'fall'){
+                        sortItems.push({posId:playerData.posId,type:playerData.game_type,value:playerData.gain_score});
+                    }
+                }
+                sortItems.sort((a, b) => { 
+                    return b.value - a.value;
+                });
+                if(sortItems[0]){
+                    isDeadCameraFlow = sortItems[0].posId == that.posId;
+                    console.log(sortItems[0].posId,that.posId,isDeadCameraFlow,globalData.gameMgr.posId);
+                }
+            }
+
+            //镜头跟随
+            console.log("镜头跟随",that.posId , globalData.gameMgr.posId,isDeadCameraFlow)
+            if (that.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
+                that.main_camera.x = that.node.parent.x - that._initPosX;
+            }
+    },
     onLoad() {
 
         this.fallOver = false;
@@ -64,7 +91,6 @@ cc.Class({
         this.node.parent.x = this._initPosX;
         this.node.parent.y = this._initPosY;
         this.main_camera.x = 0;
-
         this.posId = data.posId;
     },
     startMove() {
