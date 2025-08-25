@@ -119,11 +119,34 @@ const proto = {
       }
     }
   },
+  getDeskByUid:function(uid){
+    for (let i = 0; i < this.desks.length; i++) {
+      for (let j = 0; j < this.desks[i].positions.length; j++) {
+        var userObj = this.desks[i].positions[j];
+        if (userObj && userObj.uid == uid) {
+          return this.desks[i];
+        }
+      }
+    }
+  },
   socketEmit:function(userObj,event,data){
     var saveData = _.cloneDeep(data);
     
-    if(userObj.socket){
-      var roomObj = this.getDesk(userObj.socket);
+    // if(userObj.socket){
+    //   var roomObj = this.getDesk(userObj.socket);
+    //   //下发观众数据
+    //   for (const socket_id in roomObj.ob_socket_map) {
+    //     //观众比玩家提前进游戏 随机观看一个玩家即可
+    //     if(roomObj.ob_socket_map[socket_id].uid == null){
+    //       roomObj.ob_socket_map[socket_id].uid = userObj.uid;
+    //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
+    //     }else if(roomObj.ob_socket_map[socket_id].uid == userObj.uid){
+    //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
+    //     }
+    //   }
+    // }
+
+    var roomObj = this.getDeskByUid(userObj.uid);
       //下发观众数据
       for (const socket_id in roomObj.ob_socket_map) {
         //观众比玩家提前进游戏 随机观看一个玩家即可
@@ -134,7 +157,6 @@ const proto = {
           roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
         }
       }
-    }
     
     userObj.recover_disconnect_data.push({event:event,data:saveData});
     if(userObj.socket){
@@ -321,6 +343,7 @@ const proto = {
         //房间号不同 要退出原来房间
         if(userObj.uid == uid && roomObj.deskId != curRoomId){
 
+          let name = userObj.name;
           console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
           userObj.uid = 0;
           userObj.state = 0;
@@ -331,7 +354,7 @@ const proto = {
           //清空断线重连信息
           userObj.recover_disconnect_data = [];
 
-          this.broadCastRoom("MESSAGE",roomObj.deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
+          this.broadCastRoom("MESSAGE",roomObj.deskId,'玩家'+name+'已掉线',userObj.uid);
           this.broadCastRoom("SIT_CHANGE",roomObj.deskId,{target:null,posId:userObj.posId},userObj.uid);
 
           //检查是否全部掉线 是的话要重置房间
@@ -346,6 +369,35 @@ const proto = {
             this.desks[i].state = 0;
             this.desks[i].play_index = 0;
             this.desks[i].ready_count = -1;
+          }else{
+
+            let desk = this.desks[i];
+            this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
+            // this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
+
+            desk.state = 0;
+            var ycscore_list = [];
+            for (let i = 0; i < desk.positions.length; i++) {
+              desk.positions[i].state = 1;
+              if(desk.positions[i].uid >0) {
+                ycscore_list.push({
+                  uid: desk.positions[i].uid,
+                  name: desk.positions[i].name,
+                  score: desk.positions[i].gain_score,
+                  is_win: 0,
+                  avatorUrl:desk.positions[i].avatorUrl,
+                })
+              }
+            }
+            if(!desk.score_list) desk.score_list = [];
+            desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+            
+              this.sendYcGameOver({
+                room_id:desk.name,
+                game_id:8,
+                score_list:desk.score_list,
+              });
+            
           }
         }
       }
@@ -666,8 +718,8 @@ const proto = {
       socket.on('disconnect', function(){
 
         for (let i = 0; i < self.desks.length; i++) {
-          //清空观众socket
-          delete self.desks[i].ob_socket_map[socket.id];
+          // 不要清空观众socket
+          // delete self.desks[i].ob_socket_map[socket.id];
 
           for (let j = 0; j < self.desks[i].positions.length; j++) {
 

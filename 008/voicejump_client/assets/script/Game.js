@@ -34,7 +34,7 @@ cc.Class({
         _jump1CDTime:700,
         _jump2CDTime:1000,
         prog_voice:cc.Node,
-        // editBox:cc.EditBox,
+        
     },
     onLoad() {
 
@@ -85,6 +85,16 @@ cc.Class({
 
         globalData.eventlister.on("BIRD_MOVE_SUCCESS",function(data){
             that['player' + data.posId].move(data)
+        });
+
+        cc.view.setResizeCallback(function(){
+            that.scheduleOnce(() => {
+                // 下一帧执行的回调
+                console.log("重置摄像机")
+                for (const i in globalData.gameMgr.playerData) {
+                    that['player'+i].onResize();
+                }
+            }, 0);
         });
 
         globalData.eventlister.on("GAIN_SCORE",function(score){
@@ -141,14 +151,20 @@ cc.Class({
 
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             that.render();
+
+            console.log("check:"+globalData.gameMgr.is_ob);
+            //观众不用麦克风
+            if(!globalData.gameMgr.is_ob){
+                //初始化麦克风
+                navigator.mediaDevices.getUserMedia({audio:true}).then(
+                    stream => {
+                        that.voiceSuccess(stream);
+                    }).catch(err => {
+                        that.voiceFail(err);
+                    });
+            }
         });
-        //初始化麦克风
-        navigator.mediaDevices.getUserMedia({audio:true}).then(
-            stream => {
-                that.voiceSuccess(stream);
-            }).catch(err => {
-                that.voiceFail(err);
-            });
+        
     },
     onBtnReady(){
         globalData.socketMgr.prepare()

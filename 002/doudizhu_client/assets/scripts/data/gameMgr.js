@@ -34,7 +34,7 @@ const gameMgr = function(){
             state: 0,//0准备状态 1叫分状态 2打牌状态 3结束状态
             ctxPos: '', //当前该哪个座位谁出牌或叫分 left right or self
             ctxCard: { //上家玩家的牌型
-            len: 0,
+                len: 0,
                 key: '',
                 type: '',
                 ctxPos: ''
@@ -286,12 +286,18 @@ const gameMgr = function(){
         if (that.roomState.state !== 2) {
             return;
         }
+        
         if (that.roomState.ctxPos !== 'self') {
             return //layer.msg('未到出牌时间');
         }
-
+        
         var cards = that.getSelectdCards();
-
+        //上一家出牌是自己  轮到自己不能pass
+        console.log("playCards:"+cards.length);
+        if(cards.length == 0){
+            _eventMgr.fire('MESSAGE','轮到你出牌了');
+            return;
+        }
         _socketMgr.getSocket().emit('PLAY_CARD', cards);
     }
 

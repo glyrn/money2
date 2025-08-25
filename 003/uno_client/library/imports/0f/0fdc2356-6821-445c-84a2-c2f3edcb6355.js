@@ -121,7 +121,9 @@ var gameMgr = function gameMgr() {
     var selfPosId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
     if (selfPosId == null) {
-      selfPosId = this.playerData.self.posId;
+      var _this$playerData$self;
+
+      selfPosId = (_this$playerData$self = this.playerData.self.posId) !== null && _this$playerData$self !== void 0 ? _this$playerData$self : 0;
     }
 
     var map = {

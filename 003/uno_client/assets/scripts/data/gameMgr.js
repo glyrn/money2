@@ -97,7 +97,7 @@ const gameMgr = function(){
     }
     that.getPlayerDataKey = function(targetPosId,selfPosId=null){
         if(selfPosId == null){
-            selfPosId = this.playerData.self.posId;
+            selfPosId = this.playerData.self.posId ?? 0;
         }
         var map = {
             '0':{
