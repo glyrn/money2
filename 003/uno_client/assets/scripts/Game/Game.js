@@ -52,7 +52,7 @@ cc.Class({
 
         this._initCardColorPos = this.card_color.node.position;
         this.img_deck.active = false;
-        cc.playMusic("sound/bg",true,1);
+        // cc.playMusic("sound/bg",true,1);
 
         this.renderRoom();
 

@@ -299,12 +299,7 @@ var socketMgr = function socketMgr() {
 
     cc.game.off(cc.game.EVENT_SHOW);
     cc.game.on(cc.game.EVENT_SHOW, function () {
-      setTimeout(function () {
-        _eventMgr.removeAllLister();
-
-        cc.assetManager.releaseAll();
-        cc.game.restart();
-      }, 0);
+      that.loadGameScene();
     }, that);
   };
 
