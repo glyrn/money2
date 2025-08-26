@@ -493,7 +493,7 @@ const proto = {
         var userObj = roomObj.positions[j];
         //房间号不同 要退出原来房间
         if(userObj.uid == uid && roomObj.deskId != curRoomId){
-          let name =j.name;
+          let name = userObj.name;
           console.log('用户 '+name+" "+userObj.uid+' 退出原来房间');
           userObj.uid = 0;
           userObj.state = 0;

@@ -55,8 +55,8 @@ cc.Class({
     this._player_list['top'].active = false;
     this._player_list['right'].active = false;
     this._initCardColorPos = this.card_color.node.position;
-    this.img_deck.active = false;
-    cc.playMusic("sound/bg", true, 1);
+    this.img_deck.active = false; // cc.playMusic("sound/bg",true,1);
+
     this.renderRoom();
 
     _globalData["default"].eventlister.on('PREPARE_SUCCESS', function (posId) {

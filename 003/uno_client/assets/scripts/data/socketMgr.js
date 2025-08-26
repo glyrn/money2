@@ -258,11 +258,7 @@ const socketMgr = function(){
         // 监听游戏回到前台事件
         cc.game.off(cc.game.EVENT_SHOW);
         cc.game.on(cc.game.EVENT_SHOW, function(){
-            setTimeout(() => {
-                _eventMgr.removeAllLister();
-                cc.assetManager.releaseAll();
-                cc.game.restart();
-            }, 0);
+           that.loadGameScene();
         }, that);
     }
 
