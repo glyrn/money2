@@ -620,10 +620,12 @@ const proto = {
         this.clients[obj.uid] = socket;
 
         //重连恢复
+        socket.emit("SET_RECOVER_STATUS",{isRecover:true});
         for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
           var emitObj = userObj.recover_disconnect_data[k];
           socket.emit(emitObj.event,emitObj.data);
         }
+        socket.emit("SET_RECOVER_STATUS",{isRecover:false});
         //广播其他所有人 该玩家上线了
         this.broadCastRoom("CONNECT_STATE",roomObj.deskId,{state:1,posId:userObj.posId},userObj.uid);
         return true;
@@ -765,10 +767,9 @@ const proto = {
         const desk = self.getDesk(socket);
         if(desk){
           var curPosId = self.getPosId(socket);
-          console.log("玩家["+desk.positions[self.getPosId(socket)].name+"] 出牌 ",obj);
+          // console.log("玩家["+desk.positions[self.getPosId(socket)].name+"] 出牌 ",obj);
 
           var last_card = desk.out_cards[desk.out_cards.length - 1];
-          console.log("最近一张牌 ",last_card);
           var isOk = false;
 
           if(desk.positions[curPosId].cards.length == 1 && obj.type == 2){  //最后一张不能出功能牌
