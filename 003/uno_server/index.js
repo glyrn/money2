@@ -413,7 +413,7 @@ const proto = {
 
     console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
     this.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
-    this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId});
+    this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId,server_time:Date.parse(new Date()) / 1000});
     //继续检查下一个玩家是否断线
     var nextUserObj = this.getPositionByPosId(desk,nextPosId);
     if(nextUserObj && nextUserObj.disconnectTime > 0){
@@ -846,7 +846,7 @@ const proto = {
               }
             }
             desk.positions[curPosId].cards = new_cards;
-            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId})
+            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:Date.parse(new Date()) / 1000})
 
 
             console.log("已经游玩了："+(Date.parse(new Date()) / 1000 - desk.start_time) +"秒");
@@ -975,7 +975,7 @@ const proto = {
             isStartGame = true;
           }
 
-          self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),self.getPosId(socket));
+          self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),{posId:self.getPosId(socket),server_time:Date.parse(new Date()) / 1000});
           if(isStartGame)
           {
             desk.direct = 1;//顺时针方向
@@ -1002,7 +1002,7 @@ const proto = {
                 for (let k = 0; k < 7; k++) {
                   userObj.cards.push(desk.cards.shift());
                 }
-              self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId});
+              self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
             }
           }
         }
