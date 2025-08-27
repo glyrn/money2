@@ -12,7 +12,7 @@ if(getCurrentIP().indexOf("192.168") != -1){
 }
 const gameCfg = JSON.parse(fs.readFileSync('gameCfg.json', 'utf8'));
 
-const yc_domain = gameCfg['yc_domain'];//www.fsyctech.com';
+const yc_domain = gameCfg['yc_domain'];//www.fsyctech.com';  
 const game_port = gameCfg['game_port'];
 console.log("结算域名："+yc_domain)
 
