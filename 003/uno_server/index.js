@@ -47,6 +47,11 @@ function getCurrentIP() {
   }
   return null;
 }
+
+function getTimeStamp(){
+   return Math.floor(new Date().getTime() / 1000);
+}
+
 const proto = {
 
   time:function (){
@@ -73,6 +78,8 @@ const proto = {
       for (let j = 0; j < 2; j++) {
         for (let i = 1; i <= 9; i++) {
           cards.push({type:1,value:i,color:c})
+          // debug 
+          // cards.push({type:1,value:i,color:1})
         }
       }
       cards.push({type:1,value:0,color:c})
@@ -84,7 +91,7 @@ const proto = {
       cards.push({type:2,value:'plus2',color:c});
     }
     for (let i = 0; i < 4; i++) {
-      cards.push({type:2,value:'plus4',color:0});
+      // cards.push({type:2,value:'plus4',color:0});
       cards.push({type:2,value:'color',color:0});
     }
     return shuffle(cards);
@@ -245,32 +252,18 @@ const proto = {
   },
   socketEmit:function(userObj,event,data){
     var saveData = _.cloneDeep(data);
-    
-    // if(userObj.socket){
-    //   var roomObj = this.getDesk(userObj.socket);
-    //   //下发观众数据
-    //   for (const socket_id in roomObj.ob_socket_map) {
-    //     //观众比玩家提前进游戏 随机观看一个玩家即可
-    //     if(roomObj.ob_socket_map[socket_id].uid == null){
-    //       roomObj.ob_socket_map[socket_id].uid = userObj.uid;
-    //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-    //     }else if(roomObj.ob_socket_map[socket_id].uid == userObj.uid){
-    //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-    //     }
-    //   }
-    // }
 
-      var roomObj = this.getDeskByUid(userObj.uid);
-      //下发观众数据
-      for (const socket_id in roomObj.ob_socket_map) {
-        //观众比玩家提前进游戏 随机观看一个玩家即可
-        if(roomObj.ob_socket_map[socket_id].uid == null){
-          roomObj.ob_socket_map[socket_id].uid = userObj.uid;
-          roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-        }else if(roomObj.ob_socket_map[socket_id].uid == userObj.uid){
-          roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-        }
+    var roomObj = this.getDeskByUid(userObj.uid);
+    //下发观众数据
+    for (const socket_id in roomObj.ob_socket_map) {
+      //观众比玩家提前进游戏 随机观看一个玩家即可
+      if(roomObj.ob_socket_map[socket_id].uid == null){
+        roomObj.ob_socket_map[socket_id].uid = userObj.uid;
+        roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
+      }else if(roomObj.ob_socket_map[socket_id].uid == userObj.uid){
+        roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
       }
+    }
     
     userObj.recover_disconnect_data.push({event:event,data:saveData});
     if(userObj.socket){
@@ -284,7 +277,7 @@ const proto = {
       var desk = this.desks[_i];
       if(desk.state == 1) {
         // 时间到或者没牌了
-        if (Date.parse(new Date()) / 1000 - desk.start_time > desk.game_time * 60 || desk.cards.length <= 0) {
+        if (getTimeStamp() - desk.start_time > desk.game_time * 60 || desk.cards.length <= 0) {
           //重置状态
           for (let i = 0; i < desk.positions.length; i++) {
             desk.positions[i].state = 1;
@@ -301,7 +294,6 @@ const proto = {
               winer = i;
             }
           }
-
 
           var score_list = [];
           var cards_list = [];
@@ -357,7 +349,7 @@ const proto = {
       if(roomObj.deskId == roomId){
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          // if(userObj.socket){
+           if(userObj.socket || userObj.disconnectTime > 0){
             if(except){
               if(userObj.uid != except){
                 this.socketEmit(userObj,event,data);
@@ -365,7 +357,20 @@ const proto = {
             }else{
               this.socketEmit(userObj,event,data);
             }
-          // }
+          }
+        }
+      }
+    }
+  },
+  checkDelayTask:function(){
+    for (let i = 0; i < this.desks.length; i++) {
+      for (let j = 0; j < this.desks[i].positions.length; j++) {
+        var userObj = this.desks[i].positions[j];
+        if(userObj.disconnectTime > 0 && getTimeStamp() > userObj.targetTimerTime && userObj.delayPass){
+            console.log("执行了delayPass");
+            userObj.delayPass.execFunc();
+            userObj.delayPass = null;
+            userObj.targetTimerTime = null;
         }
       }
     }
@@ -413,9 +418,11 @@ const proto = {
 
     console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
     this.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
-    this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId,server_time:Date.parse(new Date()) / 1000});
+    this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp()});
     //继续检查下一个玩家是否断线
     var nextUserObj = this.getPositionByPosId(desk,nextPosId);
+    //记录当前玩家的定时器时间(未来值)
+    nextUserObj.targetTimerTime = getTimeStamp() + 30;
     if(nextUserObj && nextUserObj.disconnectTime > 0){
       this.makePass(desk,nextPosId);
     }
@@ -426,7 +433,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
+        if(userObj.disconnectTime > 0 && getTimeStamp() - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           userObj.uid = 0;
@@ -684,6 +691,11 @@ const proto = {
       self.checkTimeGameOver();
     },1000);
 
+    function checkDelayTask(){
+      self.checkDelayTask()
+    }
+    setInterval(checkDelayTask,1000)
+
     io.on('connection', function(socket){
       socket.on('pong', function(data){
       });
@@ -846,10 +858,10 @@ const proto = {
               }
             }
             desk.positions[curPosId].cards = new_cards;
-            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:Date.parse(new Date()) / 1000})
-
-
-            console.log("已经游玩了："+(Date.parse(new Date()) / 1000 - desk.start_time) +"秒");
+            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp()})
+            //记录当前玩家的定时器时间(未来值)
+            desk.positions[nextPosId].targetTimerTime = getTimeStamp() + 30;
+            console.log("已经游玩了："+(getTimeStamp() - desk.start_time) +"秒");
             // console.log("玩家["+desk.positions[self.getPosId(socket)].name+"] 手牌：",desk.positions[curPosId].cards);
             //判断游戏结束
             if(desk.positions[curPosId].cards.length <= 0)
@@ -975,14 +987,14 @@ const proto = {
             isStartGame = true;
           }
 
-          self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),{posId:self.getPosId(socket),server_time:Date.parse(new Date()) / 1000});
+          self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),{posId:self.getPosId(socket),server_time:getTimeStamp()});
           if(isStartGame)
           {
             desk.direct = 1;//顺时针方向
             desk.cards = self.createCards();
             desk.cur_posId = self.getRandomNumForRange(ready_count-1);
             desk.out_cards = [];
-            desk.start_time = Date.parse(new Date()) / 1000;
+            desk.start_time = getTimeStamp();
             const top = self.getNumberCard(desk.cards);
             desk.out_cards.push(top);
 
@@ -1004,6 +1016,8 @@ const proto = {
                 }
               self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
             }
+            //记录当前玩家的定时器时间(未来值)
+            desk.positions[desk.cur_posId].targetTimerTime = getTimeStamp() + 30;
           }
         }
       });
@@ -1023,15 +1037,23 @@ const proto = {
               console.log('用户 '+userObj.name+" "+userObj.uid+' 断线');
               // 刚好轮到的时候掉线 自动pass处理
               if(self.desks[i].cur_posId == userObj.posId){
-                self.makePass(self.desks[i],userObj.posId);
+
+                 //延迟到倒计时0才触发
+                  userObj.delayPass = (function(self,desk,posId){
+                  return {
+                      execFunc:function(){
+                          //掉线pass
+                          self.makePass(desk,posId);
+                      }}
+                  })(self,self.desks[i],userObj.posId);
+
               }
 
               //记录掉线时间
               delete self.clients[userObj.uid];
               userObj.socket = null;
-              userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
+              userObj.disconnectTime = getTimeStamp();
               
-
               //通知其他人 该玩家掉线了
               self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);
               return;

@@ -107,9 +107,15 @@ var socketMgr = function socketMgr() {
       console.log("MESSAGE:" + msg);
     });
 
-    _socket.on('PREPARE_SUCCESS', function (posId) {
+    _socket.on("SET_RECOVER_STATUS", function (data) {
+      _gameMgr.isRecover = data.isRecover;
+      console.log("收到SET_RECOVER_STATUS", _gameMgr.isRecover);
+    });
+
+    _socket.on('PREPARE_SUCCESS', function (data) {
+      var posId = data.posId;
       _gameMgr.getPlayerData(posId).state = 2;
-      _gameMgr.getPlayerData(posId).target_timer_value = Date.parse(new Date()) / 1000 + _gameMgr.roomState.timeout;
+      _gameMgr.getPlayerData(posId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
       _gameMgr.playerData.turn = posId;
 
       _eventMgr.fire('PREPARE_SUCCESS', posId);
@@ -158,10 +164,10 @@ var socketMgr = function socketMgr() {
 
       _gameMgr.roomState.state = 1; //进行中
 
-      _gameMgr.getPlayerData(data.turn).target_timer_value = Date.parse(new Date()) / 1000 + _gameMgr.roomState.timeout;
+      _gameMgr.getPlayerData(data.turn).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
       _gameMgr.playerData.turn = data.turn;
       _gameMgr.card_remain = 108;
-      _gameMgr.roomState.gametime_remain = Date.parse(new Date()) / 1000 + parseInt((_cc$args$game_time = cc.args['game_time']) !== null && _cc$args$game_time !== void 0 ? _cc$args$game_time : 4) * 60;
+      _gameMgr.roomState.gametime_remain = parseInt(data.server_time) + parseInt((_cc$args$game_time = cc.args['game_time']) !== null && _cc$args$game_time !== void 0 ? _cc$args$game_time : 4) * 60;
 
       if (_gameMgr.is_quit) {
         //初始化分数
@@ -248,7 +254,7 @@ var socketMgr = function socketMgr() {
 
       _eventMgr.fire('PLAY_CARD_SUCCESS', data);
 
-      _gameMgr.getPlayerData(data.nextPosId).target_timer_value = Date.parse(new Date()) / 1000 + _gameMgr.roomState.timeout;
+      _gameMgr.getPlayerData(data.nextPosId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
       _gameMgr.playerData.turn = data.nextPosId;
 
       _eventMgr.fire('CHANGE_TURN');
@@ -259,14 +265,21 @@ var socketMgr = function socketMgr() {
 
       for (var i = 0; i < data.plus_cards.length; i++) {
         var card = data.plus_cards[i];
-        card.isNew = true;
+
+        if (!_gameMgr.isRecover) {
+          card.isNew = true;
+        }
 
         _gameMgr.playerData.self.cards.push(card);
       }
     });
 
     _socket.on('PLUS_CARD', function (data) {
-      setTimeout(function () {
+      _globalData["default"].gameMgr.card_remain = _globalData["default"].gameMgr.card_remain - data.plus_num; //无动画
+
+      if (_gameMgr.isRecover) {
+        if (that._plus_card_timer) clearTimeout(that._plus_card_timer);
+
         for (var i = 0; i < data.plus_num; i++) {
           if (data.posId != _gameMgr.playerData.self.posId) {
             _gameMgr.getPlayerData(data.posId).cards.push(0);
@@ -275,11 +288,28 @@ var socketMgr = function socketMgr() {
 
         _eventMgr.fire('PLUS_CARD', data);
 
-        _gameMgr.getPlayerData(data.nextPosId).target_timer_value = Date.parse(new Date()) / 1000 + _gameMgr.roomState.timeout;
+        _gameMgr.getPlayerData(data.nextPosId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
         _gameMgr.playerData.turn = data.nextPosId;
 
         _eventMgr.fire('CHANGE_TURN');
-      }, 1000);
+      } else {
+        //有动画
+        if (that._plus_card_timer) clearTimeout(that._plus_card_timer);
+        that._plus_card_timer = setTimeout(function () {
+          for (var _i = 0; _i < data.plus_num; _i++) {
+            if (data.posId != _gameMgr.playerData.self.posId) {
+              _gameMgr.getPlayerData(data.posId).cards.push(0);
+            }
+          }
+
+          _eventMgr.fire('PLUS_CARD', data);
+
+          _gameMgr.getPlayerData(data.nextPosId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
+          _gameMgr.playerData.turn = data.nextPosId;
+
+          _eventMgr.fire('CHANGE_TURN');
+        }, 1000);
+      }
     });
 
     _socket.on("PLUS_CARD_ONLY", function (data) {
@@ -294,12 +324,19 @@ var socketMgr = function socketMgr() {
 
         _eventMgr.fire('CONNECT_STATE');
       }
-    }); // 监听游戏回到前台事件
+    });
 
+    cc.game.targetOff(that);
+    cc.game.on(cc.game.EVENT_HIDE, function () {
+      console.log("进入后台");
 
-    cc.game.off(cc.game.EVENT_SHOW);
+      _eventMgr.removeAllLister();
+
+      _socket.close();
+    }, that);
     cc.game.on(cc.game.EVENT_SHOW, function () {
-      that.loadGameScene();
+      console.log("回来前台");
+      that.initSocket();
     }, that);
   };
 
@@ -338,12 +375,15 @@ var socketMgr = function socketMgr() {
 
   that.playCard = function (card) {
     if (that.checkIsObserve()) return;
+    if (_gameMgr.isRecover) return;
 
     _socket.emit('PLAY_CARD', card);
   };
 
   that.passCard = function () {
     if (that.checkIsObserve()) return;
+    console.log("_gameMgr.isRecover", _gameMgr.isRecover);
+    if (_gameMgr.isRecover) return;
 
     _socket.emit('PLAY_PASS');
   };

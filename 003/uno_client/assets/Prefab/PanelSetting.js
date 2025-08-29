@@ -3,7 +3,7 @@ cc.Class({
     extends: cc.Component,
     name:"PanelSetting",
     properties: {
-        bgMucic:cc.AudioSource,
+        // bgMucic:cc.AudioSource,
         // progressbar_bg:cc.ProgressBar,
         // progressbar_effect:cc.ProgressBar,
     },
@@ -41,15 +41,12 @@ cc.Class({
 
         if(toggle.isChecked){
             cc.isPlayingGlobalBg = 1;
-            // cc.audioEngine.setMusicVolume(1);
-            // cc.audioEngine.stopMusic();
-            // cc.playMusic("sound/bg",true,1);
-            this.bgMucic.volume = 1;
+            // this.bgMucic.play();
+            cc.audioObj.getComponent(cc.AudioSource).play();
         }else{
             cc.isPlayingGlobalBg = 0;
-            // cc.audioEngine.setMusicVolume(0.01);
-            // cc.audioEngine.stopMusic();
-            this.bgMucic.volume = 0;
+            // this.bgMucic.stop();
+            cc.audioObj.getComponent(cc.AudioSource).stop();
         }
     },
     onToggleEffect:function(toggle, customEventData){

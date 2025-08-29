@@ -112,28 +112,25 @@
         "__id__": 309
       },
       {
-        "__id__": 350
+        "__id__": 349
       },
       {
-        "__id__": 356
+        "__id__": 355
       },
       {
-        "__id__": 360
+        "__id__": 359
       }
     ],
     "_active": true,
     "_components": [
       {
+        "__id__": 362
+      },
+      {
         "__id__": 363
       },
       {
         "__id__": 364
-      },
-      {
-        "__id__": 365
-      },
-      {
-        "__id__": 348
       }
     ],
     "_prefab": null,
@@ -441,7 +438,7 @@
       "array": [
         0,
         0,
-        396.63963493327293,
+        418.47971308496176,
         0,
         0,
         0,
@@ -13314,7 +13311,7 @@
       }
     ],
     "_prefab": {
-      "__id__": 349
+      "__id__": 348
     },
     "_opacity": 255,
     "_color": {
@@ -14769,28 +14766,7 @@
       "__id__": 309
     },
     "_enabled": true,
-    "bgMucic": {
-      "__id__": 348
-    },
     "_id": "47fN2pn/ZHLIKJJDozE6uu"
-  },
-  {
-    "__type__": "cc.AudioSource",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 2
-    },
-    "_enabled": true,
-    "_clip": {
-      "__uuid__": "c2bf6536-57e3-40fd-ba82-4852a19def0f"
-    },
-    "_volume": 1,
-    "_mute": false,
-    "_loop": true,
-    "playOnLoad": true,
-    "preload": true,
-    "_id": "21+yONwaFKAbdKrktoc2qh"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -14814,17 +14790,17 @@
     "_active": true,
     "_components": [
       {
+        "__id__": 350
+      },
+      {
         "__id__": 351
       },
       {
-        "__id__": 352
-      },
-      {
-        "__id__": 354
+        "__id__": 353
       }
     ],
     "_prefab": {
-      "__id__": 355
+      "__id__": 354
     },
     "_opacity": 255,
     "_color": {
@@ -14878,7 +14854,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 350
+      "__id__": 349
     },
     "_enabled": true,
     "_materials": [
@@ -14910,7 +14886,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 350
+      "__id__": 349
     },
     "_enabled": true,
     "_normalMaterial": {
@@ -14921,7 +14897,7 @@
     "zoomScale": 1.2,
     "clickEvents": [
       {
-        "__id__": 353
+        "__id__": 352
       }
     ],
     "_N$interactable": true,
@@ -14994,7 +14970,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 350
+      "__id__": 349
     },
     "_enabled": true,
     "alignMode": 1,
@@ -15019,7 +14995,7 @@
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 350
+      "__id__": 349
     },
     "asset": {
       "__uuid__": "263eb852-26b3-4121-ba2c-b58627ff229d"
@@ -15036,13 +15012,13 @@
     },
     "_children": [
       {
-        "__id__": 357
+        "__id__": 356
       }
     ],
     "_active": false,
     "_components": [
       {
-        "__id__": 359
+        "__id__": 358
       }
     ],
     "_prefab": null,
@@ -15098,13 +15074,13 @@
     "_name": "label",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 356
+      "__id__": 355
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 358
+        "__id__": 357
       }
     ],
     "_prefab": null,
@@ -15160,7 +15136,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 357
+      "__id__": 356
     },
     "_enabled": true,
     "_materials": [
@@ -15192,7 +15168,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 356
+      "__id__": 355
     },
     "_enabled": true,
     "_materials": [
@@ -15230,10 +15206,10 @@
     "_active": false,
     "_components": [
       {
-        "__id__": 361
+        "__id__": 360
       },
       {
-        "__id__": 362
+        "__id__": 361
       }
     ],
     "_prefab": null,
@@ -15289,7 +15265,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 360
+      "__id__": 359
     },
     "_enabled": true,
     "_materials": [
@@ -15319,7 +15295,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 360
+      "__id__": 359
     },
     "_enabled": true,
     "_defaultClip": {
@@ -15455,7 +15431,7 @@
       "__uuid__": "4a8be9ee-da5e-48d2-9dc6-1598ea5c045e"
     },
     "panel_continue": {
-      "__id__": 356
+      "__id__": 355
     },
     "globalAnim": {
       "__id__": 267
@@ -15465,6 +15441,9 @@
     },
     "lab_items": {
       "__id__": 293
+    },
+    "audioTpl": {
+      "__uuid__": "d34a34c7-54a1-4a30-b927-52f7c2ff7813"
     },
     "_id": "079EGe2hdPaIKekjMQ/aql"
   }

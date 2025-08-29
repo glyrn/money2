@@ -35,6 +35,7 @@ cc.Class({
         globalAnim:cc.Animation,
         lab_warninig:cc.Node,
         lab_items:cc.Node,
+        audioTpl:cc.Prefab,
         // btn_score_close:cc.Node,
     },
     onLoad() {
@@ -52,7 +53,6 @@ cc.Class({
 
         this._initCardColorPos = this.card_color.node.position;
         this.img_deck.active = false;
-        // cc.playMusic("sound/bg",true,1);
 
         this.renderRoom();
 
@@ -91,8 +91,9 @@ cc.Class({
             if(globalData.gameMgr.is_quit || data.invalid == 1){ //有人逃跑
                 that.panel_continue.active = false;
                 that.onBtnCurScore();
-
-                cc.playEffect("sound/win",false,1);
+                if(!globalData.gameMgr.isRecover){
+                    cc.playEffect("sound/win",false,1);
+                }
             }else{
                 that.panel_continue.active = true;
             }
@@ -126,12 +127,32 @@ cc.Class({
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             that.renderPlayer();
         })
+
+        var audioObj = cc.instantiate(this.audioTpl);
+        audioObj.parent = that.node;
+        cc.audioObj = audioObj;
+        
+        // 监听游戏回到前台事件
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            if(!cc.audioObj){
+                var audioObj = cc.instantiate(that.audioTpl);
+                audioObj.parent = that.node;
+                cc.audioObj = audioObj;
+            }
+            if(cc.isPlayingGlobalBg === 0){
+                cc.audioObj.getComponent(cc.AudioSource).stop();
+            }
+        }, that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            if(cc.audioObj){
+                cc.audioObj.destroy();
+                cc.audioObj = null;
+            }
+        }, that);
     },
 
-    start(){
-        
-    },
-    update:function(){
+    updateTimer:function(){
 
         var now = Date.parse(new Date()) / 1000;
         var timer_value = globalData.gameMgr.playerData.self.target_timer_value - now;
@@ -265,7 +286,6 @@ cc.Class({
         var deck_pos = this.img_deck.position;
         var node = cc.instantiate(this.card);
         node.parent = this.node.getChildByName('players_seat').getChildByName("card_container");
-        // node.parent = this.node;
 
         function getRandomArbitrary(min, max) {
             return Math.random() * (max - min) + min;
@@ -275,36 +295,52 @@ cc.Class({
         this._out_cards.push(node);
         var offsetX = getRandomArbitrary(-30,30);
         var offsetY = getRandomArbitrary(-30,30);
-        //不是轮到自己 要延长一点动画时间
-        // var offset_time = 0;
-        // if(globalData.gameMgr.playerData.turn != globalData.gameMgr.playerData.self.posId){
-        //     offset_time = 0.125;
-        // }
+
         var actions = [
             cc.delayTime(0.15),
             cc.moveTo(0.2, cc.v2(out_pos.x + offsetX,out_pos.y + offsetY)),
         ];
-
+        //初始牌
         if(posId == -1){
-            node.position = deck_pos;
-            actions.push(cc.callFunc(function () {
+            
+            //无动画
+            if(globalData.gameMgr.isRecover){
                 node.getComponent("Card").render(card);
-
+                node.position = cc.v2(out_pos.x + offsetX,out_pos.y + offsetY);
+                
                 // 轮到自己
                 if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
                     if(!that._onBtnTips(true)){
                         that.onBtnPass();
                     }
                 }
-            }, that));
+            //有动画
+            }else{
+                node.position = deck_pos;
+                actions.push(cc.callFunc(function () {
+                    node.getComponent("Card").render(card);
+
+                    // 轮到自己
+                    if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
+                        if(!that._onBtnTips(true)){
+                            that.onBtnPass();
+                        }
+                    }
+                }, that));
+                node.runAction(cc.sequence(actions));
+            }
 
             globalData.gameMgr.card_remain--;
             this.renderRemainCard();
+
         }else{
-            node.getComponent("Card").render(card);
-            actions.push(cc.callFunc(function () {
+            //无动画
+            if(globalData.gameMgr.isRecover){
+                node.getComponent("Card").render(card);
                 node.getComponent("Card").checkShowColor();
                 that.checkRedundanceCard();
+
+                node.position = cc.v2(out_pos.x + offsetX,out_pos.y + offsetY);
 
                 // 轮到自己
                 if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
@@ -312,12 +348,28 @@ cc.Class({
                         that.onBtnPass();
                     }
                 }
-            }, that));
-            if(globalData.gameMgr.getPlayerDataKey(posId))
-                node.position = this._player_list[globalData.gameMgr.getPlayerDataKey(posId)].position;
-        }
-        node.runAction(cc.sequence(actions));
+            }else{//有动画
+                node.getComponent("Card").render(card);
+                actions.push(cc.callFunc(function () {
+                    node.getComponent("Card").checkShowColor();
+                    that.checkRedundanceCard();
 
+                    // 轮到自己
+                    if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
+                        if(!that._onBtnTips(true)){
+                            that.onBtnPass();
+                        }
+                    }
+                }, that));
+                if(globalData.gameMgr.getPlayerDataKey(posId))
+                    node.position = this._player_list[globalData.gameMgr.getPlayerDataKey(posId)].position;
+                
+                node.runAction(cc.sequence(actions));
+            }
+        }
+
+        
+       
         console.log("card.value：",card.value)
         //播放全局动画
         if(card.value == 'plus4'){
@@ -329,8 +381,9 @@ cc.Class({
         }else if(card.value == 'stop'){
             this.showGlobalEffect("anim_stop")
         }
-
-        cc.playEffect("sound/play_card",false,1);
+        if(!globalData.gameMgr.isRecover){
+            cc.playEffect("sound/play_card",false,1);
+        }
     },
     pushCardToPlayer:function(data){
         var deck_pos = this.img_deck.position;
@@ -338,32 +391,46 @@ cc.Class({
 
         var that = this;
         var plus_nodes = [];
+
         for (let i = 0; i < data.plus_num; i++) {
-
-            globalData.gameMgr.card_remain--;
-            var node = cc.instantiate(this.card);
-            node.parent = this.node.getChildByName("players_seat").getChildByName("card_container");
-            node.position = deck_pos;
-            plus_nodes.push(node);
-            node.runAction(cc.sequence([
-                cc.delayTime(0.15 * (i-1)),
-                cc.moveTo(0.2 , moveTo),
-                cc.callFunc(function (selector, selectorTarget, _data) {
-
-                    if(i == data.plus_num - 1)
-                    {
-                        that.renderPlayer();
-
-                        // 轮到自己
-                        if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
-                            if(!that._onBtnTips(true)){
-                                that.onBtnPass();
-                            }
+            //无动画
+            if(globalData.gameMgr.isRecover){
+                if(i == data.plus_num - 1)
+                {
+                    that.renderPlayer();
+                    // 轮到自己
+                    if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
+                        if(!that._onBtnTips(true)){
+                            that.onBtnPass();
                         }
                     }
-                    selector.destroy();
-                }, that)
-            ]));
+                }
+            //有动画
+            }else{
+                var node = cc.instantiate(this.card);
+                node.parent = this.node.getChildByName("players_seat").getChildByName("card_container");
+                node.position = deck_pos;
+                plus_nodes.push(node);
+                node.runAction(cc.sequence([
+                    cc.delayTime(0.15 * (i-1)),
+                    cc.moveTo(0.2 , moveTo),
+                    cc.callFunc(function (selector, selectorTarget, _data) {
+
+                        if(i == data.plus_num - 1)
+                        {
+                            that.renderPlayer();
+
+                            // 轮到自己
+                            if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
+                                if(!that._onBtnTips(true)){
+                                    that.onBtnPass();
+                                }
+                            }
+                        }
+                        selector.destroy();
+                    }, that)
+                ]));
+            }
         }
         this.renderRemainCard();
     },
@@ -386,12 +453,17 @@ cc.Class({
             var card = this._out_cards.shift();
 
             card.active = false;
-            card.runAction(cc.sequence([
-                cc.delayTime(0.15),
-                cc.callFunc(function (selector, selectorTarget, _data) {
-                    selector.destroy();
-                }, that)
-            ]));
+            //无动画
+            if(globalData.gameMgr.isRecover){
+                card.destroy();
+            }else{
+                card.runAction(cc.sequence([
+                    cc.delayTime(0.15),
+                    cc.callFunc(function (selector, selectorTarget, _data) {
+                        selector.destroy();
+                    }, that)
+                ]));
+            }
         }
     },
     showSelectColor:function(){
@@ -409,9 +481,14 @@ cc.Class({
         this.card_color.spriteFrame = this['sp_color' + color];
         this.card_color.node.active = true;
 
-        this.card_color.node.position = cc.v2(-50,136)
-        this.card_color.node.stopAllActions();
-        this.card_color.node.runAction(cc.moveTo(0.4,this._initCardColorPos));
+        //无动画
+        if(globalData.gameMgr.isRecover){
+            this.card_color.node.position = this._initCardColorPos;
+        }else{//有动画
+            this.card_color.node.position = cc.v2(-50,136)
+            this.card_color.node.stopAllActions();
+            this.card_color.node.runAction(cc.moveTo(0.4,this._initCardColorPos));
+        }
     },
     hideCardColor:function(){
         this.card_color.node.active = false;
@@ -425,15 +502,18 @@ cc.Class({
         },1);
     },
     showGlobalEffect:function(data){
-        this.globalAnim.node.active = true;
-        this.globalAnim.play(data);
-        var that = this;
-        this.scheduleOnce(function () {
-            that.globalAnim.node.active = false;
-        },1);
+        //无动画
+        if(!globalData.gameMgr.isRecover){
+            this.globalAnim.node.active = true;
+            this.globalAnim.play(data);
+            var that = this;
+            this.scheduleOnce(function () {
+                that.globalAnim.node.active = false;
+            },1);
+        }
     },
     renderScorePanel(){
-        this.panel_score.active = true;
+        this.panel_score.active = !globalData.gameMgr.isRecover;
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
 
         //有玩家逃跑 无效回合
@@ -456,6 +536,9 @@ cc.Class({
             }
         }
     },
+    onDestroy(){
+        if(this._updateTimer) clearInterval(this._updateTimer);
+    },
     reset(){
         for (let i = 0; i < this._out_cards.length; i++) {
             this._out_cards[i].destroy();
@@ -464,7 +547,14 @@ cc.Class({
         this._player_list['self'].getComponent("Player").reset()
         this._player_list['left'].getComponent("Player").reset()
         this._player_list['top'].getComponent("Player").reset()
-        this._player_list['right'].getComponent("Player").reset()
+        this._player_list['right'].getComponent("Player").reset();
+
+        var that = this;
+        if(this._updateTimer) clearInterval(this._updateTimer);
+        this._updateTimer = setInterval(function(){
+            that.updateTimer();
+        },1000);
+        that.updateTimer();
     }
 
 });

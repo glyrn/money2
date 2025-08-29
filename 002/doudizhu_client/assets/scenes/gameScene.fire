@@ -301,7 +301,7 @@
       "array": [
         0,
         0,
-        418.2902700278839,
+        418.47971308496176,
         0,
         0,
         0,
@@ -8696,6 +8696,7 @@
       "__id__": 158
     },
     "_enabled": true,
+    "bgMucic": null,
     "_id": "3atZK+SVlO069WyEvbqRZa"
   },
   {
@@ -9232,6 +9233,9 @@
     },
     "globalSelfAnim": {
       "__id__": 200
+    },
+    "audioTpl": {
+      "__uuid__": "e012437b-a8d3-4c9e-ab05-77d2ae664b89"
     },
     "_id": "92ngaPIhdKnLueFvZ/XFk3"
   },
