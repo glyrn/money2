@@ -30,6 +30,9 @@ if(url.split('?').length > 1){
     // cc.args['ycdomain'] = "www.fsyctech.com";
     // cc.args['gamedomain'] = "www.woojey.com";
     // cc.args['ycdomain'] = "www.woojey.com";
+    // cc.args['gamedomain'] = "pre-lianjin-game.xiaocorner.cn";
+    // cc.args['ycdomain'] = "pre-lianjin-game.xiaocorner.cn";
+
     console.log("test003");
     if(cc.args['gamedomain']){
         defines.serverUrl = cc.args['gamedomain'];

@@ -14,6 +14,7 @@ cc.Class({
         anim_pos:cc.Animation,
     },
     name: "Player",
+
     update:function(){
 
         var now = Date.parse(new Date()) / 1000;
@@ -24,9 +25,6 @@ cc.Class({
             this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
             this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color'+globalData.gameMgr.cur_out_color];
 
-            if(timer_value == 0){
-                this._data.target_timer_value = 0;
-            }
         }
     },
     render:function(data,flag){
@@ -114,20 +112,35 @@ cc.Class({
                     }
                 }
                 
+                if(!this._hadPlayAnim) this._hadPlayAnim = {};
                 if(globalData.gameMgr.cur_out_posId == data.posId){
                     if(globalData.gameMgr.cur_out_value == "turn")
                     {
-                        this.anim_pos.play("anim_small_turn");
+                        if(!this._hadPlayAnim['anim_small_turn']){
+                            this.anim_pos.play("anim_small_turn");
+                            this._hadPlayAnim['anim_small_turn'] = true;
+                        }
                     }else if(globalData.gameMgr.cur_out_value == "stop")
                     {
-                        this.anim_pos.play("anim_small_stop");
+                        if(!this._hadPlayAnim['anim_small_stop']){
+                            this.anim_pos.play("anim_small_stop");
+                            this._hadPlayAnim['anim_small_stop'] = true;
+                        }
                     }
+                }else{
+                    this._hadPlayAnim['anim_small_turn'] = false;
+                    this._hadPlayAnim['anim_small_stop'] = false;
                 }
 
                 var isShowUno = data.cards.length == 1;
                 if(isShowUno && data.posId == globalData.gameMgr.playerData.turn){
-                    this.anim_pos.play("anim_uno");
-                    cc.playEffect("sound/uno",false,1);
+                    if(!this._hadPlayAnim['anim_uno']){
+                        this.anim_pos.play("anim_uno");
+                        cc.playEffect("sound/uno",false,1);
+                        this._hadPlayAnim['anim_uno'] = true;
+                    }
+                }else{
+                    this._hadPlayAnim['anim_uno'] = false;
                 }
             }
 

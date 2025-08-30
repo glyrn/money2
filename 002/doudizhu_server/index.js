@@ -39,6 +39,7 @@ function GameServer() {
   this.gameDatas = {};
 
 }
+
 function getCurrentIP() {
   const interfaces = os.networkInterfaces();
   for (const iface of Object.values(interfaces)) {
@@ -51,13 +52,15 @@ function getCurrentIP() {
   return null;
 }
 
+function getTimeStamp(){
+   return Math.floor(new Date().getTime() / 1000);
+}
 
 const proto = {
 
   time:function (){
     return (new Date()).toLocaleTimeString();
   },
-
   createDeskList:function(n) {
     n = n || 150;
     const ret = [];
@@ -132,20 +135,6 @@ const proto = {
   },
   socketEmit:function(userObj,event,data){
     var saveData = _.cloneDeep(data);
-
-    // if(userObj.socket){
-    //   var roomObj = this.getDesk(userObj.socket);
-    //   //下发观众数据
-    //   for (const socket_id in roomObj.ob_socket_map) {
-    //     //观众比玩家提前进游戏 随机观看一个玩家即可
-    //     if(roomObj.ob_socket_map[socket_id].uid == null){
-    //       roomObj.ob_socket_map[socket_id].uid = userObj.uid;
-    //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-    //     }else if(roomObj.ob_socket_map[socket_id].uid == userObj.uid){
-    //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-    //     }
-    //   }
-    // }
 
     var roomObj = this.getDeskByUid(userObj.uid);
       //下发观众数据
@@ -293,13 +282,43 @@ const proto = {
       }
     }
   },
+  checkDelayTask:function(){
+    for (let i = 0; i < this.desks.length; i++) {
+      const game = this.gameDatas[this.desks[i].deskId];
+      //叫分阶段
+      if(game && game.getStatus() == 1){
+
+        for (let j = 0; j < this.desks[i].positions.length; j++) {
+          var userObj = this.desks[i].positions[j];
+          if(userObj.disconnectTime > 0 && getTimeStamp() > userObj.targetTimerTime && userObj.delayCallScore){
+            console.log("执行了delayCallScore");
+            userObj.delayCallScore.execFunc();
+            userObj.delayCallScore = null;
+            userObj.targetTimerTime = null;
+          }
+        }
+        //出牌阶段
+      }else if(game && game.getStatus() == 2){
+
+        for (let j = 0; j < this.desks[i].positions.length; j++) {
+          var userObj = this.desks[i].positions[j];
+          if(userObj.disconnectTime > 0 && getTimeStamp() > userObj.targetTimerTime && userObj.delayPlayCard){
+            console.log("执行了delayPlayCard");
+            userObj.delayPlayCard.execFunc();
+            userObj.delayPlayCard = null;
+            userObj.targetTimerTime = null;
+          }
+        }
+      }
+    }
+  },
   checkDisconnect:function(){
     for (let i = 0; i < this.desks.length; i++) {
       for (let j = 0; j < this.desks[i].positions.length; j++) {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
+        if(userObj.disconnectTime > 0 && getTimeStamp() - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           userObj.uid = 0;
@@ -438,7 +457,9 @@ const proto = {
     desk.score_list = [];
 
     this.broadCastRoom("GAME_START",deskId, { cards });
-    this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos: game.getContextPosId(), ctxScore: game.getContextScore(), timeout: 15 });
+    //记录当前玩家的定时器时间(未来值)
+    this.getUserObjByPosId(game.getContextPosId()).targetTimerTime = getTimeStamp() + 15;
+    this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos: game.getContextPosId(), ctxScore: game.getContextScore(), timeout: 15,server_time:getTimeStamp() });
   },
   clearRoomByUid:function(uid){
     var deskId = 0;
@@ -512,7 +533,7 @@ const proto = {
 
         //重连恢复
         socket.emit("SET_RECOVER_STATUS",{isRecover:true});
-        console.log("恢复数据：")
+        console.log(userObj.name+" 恢复数据")
         for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
           var emitObj = userObj.recover_disconnect_data[k];
           socket.emit(emitObj.event,emitObj.data);
@@ -526,22 +547,26 @@ const proto = {
     
     return false;
   },
-  doCallScore:function(socket,desk,deskId,game,posId,score){
+  doCallScore:function(userObj,desk,deskId,game,posId,score){
     let status = game.next(posId, score).getStatus();
     if (status == 1) {
       
-      this.socketEmit(this.getUserObj(socket),'CALL_SCORE_SUCCESS',score);
+      this.socketEmit(userObj,'CALL_SCORE_SUCCESS',score);
       let ctxPos = game.getContextPosId();
       let ctxScore = game.getContextScore();
       let calledScores = game.getCalledScores();
-      this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15 });
+      //记录当前玩家的定时器时间(未来值)
+      this.getUserObjByPosId(ctxPos).targetTimerTime = getTimeStamp() + 15;
+      this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15,server_time:getTimeStamp() });
       //如果下一个玩家是离线的那么跳过 传给下一个人
       if(this.getUserObjByPosId(ctxPos).disconnectTime > 0){
           status = game.next(ctxPos, 0).getStatus();
           ctxPos = game.getContextPosId();
           ctxScore = game.getContextScore();
           calledScores = game.getCalledScores();
-          this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15 });
+          //记录当前玩家的定时器时间(未来值)
+          this.getUserObjByPosId(ctxPos).targetTimerTime = getTimeStamp() + 15;
+          this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15,server_time:getTimeStamp() });
       }
       //如果下一个玩家是离线的那么跳过 传给下一个人
       if(this.getUserObjByPosId(ctxPos).disconnectTime > 0){
@@ -549,7 +574,9 @@ const proto = {
           ctxPos = game.getContextPosId();
           ctxScore = game.getContextScore();
           calledScores = game.getCalledScores();
-          this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15 });
+          //记录当前玩家的定时器时间(未来值)
+          this.getUserObjByPosId(ctxPos).targetTimerTime = getTimeStamp() + 15;
+          this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15,server_time:getTimeStamp() });
       }
     }
     if (status == 2) {
@@ -558,8 +585,12 @@ const proto = {
       let islaizi = desk.islaizi;
       const laiziCards = islaizi > 0 ? game.getLaiziCards(islaizi) : [];
       game.contextLaiziCards = laiziCards;
-      this.socketEmit(this.getUserObj(socket),'CALL_SCORE_SUCCESS',score);
-      this.broadCastRoom('SHOW_TOP_CARD', deskId, { topCards,laiziCards, dizhuPosId, timeout: 15,score:game.getMaxScoreInfo().score });
+      this.socketEmit(userObj,'CALL_SCORE_SUCCESS',score);
+      //记录当前玩家的定时器时间(未来值)
+      userObj.targetTimerTime = getTimeStamp() + 15;
+      this.broadCastRoom('SHOW_TOP_CARD', deskId, { topCards,laiziCards, dizhuPosId, timeout: 15,score:game.getMaxScoreInfo().score,server_time:getTimeStamp() });
+      //记录当前玩家的定时器时间(未来值)
+      this.getUserObjByPosId(dizhuPosId).targetTimerTime = getTimeStamp() + 30;
       this.broadCastRoom('CTX_PLAY_CHANGE', deskId, {
         ctxData: {
           len: 0,
@@ -570,13 +601,15 @@ const proto = {
         },
         posId: dizhuPosId,
         timeout: 30,
+        server_time:getTimeStamp(),
         isPass: false,
       });
+      
 
     }
     if (status == 4) {
       this.broadCastRoom('MESSAGE', deskId, { msg: '没有玩家叫分，重新发牌' });
-      this.socketEmit(this.getUserObj(socket),'CALL_SCORE_SUCCESS',0);
+      this.socketEmit(userObj,'CALL_SCORE_SUCCESS',0);
       this.startGame(deskId,true);
     }
   },
@@ -670,6 +703,11 @@ const proto = {
       self.checkDisconnect()
     }
     setInterval(checkDisconnect,5000)
+
+    function checkDelayTask(){
+      self.checkDelayTask()
+    }
+    setInterval(checkDelayTask,1000)
 
     const self = this;
     io.on('connection', function(socket){
@@ -809,7 +847,7 @@ const proto = {
           return;
         }
 
-        self.doCallScore(socket,desk,deskId,game,posId,score);
+        self.doCallScore(self.getUserObj(socket),desk,deskId,game,posId,score);
       });
 
       socket.on("CHECK_PLAY_CARD",data=>{
@@ -842,18 +880,20 @@ const proto = {
           const { status } = ret;
           if (status || !data.length) {
 
-            console.log("出牌调试：",posId, JSON.stringify(data),islaizi);
+            // console.log("出牌调试：",posId, JSON.stringify(data),islaizi);
             //debug
             //强制重置posId
             var lastPosId = game.contextPosId;
             game.next(posId, data,islaizi);
+            
             posId = lastPosId;
-
             if (game.getStatus() === 5) {
               self.socketEmit(self.getUserObj(socket),'PLAY_CARD_ERROR', '游戏出错');
               return;
             }
 
+            //记录当前玩家的定时器时间(未来值)
+            self.getUserObjByPosId(game.getContextPosId()).targetTimerTime = getTimeStamp() + 15;
             self.broadCastRoom('CTX_PLAY_CHANGE', deskId, {
               ctxData: {
                 len: data.length,
@@ -864,6 +904,7 @@ const proto = {
               },
               posId: game.getContextPosId(),
               timeout: 15,
+              server_time:getTimeStamp(),
               isPass:isPass,
             })
             self.socketEmit(self.getUserObj(socket),'PLAY_CARD_SUCCESS', data);
@@ -877,10 +918,11 @@ const proto = {
                 //玩家如果掉线中 自动出pass
                 var nextUserObj = self.getPosition(desk, game.getContextPosId());
                 if (nextUserObj && nextUserObj.disconnectTime > 0) {
-
                   //上一手不是他自己出的
                   if(game.lastCardInfo.posId != nextUserObj.posId){
                     game.next(nextUserObj.posId, [], desk.islaizi);
+                    //记录当前玩家的定时器时间(未来值)
+                    self.getUserObjByPosId(game.getContextPosId()).targetTimerTime = getTimeStamp() + 15;
                     self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
                       ctxData: {
                         len: 0,
@@ -891,22 +933,26 @@ const proto = {
                       },
                       posId: game.getContextPosId(),
                       timeout: 15,
+                      server_time:getTimeStamp(),
                       isPass: true,
                     })
                   }else{ //上一手是他自己出的
                     var minCard = game.getMinCardsByPosId(nextUserObj.posId);
                     if(minCard){
                       game.next(nextUserObj.posId, [minCard], desk.islaizi);
+                      //记录当前玩家的定时器时间(未来值)
+                      self.getUserObjByPosId(game.getContextPosId()).targetTimerTime = getTimeStamp() + 15;
                       self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
                         ctxData: {
                           len: 1,
                           key: minCard.value,
                           type: 'A',
                           cards: [minCard],
-                          posId: nextUserObj.posId,
+                          posId: nextUserObj.posId, 
                         },
                         posId: game.getContextPosId(),
                         timeout: 15,
+                        server_time:getTimeStamp(),
                         isPass: false,
                       })
 
@@ -945,59 +991,79 @@ const proto = {
               // console.log("选分阶段"+game.getStatus())
               if(game && game.getStatus() === 1){
                 if(game.getContextPosId() == userObj.posId){
-                  console.log("掉线叫0分")
-                  //掉线叫0分
-                  self.doCallScore(userObj.socket,self.desks[i],self.desks[i].deskId,game,userObj.posId,0);
+                  //延迟到倒计时0才触发
+                  userObj.delayCallScore = (function(self,userObj,desk,deskId,game,posId,score){
+                  return {
+                      execFunc:function(){
+                          //掉线叫0分
+                          self.doCallScore(userObj,desk,deskId,game,posId,score);
+                      }}
+                  })(self,userObj,self.desks[i],self.desks[i].deskId,game,userObj.posId,0);
+
                 }
               //出牌阶段
               }else if(game && game.getStatus() === 2 ){
                 if(game.getContextPosId() == userObj.posId){
-                  //上一手不是他自己出的
-                  if(game.lastCardInfo.posId != game.getContextPosId()){
-                    game.next(userObj.posId, [], self.desks[i].islaizi);
-                    var nextUserObj = self.getPosition(self.desks[i], game.getContextPosId());
-                    self.broadCastRoom('CTX_PLAY_CHANGE', self.desks[i].deskId, {
-                      ctxData: {
-                        len: 0,
-                        key: '',
-                        type: '',
-                        cards: [],
-                        posId: nextUserObj.posId,
-                      },
-                      posId: userObj.posId,
-                      timeout: 15,
-                      isPass: true,
-                    })
-                  }else{ //上一手是他自己出的
-                    //出最小的牌
-                    var minCard = game.getMinCardsByPosId(userObj.posId);
-                    if(minCard){
-                      game.next(userObj.posId, [minCard], self.desks[i].islaizi);
-                      self.broadCastRoom('CTX_PLAY_CHANGE', self.desks[i].deskId, {
-                        ctxData: {
-                          len: 1,
-                          key: minCard.value,
-                          type: 'A',
-                          cards: [minCard],
-                          posId: userObj.posId,
-                        },
-                        posId: game.getContextPosId(),
-                        timeout: 15,
-                        isPass: false,
-                      });
-                      if (game.getStatus() === 3) {
-                        //游戏结束
-                        self.doGameOver(self.desks[i],game);
-                      }
-                    }
-                  }
+
+                  //延迟到倒计时0才触发
+                  userObj.delayPlayCard = (function(self,userObj,desk,game){
+                  return {
+                      execFunc:function(){
+                          
+                        //上一手不是他自己出的
+                        if(game.lastCardInfo.posId != userObj.posId){
+                          game.next(userObj.posId, [], desk.islaizi);
+                          var nextUserObj = self.getPosition(desk, game.getContextPosId());
+
+                          self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
+                            ctxData: {
+                              len: 0,
+                              key: '',
+                              type: '',
+                              cards: [],
+                              posId: userObj.posId,
+                            },
+                            posId: nextUserObj.posId,
+                            timeout: 15,
+                            server_time:getTimeStamp(),
+                            isPass: true,
+                          })
+                        }else{ //上一手是他自己出的
+                          //出最小的牌
+                          var minCard = game.getMinCardsByPosId(userObj.posId);
+                          if(minCard){
+                            game.next(userObj.posId, [minCard], desk.islaizi);
+
+                            self.broadCastRoom('CTX_PLAY_CHANGE',desk.deskId, {
+                              ctxData: {
+                                len: 1,
+                                key: minCard.value,
+                                type: 'A',
+                                cards: [minCard],
+                                posId: userObj.posId,
+                              },
+                              posId: game.getContextPosId(),
+                              timeout: 15,
+                              server_time:getTimeStamp(),
+                              isPass: false,
+                            });
+                            if (game.getStatus() === 3) {
+                              //游戏结束
+                              self.doGameOver(desk,game);
+                            }
+                          }
+                        }
+
+                      }}
+                  })(self,userObj,self.desks[i],game);
+                  
                 }
               }
 
               //记录掉线时间
               delete self.clients[userObj.uid];
               userObj.socket = null;
-              userObj.disconnectTime = Math.floor(new Date().getTime() / 1000);
+              userObj.disconnectTime = getTimeStamp();
               
               //通知其他人 该玩家掉线了
               self.broadCastRoom("CONNECT_STATE",self.desks[i].deskId,{state:0,posId:userObj.posId},userObj.uid);

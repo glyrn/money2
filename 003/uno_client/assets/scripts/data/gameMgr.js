@@ -164,25 +164,25 @@ const gameMgr = function(){
         });
     }
 
-    that.updateCtxInfo = function (socket,data) {
-        var ctx = data;
-        ctx.ctxPos = that.getDirectionByPosId(ctx.ctxPos);
-        that.roomState.ctxPos = ctx.ctxPos;
-        that.roomState.ctxScore = ctx.ctxScore;
-        that.roomState.timeout = ctx.timeout;
+    // that.updateCtxInfo = function (socket,data) {
+    //     var ctx = data;
+    //     ctx.ctxPos = that.getDirectionByPosId(ctx.ctxPos);
+    //     that.roomState.ctxPos = ctx.ctxPos;
+    //     that.roomState.ctxScore = ctx.ctxScore;
+    //     that.roomState.timeout = ctx.timeout;
 
-        if (ctx.calledScores) {
-            for (var key in ctx.calledScores) {
-                if (ctx.calledScores.hasOwnProperty(key)) {
-                    var posId = Number(key);
-                    var direct = that.getDirectionByPosId(posId);
-                    that.posState[direct].callScore = ctx.calledScores[key];
+    //     if (ctx.calledScores) {
+    //         for (var key in ctx.calledScores) {
+    //             if (ctx.calledScores.hasOwnProperty(key)) {
+    //                 var posId = Number(key);
+    //                 var direct = that.getDirectionByPosId(posId);
+    //                 that.posState[direct].callScore = ctx.calledScores[key];
 
-                }
-            }
-        }
-        that.startTimer();
-    }
+    //             }
+    //         }
+    //     }
+    //     that.startTimer();
+    // }
 
     // that.autoPlayCards = function () {
     //     if (that.roomState.ctxPos === 'self') {

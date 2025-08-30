@@ -613,9 +613,10 @@ cc.Class({
     },
 
     renderClock(roomState){
+        var now = Date.parse(new Date()) / 1000;
         if(this.flag == roomState.ctxPos && this.flag != 'self'){
             this.clock_node.active = true;
-            this.lab_timer.string = roomState.timeout;
+            this.lab_timer.string = Math.max(0,roomState.server_time + roomState.timeout - now);
         }else {
             this.clock_node.active = false;
         }

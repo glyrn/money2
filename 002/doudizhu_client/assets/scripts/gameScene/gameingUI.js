@@ -105,7 +105,8 @@ cc.Class({
     },
 
     renderClock(){
-        this.playing_clock_label.string = globalData.gameMgr.roomState.timeout;
+        var now = Date.parse(new Date()) / 1000;
+        this.playing_clock_label.string = Math.max(0,globalData.gameMgr.roomState.server_time + globalData.gameMgr.roomState.timeout - now);
     },
     render(){
 
@@ -146,7 +147,7 @@ cc.Class({
     },
     renderGameOverPlane(index){
 
-        this.panel_gameover.active = true;
+        this.panel_gameover.active = !globalData.gameMgr.isRecover;
         let data = this.score_list[index-1];
 
         //有人逃跑 无效局

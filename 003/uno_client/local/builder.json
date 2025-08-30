@@ -4,7 +4,7 @@
   "appABIs": [],
   "buildPath": "build",
   "debug": false,
-  "embedWebDebugger": false,
+  "embedWebDebugger": true,
   "keystoreAlias": "",
   "keystoreAliasPassword": "",
   "keystorePassword": "",

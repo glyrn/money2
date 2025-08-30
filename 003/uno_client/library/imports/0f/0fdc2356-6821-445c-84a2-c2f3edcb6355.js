@@ -191,27 +191,24 @@ var gameMgr = function gameMgr() {
       var redirection = that.getDirectionByPosId(posId);
       that.posState[redirection].cards = cardGroup.cards;
     });
-  };
-
-  that.updateCtxInfo = function (socket, data) {
-    var ctx = data;
-    ctx.ctxPos = that.getDirectionByPosId(ctx.ctxPos);
-    that.roomState.ctxPos = ctx.ctxPos;
-    that.roomState.ctxScore = ctx.ctxScore;
-    that.roomState.timeout = ctx.timeout;
-
-    if (ctx.calledScores) {
-      for (var key in ctx.calledScores) {
-        if (ctx.calledScores.hasOwnProperty(key)) {
-          var posId = Number(key);
-          var direct = that.getDirectionByPosId(posId);
-          that.posState[direct].callScore = ctx.calledScores[key];
-        }
-      }
-    }
-
-    that.startTimer();
-  }; // that.autoPlayCards = function () {
+  }; // that.updateCtxInfo = function (socket,data) {
+  //     var ctx = data;
+  //     ctx.ctxPos = that.getDirectionByPosId(ctx.ctxPos);
+  //     that.roomState.ctxPos = ctx.ctxPos;
+  //     that.roomState.ctxScore = ctx.ctxScore;
+  //     that.roomState.timeout = ctx.timeout;
+  //     if (ctx.calledScores) {
+  //         for (var key in ctx.calledScores) {
+  //             if (ctx.calledScores.hasOwnProperty(key)) {
+  //                 var posId = Number(key);
+  //                 var direct = that.getDirectionByPosId(posId);
+  //                 that.posState[direct].callScore = ctx.calledScores[key];
+  //             }
+  //         }
+  //     }
+  //     that.startTimer();
+  // }
+  // that.autoPlayCards = function () {
   //     if (that.roomState.ctxPos === 'self') {
   //         var len = that.posState.self.cards.length;
   //         var cards = that.roomState.ctxCard.ctxPos === 'self' ? [that.posState.self.cards[len-1]] : [];

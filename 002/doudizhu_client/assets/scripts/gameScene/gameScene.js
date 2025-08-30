@@ -22,6 +22,7 @@ cc.Class({
         },
         labTopCardScore:cc.Label,
         globalSelfAnim:cc.Animation,
+        audioTpl:cc.Prefab,
     },
     onLoad () {
 
@@ -34,7 +35,7 @@ cc.Class({
             this._player_node_list[i] = player_node;
         }
         
-        cc.playMusic("sound/bg",true,1);
+        // cc.playMusic("sound/bg",true,1);
 
         globalData.eventlister.on('PREPARE_SUCCESS',function(){
             //准备成功
@@ -129,6 +130,28 @@ cc.Class({
         this.node.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
 
+        var audioObj = cc.instantiate(this.audioTpl);
+        audioObj.parent = that.node;
+        cc.audioObj = audioObj;
+        
+        // 监听游戏回到前台事件
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            if(!cc.audioObj){
+                var audioObj = cc.instantiate(that.audioTpl);
+                audioObj.parent = that.node;
+                cc.audioObj = audioObj;
+            }
+            if(cc.isPlayingGlobalBg === 0){
+                cc.audioObj.getComponent(cc.AudioSource).stop();
+            }
+        }, that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            if(cc.audioObj){
+                cc.audioObj.destroy();
+                cc.audioObj = null;
+            }
+        }, that);
     },
 
     onTouchStart(event){

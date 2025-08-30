@@ -178,15 +178,14 @@ const gameMgr = function(){
 
     that.startTimer = function () {
         if(that._timer) clearInterval(that._timer);
-
-        that._timer = setInterval(function () {
+        let timerFunc = function () {
             //游戏中
             if(that.roomState.state == 1 || that.roomState.state == 2) {
-                that.roomState.timeout--;
+                var now = Date.parse(new Date()) / 1000;
                 _eventMgr.fire("UPDATE_TIMER");
                 _eventMgr.fire("UPDATE_TIMER1");
 
-                if (that.roomState.timeout <= 0) {
+                if (that.roomState.server_time + that.roomState.timeout - now <= 0) {
                     clearInterval(that._timer);
                     if (that.roomState.state == 2 && that.roomState.ctxPos === 'self') {
                         _eventMgr.fire('auto_play_card')
@@ -196,7 +195,9 @@ const gameMgr = function(){
                     }
                 }
             }
-        }, 1000);
+        }
+        that._timer = setInterval(timerFunc, 1000);
+        timerFunc();
         return that._timer;
     }
 
@@ -251,6 +252,7 @@ const gameMgr = function(){
         that.roomState.ctxPos = ctx.ctxPos;
         that.roomState.ctxScore = ctx.ctxScore;
         that.roomState.timeout = ctx.timeout;
+        that.roomState.server_time = data.server_time;
 
         if (ctx.calledScores) {
             for (var key in ctx.calledScores) {
@@ -298,7 +300,7 @@ const gameMgr = function(){
             _eventMgr.fire('MESSAGE','轮到你出牌了');
             return;
         }
-        _socketMgr.getSocket().emit('PLAY_CARD', cards);
+        _socketMgr.playCards(cards);
     }
 
     return that;
