@@ -77,22 +77,22 @@ const proto = {
     for (let c = 1; c <= 4; c++) {
       for (let j = 0; j < 2; j++) {
         for (let i = 1; i <= 9; i++) {
-          cards.push({type:1,value:i,color:c})
+          cards.push({type:1,value:i,color:c,id:cards.length+1})
           // debug 
-          // cards.push({type:1,value:i,color:1})
+          // cards.push({type:1,value:i,color:1,id:cards.length+1})
         }
       }
-      cards.push({type:1,value:0,color:c})
-      cards.push({type:2,value:'stop',color:c});
-      cards.push({type:2,value:'stop',color:c});
-      cards.push({type:2,value:'turn',color:c});
-      cards.push({type:2,value:'turn',color:c});
-      cards.push({type:2,value:'plus2',color:c});
-      cards.push({type:2,value:'plus2',color:c});
+      cards.push({type:1,value:0,color:c,id:cards.length+1})
+      cards.push({type:2,value:'stop',color:c,id:cards.length+1});
+      cards.push({type:2,value:'stop',color:c,id:cards.length+1});
+      cards.push({type:2,value:'turn',color:c,id:cards.length+1});
+      cards.push({type:2,value:'turn',color:c,id:cards.length+1});
+      cards.push({type:2,value:'plus2',color:c,id:cards.length+1});
+      cards.push({type:2,value:'plus2',color:c,id:cards.length+1});
     }
     for (let i = 0; i < 4; i++) {
-      // cards.push({type:2,value:'plus4',color:0});
-      cards.push({type:2,value:'color',color:0});
+      cards.push({type:2,value:'plus4',color:0,id:cards.length+1});
+      cards.push({type:2,value:'color',color:0,id:cards.length+1});
     }
     return shuffle(cards);
   },
@@ -844,16 +844,10 @@ const proto = {
 
             desk.out_cards.push(obj);
             var new_cards = [];
-            var is_del = false;
             for (let i = 0; i < desk.positions[curPosId].cards.length; i++) {
               var _card = desk.positions[curPosId].cards[i];
-              if( !is_del && ((_card.value == obj.value && _card.color == obj.color) ||
-                  (_card.value == obj.value && _card.value == 'color') ||
-                  (_card.value == obj.value && _card.value == 'plus4')))
+              if( _card.id != obj.id )
               {
-                is_del = true;
-                continue;
-              }else{
                 new_cards.push(_card);
               }
             }
