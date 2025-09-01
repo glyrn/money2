@@ -116,7 +116,7 @@ cc.Class({
             that.prog_bar.init();
         });
         globalData.eventlister.on("FALL_OVER_SUCCESS",function(data){
-            if(data.posId == globalData.gameMgr.posId) {
+            if(data.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob) {
                 that.panel_drop.active = true;
             }
             that['player' + data.posId].move(data);
@@ -130,7 +130,7 @@ cc.Class({
             that.enableInput(false);
             // 显示游戏结束面板
             that.panel_drop.active = false;
-            that.panel_score.node.active = true;
+            that.panel_score.node.active = !globalData.gameMgr.isRecover;
             that.panel_score.onBtnCur();
             // that.btn_score.active = true;
             that.panel_avators.active = true;

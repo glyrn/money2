@@ -290,7 +290,7 @@ const proto = {
 
         for (let j = 0; j < this.desks[i].positions.length; j++) {
           var userObj = this.desks[i].positions[j];
-          if(userObj.disconnectTime > 0 && getTimeStamp() > userObj.targetTimerTime && userObj.delayCallScore){
+          if(userObj.disconnectTime > 0 && getTimeStamp() >= userObj.targetTimerTime && userObj.delayCallScore){
             console.log("执行了delayCallScore");
             userObj.delayCallScore.execFunc();
             userObj.delayCallScore = null;

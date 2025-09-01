@@ -33,6 +33,7 @@ cc.Class({
         lab_contents:cc.Node,
         btn_score_close:cc.Node,
         map:Map,
+        audioTpl:cc.Prefab,
     },
     //退出游戏
     onBtnQuit(){
@@ -111,7 +112,8 @@ cc.Class({
         this.onShowTips("游戏结束！");
         globalData.gameMgr.roomState.state = 2; //结束
         globalData.gameMgr.score_list.push(data);
-        this.panel_game_over.active = true;
+
+        this.panel_game_over.active = !globalData.gameMgr.isRecover;
         // this.btn_score.active = true;
         this.dice.active = false;
         this.dice.getComponent('Dice').isShow = false;
@@ -197,9 +199,6 @@ cc.Class({
     onLoad(){
         var that = this;
         //进入后台继续动画
-        that.handleMainLoopTimer=setInterval(()=>{
-            cc.director.mainLoop();
-        }, 1000 / 60);
 
         this.playerNodes = [this.player_node1,this.player_node2,this.player_node3,this.player_node4];
         // this.btn_ready.active = true;
@@ -256,10 +255,33 @@ cc.Class({
                 }
             }
             // this.btn_score.active = false;
-            cc.playMusic("sound/bg",true,1);
+            // cc.playMusic("sound/bg",true,1);
 
             that.render();
-        })
+        });
+
+        var audioObj = cc.instantiate(this.audioTpl);
+        audioObj.parent = that.node;
+        cc.audioObj = audioObj;
+        
+        // 监听游戏回到前台事件
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            if(!cc.audioObj){
+                var audioObj = cc.instantiate(that.audioTpl);
+                audioObj.parent = that.node;
+                cc.audioObj = audioObj;
+            }
+            if(cc.isPlayingGlobalBg === 0){
+                cc.audioObj.getComponent(cc.AudioSource).stop();
+            }
+        }, that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            if(cc.audioObj){
+                cc.audioObj.destroy();
+                cc.audioObj = null;
+            }
+        }, that);
     },
 
 

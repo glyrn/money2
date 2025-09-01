@@ -84,7 +84,7 @@ const socketMgr = function(){
             console.error('Connection timeout:', timeout);
         });
         _socket.on("MESSAGE",function(data){
-            if(_gameMgr.isRe)
+            if(_gameMgr.isRecover) return;
             _eventMgr.fire('MESSAGE',data.msg);
             console.log("MESSAGE:"+data.msg);
         });

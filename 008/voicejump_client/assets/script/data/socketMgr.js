@@ -87,8 +87,9 @@ const socketMgr = function(){
             _gameMgr.lossBeatNums--;
         });
         _socket.on("MESSAGE", function (msg) {
-            _eventMgr.fire('MESSAGE', msg);
             console.log("MESSAGE:" + msg);
+            if(_gameMgr.isRecover) return;
+            _eventMgr.fire('MESSAGE', msg);
         });
 
         _socket.on('PREPARE_SUCCESS',function(posId){
@@ -123,7 +124,7 @@ const socketMgr = function(){
             if(data.target == null){
                 //debug
                 // _gameMgr.playerData[data.posId] = null;
-                _gameMgr.roomState.state = 0;
+                // _gameMgr.roomState.state = 0;
             }else{
                 _gameMgr.playerData[data.posId] = data.target;
             }

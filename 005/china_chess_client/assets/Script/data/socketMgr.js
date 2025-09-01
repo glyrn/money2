@@ -79,6 +79,7 @@ const socketMgr = function(){
             _gameMgr.lossBeatNums--;
         });
         _socket.on("MESSAGE", function (msg) {
+            if(_gameMgr.isRecover) return;
             _eventMgr.fire('MESSAGE', msg);
             console.log("MESSAGE:" + msg);
         });
@@ -169,7 +170,11 @@ const socketMgr = function(){
             }
             _eventMgr.fire('CONNECT_STATE',data);
         });
-
+        _socket.on("SET_RECOVER_STATUS",function(data){
+            
+            _gameMgr.isRecover = data.isRecover;
+            console.log("收到SET_RECOVER_STATUS",_gameMgr.isRecover)
+        });
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
