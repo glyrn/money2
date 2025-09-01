@@ -366,7 +366,7 @@ const proto = {
     for (let i = 0; i < this.desks.length; i++) {
       for (let j = 0; j < this.desks[i].positions.length; j++) {
         var userObj = this.desks[i].positions[j];
-        if(userObj.disconnectTime > 0 && getTimeStamp() > userObj.targetTimerTime && userObj.delayPass){
+        if(userObj.disconnectTime > 0 && getTimeStamp() >= userObj.targetTimerTime && userObj.delayPass){
             console.log("执行了delayPass");
             userObj.delayPass.execFunc();
             userObj.delayPass = null;

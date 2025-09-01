@@ -591,6 +591,7 @@ const proto = {
     return false;
   },
   checkRecover:function(socket,roomObj,obj){
+
     for (let j = 0; j < roomObj.positions.length; j++) {
       var userObj = roomObj.positions[j];
       if(userObj.uid == 0) continue;
@@ -602,16 +603,19 @@ const proto = {
         this.clients[obj.uid] = socket;
 
         //重连恢复
+        socket.emit("SET_RECOVER_STATUS",{isRecover:true});
+        console.log(userObj.name+" 恢复数据")
         for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
           var emitObj = userObj.recover_disconnect_data[k];
           socket.emit(emitObj.event,emitObj.data);
         }
-
+        socket.emit("SET_RECOVER_STATUS",{isRecover:false});
         //广播其他所有人 该玩家上线了
         this.broadCastRoom("CONNECT_STATE",roomObj.deskId,{state:1,posId:userObj.posId},userObj.uid);
         return true;
       }
     }
+    
     return false;
   },
   init:function () {

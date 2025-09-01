@@ -167,20 +167,6 @@ const proto = {
   },
   socketEmit:function(userObj,event,data){
       var saveData = _.cloneDeep(data);
-      
-      // if(userObj.socket){
-      //   var roomObj = this.getDesk(userObj.socket);
-      //   //下发观众数据
-      //   for (const socket_id in roomObj.ob_socket_map) {
-      //     //观众比玩家提前进游戏 随机观看一个玩家即可
-      //     if(roomObj.ob_socket_map[socket_id].uid == null){
-      //       roomObj.ob_socket_map[socket_id].uid = userObj.uid;
-      //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-      //     }else if(roomObj.ob_socket_map[socket_id].uid == userObj.uid){
-      //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-      //     }
-      //   }
-      // }
 
       var roomObj = this.getDeskByUid(userObj.uid);
       //下发观众数据
@@ -412,22 +398,24 @@ const proto = {
     return false;
   },
   checkRecover:function(socket,roomObj,obj){
+
     for (let j = 0; j < roomObj.positions.length; j++) {
       var userObj = roomObj.positions[j];
       if(userObj.uid == 0) continue;
       // 断线重连
-      if(userObj.uid == obj.uid){
+      if(userObj.uid == obj.uid ){
 
         userObj.disconnectTime = null;
         userObj.socket = socket; //重连上
         this.clients[obj.uid] = socket;
 
         //重连恢复
+        socket.emit("SET_RECOVER_STATUS",{isRecover:true});
         for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
           var emitObj = userObj.recover_disconnect_data[k];
           socket.emit(emitObj.event,emitObj.data);
         }
-
+        socket.emit("SET_RECOVER_STATUS",{isRecover:false});
         //广播其他所有人 该玩家上线了
         this.broadCastRoom("CONNECT_STATE",roomObj.deskId,{state:1,posId:userObj.posId},userObj.uid);
         return true;

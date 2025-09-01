@@ -329,7 +329,7 @@ cc.Class({
     },
     renderScorePanel(){
 
-        this.panel_over.active = true;
+        this.panel_over.active = !globalData.gameMgr.isRecover;
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
         //有人逃跑
         if(data.invalid == 1){

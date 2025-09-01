@@ -490,7 +490,7 @@ cc.Class({
     },
     renderScorePanel(){
 
-        this.overSprite.active = true;
+        this.overSprite.active = !globalData.gameMgr.isRecover;
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
 
         //弃局
