@@ -416,7 +416,7 @@ const proto = {
       userObj.cards.push(card);
     }
 
-    console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
+    // console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
     this.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
     this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp()});
     //继续检查下一个玩家是否断线
@@ -827,7 +827,7 @@ const proto = {
                 }
               }
           }
-
+          console.log("出牌检测：",isOk);
           if(isOk){
 
             var nextPosId;
@@ -858,6 +858,7 @@ const proto = {
             console.log("已经游玩了："+(getTimeStamp() - desk.start_time) +"秒");
             // console.log("玩家["+desk.positions[self.getPosId(socket)].name+"] 手牌：",desk.positions[curPosId].cards);
             //判断游戏结束
+             console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
             if(desk.positions[curPosId].cards.length <= 0)
             {
               //重置状态
