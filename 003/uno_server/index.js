@@ -853,13 +853,16 @@ const proto = {
             for (let i = 0; i < desk.positions[curPosId].cards.length; i++) {
                 var _card = desk.positions[curPosId].cards[i];
                 if(_card.value == "color" && obj.value == 'color' && !has_skip){
+                  has_skip = true;
                     continue;
                 }
                 if(_card.value == "plus4" && obj.value == 'plus4' && !has_skip){
+                  has_skip = true;
                     continue;
                 }
                 if(((_card.value == obj.value && _card.type == obj.type && _card.color == obj.color)) && !has_skip )
                 {
+                  has_skip = true;
                   continue;
                 }
                 new_cards.push(_card);
