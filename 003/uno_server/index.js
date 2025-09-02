@@ -74,25 +74,26 @@ const proto = {
     };
 
     const cards = [];
+
     for (let c = 1; c <= 4; c++) {
       for (let j = 0; j < 2; j++) {
         for (let i = 1; i <= 9; i++) {
-          cards.push({type:1,value:i,color:c,id:cards.length+1})
+          cards.push({type:1,value:i,color:c})
           // debug 
-          // cards.push({type:1,value:i,color:1,id:cards.length+1})
+          // cards.push({type:1,value:i,color:1})
         }
       }
-      cards.push({type:1,value:0,color:c,id:cards.length+1})
-      cards.push({type:2,value:'stop',color:c,id:cards.length+1});
-      cards.push({type:2,value:'stop',color:c,id:cards.length+1});
-      cards.push({type:2,value:'turn',color:c,id:cards.length+1});
-      cards.push({type:2,value:'turn',color:c,id:cards.length+1});
-      cards.push({type:2,value:'plus2',color:c,id:cards.length+1});
-      cards.push({type:2,value:'plus2',color:c,id:cards.length+1});
+      cards.push({type:1,value:0,color:c})
+      cards.push({type:2,value:'stop',color:c});
+      cards.push({type:2,value:'stop',color:c});
+      cards.push({type:2,value:'turn',color:c});
+      cards.push({type:2,value:'turn',color:c});
+      cards.push({type:2,value:'plus2',color:c});
+      cards.push({type:2,value:'plus2',color:c});
     }
     for (let i = 0; i < 4; i++) {
-      cards.push({type:2,value:'plus4',color:0,id:cards.length+1});
-      cards.push({type:2,value:'color',color:0,id:cards.length+1});
+      cards.push({type:2,value:'plus4',color:0});
+      cards.push({type:2,value:'color',color:0});
     }
     return shuffle(cards);
   },
@@ -413,6 +414,7 @@ const proto = {
       var card = desk.cards.shift();
       if(!card) return; // 没有牌了 要退出
       plus_cards.push(card);
+      console.log(userObj.name,"[[[增加手牌]]]",card)
       userObj.cards.push(card);
     }
 
@@ -444,6 +446,7 @@ const proto = {
           userObj.disconnectTime = null;
           //清空断线重连信息
           userObj.recover_disconnect_data = [];
+          userObj.delayPass = null;
 
           this.broadCastRoom("MESSAGE",this.desks[i].deskId,'玩家'+name+'已掉线',userObj.uid);
           this.broadCastRoom("SIT_CHANGE",this.desks[i].deskId,{target:null,posId:userObj.posId},userObj.uid);
@@ -787,6 +790,7 @@ const proto = {
           if(desk.positions[curPosId].cards.length == 1 && obj.type == 2){  //最后一张不能出功能牌
             //补摸一张
             var card = desk.cards.shift();
+            console.log("补摸ing",card)
             desk.positions[curPosId].cards.push(card);
             self.broadCastRoom("PLUS_CARD_ONLY",{card:card,posId:curPosId});
             isOk = true;
@@ -827,7 +831,7 @@ const proto = {
                 }
               }
           }
-          console.log("出牌检测：",isOk);
+
           if(isOk){
 
             var nextPosId;
@@ -841,13 +845,17 @@ const proto = {
                 nextPosId = self.getNextPosId(desk,curPosId);
             }
             desk.cur_posId = nextPosId;
-
+            console.log("obj",obj);
+            console.log("手牌",desk.positions[curPosId].cards);
             desk.out_cards.push(obj);
             var new_cards = [];
+            var has_skip = false;
             for (let i = 0; i < desk.positions[curPosId].cards.length; i++) {
               var _card = desk.positions[curPosId].cards[i];
-              if( _card.id != obj.id )
+              if( _card.value == obj.value && _card.type == obj.type && _card.color == obj.color && !has_skip )
               {
+                has_skip = true;
+              }else{
                 new_cards.push(_card);
               }
             }
@@ -861,7 +869,6 @@ const proto = {
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
             if(desk.positions[curPosId].cards.length <= 0)
             {
-              console.log("准备结算11");
               //重置状态
               for (let i = 0; i < desk.positions.length ; i++) {
                 desk.positions[i].state = 1;
@@ -897,7 +904,6 @@ const proto = {
                   ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
                 }
               }
-              console.log("准备结算22");
               score_list[winer] = score_total;
               ycscore_list.push({uid:desk.positions[winer].uid,name:desk.positions[winer].name,score:score_total,is_win:1,avatorUrl:desk.positions[winer].avatorUrl})
               ycscore_list.sort((a, b) => {
@@ -1011,6 +1017,7 @@ const proto = {
                 const userObj = desk.positions[i];
                 userObj.cards = [];
                 for (let k = 0; k < 7; k++) {
+                  console.log("初始化拿牌")
                   userObj.cards.push(desk.cards.shift());
                 }
               self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
