@@ -845,19 +845,24 @@ const proto = {
                 nextPosId = self.getNextPosId(desk,curPosId);
             }
             desk.cur_posId = nextPosId;
-            console.log("obj",obj);
-            console.log("手牌",desk.positions[curPosId].cards);
+            console.log("obj:",obj);
+            console.log("手牌:",desk.positions[curPosId].cards);
             desk.out_cards.push(obj);
             var new_cards = [];
             var has_skip = false;
             for (let i = 0; i < desk.positions[curPosId].cards.length; i++) {
-              var _card = desk.positions[curPosId].cards[i];
-              if( _card.value == obj.value && _card.type == obj.type && _card.color == obj.color && !has_skip )
-              {
-                has_skip = true;
-              }else{
+                var _card = desk.positions[curPosId].cards[i];
+                if(_card.value == "color" && obj.value == 'color' && !has_skip){
+                    continue;
+                }
+                if(_card.value == "plus4" && obj.value == 'plus4' && !has_skip){
+                    continue;
+                }
+                if(((_card.value == obj.value && _card.type == obj.type && _card.color == obj.color)) && !has_skip )
+                {
+                  continue;
+                }
                 new_cards.push(_card);
-              }
             }
             desk.positions[curPosId].cards = new_cards;
             self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp()})
