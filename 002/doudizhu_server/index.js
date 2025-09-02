@@ -327,6 +327,8 @@ const proto = {
           userObj.avatorUrl = '';
           userObj.score = 0;
           userObj.disconnectTime = null;
+          userObj.delayCallScore = null;
+          userObj.delayPlayCard = null;
           //清空断线重连信息
           userObj.recover_disconnect_data = [];
           this.broadCastRoom("MESSAGE",this.desks[i].deskId, { msg:'玩家'+name+'已掉线'},userObj.uid);
@@ -918,6 +920,7 @@ const proto = {
                 //玩家如果掉线中 自动出pass
                 var nextUserObj = self.getPosition(desk, game.getContextPosId());
                 if (nextUserObj && nextUserObj.disconnectTime > 0) {
+
                   //上一手不是他自己出的
                   if(game.lastCardInfo.posId != nextUserObj.posId){
                     game.next(nextUserObj.posId, [], desk.islaizi);
@@ -935,7 +938,33 @@ const proto = {
                       timeout: 15,
                       server_time:getTimeStamp(),
                       isPass: true,
-                    })
+                    });
+                    console.log("出pass了!!");
+
+                    //下一个玩家也是离线
+                    var nnext_user = self.getUserObjByPosId(game.getContextPosId());
+                    if(nnext_user.disconnectTime > 0){
+
+
+                      game.next(nnext_user.posId, [], desk.islaizi);
+                      //记录当前玩家的定时器时间(未来值)
+                      self.getUserObjByPosId(game.getContextPosId()).targetTimerTime = getTimeStamp() + 15;
+                      self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
+                        ctxData: {
+                          len: 0,
+                          key: '',
+                          type: '',
+                          cards: [],
+                          posId: nnext_user.posId,
+                        },
+                        posId: game.getContextPosId(),
+                        timeout: 15,
+                        server_time:getTimeStamp(),
+                        isPass: true,
+                      });
+                      console.log("也出pass了!!");
+                    }
+
                   }else{ //上一手是他自己出的
                     var minCard = game.getMinCardsByPosId(nextUserObj.posId);
                     if(minCard){
