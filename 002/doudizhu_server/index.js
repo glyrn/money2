@@ -294,7 +294,7 @@ const proto = {
             console.log("执行了delayCallScore");
             userObj.delayCallScore.execFunc();
             userObj.delayCallScore = null;
-            userObj.targetTimerTime = null;
+
           }
         }
         //出牌阶段
@@ -306,7 +306,6 @@ const proto = {
             console.log("执行了delayPlayCard");
             userObj.delayPlayCard.execFunc();
             userObj.delayPlayCard = null;
-            userObj.targetTimerTime = null;
           }
         }
       }
@@ -945,7 +944,6 @@ const proto = {
                     var nnext_user = self.getUserObjByPosId(game.getContextPosId());
                     if(nnext_user.disconnectTime > 0){
 
-
                       game.next(nnext_user.posId, [], desk.islaizi);
                       //记录当前玩家的定时器时间(未来值)
                       self.getUserObjByPosId(game.getContextPosId()).targetTimerTime = getTimeStamp() + 15;
@@ -1043,7 +1041,7 @@ const proto = {
                         if(game.lastCardInfo.posId != userObj.posId){
                           game.next(userObj.posId, [], desk.islaizi);
                           var nextUserObj = self.getPosition(desk, game.getContextPosId());
-
+                          self.getUserObjByPosId(game.getContextPosId()).targetTimerTime = getTimeStamp() + 15;
                           self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
                             ctxData: {
                               len: 0,
@@ -1062,7 +1060,7 @@ const proto = {
                           var minCard = game.getMinCardsByPosId(userObj.posId);
                           if(minCard){
                             game.next(userObj.posId, [minCard], desk.islaizi);
-
+                            self.getUserObjByPosId(game.getContextPosId()).targetTimerTime = getTimeStamp() + 15;
                             self.broadCastRoom('CTX_PLAY_CHANGE',desk.deskId, {
                               ctxData: {
                                 len: 1,
