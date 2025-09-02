@@ -861,6 +861,7 @@ const proto = {
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
             if(desk.positions[curPosId].cards.length <= 0)
             {
+              console.log("准备结算11");
               //重置状态
               for (let i = 0; i < desk.positions.length ; i++) {
                 desk.positions[i].state = 1;
@@ -896,11 +897,14 @@ const proto = {
                   ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
                 }
               }
+              console.log("准备结算22");
               score_list[winer] = score_total;
               ycscore_list.push({uid:desk.positions[winer].uid,name:desk.positions[winer].name,score:score_total,is_win:1,avatorUrl:desk.positions[winer].avatorUrl})
               ycscore_list.sort((a, b) => {
                 return b.score - a.score;
               });
+
+              console.log("游戏结束GAME_OVER")
               self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list});
               if(!desk.score_list) desk.score_list = [];
               desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list})
