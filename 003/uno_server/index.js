@@ -377,7 +377,7 @@ const proto = {
     }
   },
   makePass:function(desk,curPosId){
-
+    console.log("makePass")
     var plusNum = 0;
     var last_card = desk.out_cards[desk.out_cards.length - 1];
     if(!last_card) return;
@@ -414,8 +414,9 @@ const proto = {
       var card = desk.cards.shift();
       if(!card) return; // 没有牌了 要退出
       plus_cards.push(card);
-      console.log(userObj.name,"[[[增加手牌]]]",card)
+      console.log(userObj.name,"[[增加手牌]]",card)
       userObj.cards.push(card);
+      console.log(userObj.name,"手牌：",userObj.cards,userObj.cards.length);
     }
 
     // console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
@@ -792,6 +793,7 @@ const proto = {
             var card = desk.cards.shift();
             console.log("补摸ing",card)
             desk.positions[curPosId].cards.push(card);
+            console.log(desk.positions[curPosId].name,"手牌：",userObj.cards,userObj.cards.length);
             self.broadCastRoom("PLUS_CARD_ONLY",{card:card,posId:curPosId});
             isOk = true;
           }else {
@@ -846,26 +848,27 @@ const proto = {
             }
             desk.cur_posId = nextPosId;
             console.log("obj:",obj);
-            console.log("手牌:",desk.positions[curPosId].cards);
+            console.log("手牌:",desk.positions[curPosId].cards,desk.positions[curPosId].cards.length);
             desk.out_cards.push(obj);
             var new_cards = [];
             var has_skip = false;
+            var _score = 0;
             for (let i = 0; i < desk.positions[curPosId].cards.length; i++) {
-                var _card = desk.positions[curPosId].cards[i];
-                if(_card.value == "color" && obj.value == 'color' && !has_skip){
-                  has_skip = true;
-                    continue;
-                }
-                if(_card.value == "plus4" && obj.value == 'plus4' && !has_skip){
-                  has_skip = true;
-                    continue;
-                }
-                if(((_card.value == obj.value && _card.type == obj.type && _card.color == obj.color)) && !has_skip )
-                {
-                  has_skip = true;
+              var _card = desk.positions[curPosId].cards[i];
+              if(_card.value == "color" && obj.value == 'color' && !has_skip){
+                has_skip = true;
                   continue;
-                }
-                new_cards.push(_card);
+              }
+              if(_card.value == "plus4" && obj.value == 'plus4' && !has_skip){
+                has_skip = true;
+                  continue;
+              }
+              if(((_card.value == obj.value && _card.type == obj.type && _card.color == obj.color)) && !has_skip )
+              {
+                has_skip = true;
+                continue;
+              }
+              new_cards.push(_card);
             }
             desk.positions[curPosId].cards = new_cards;
             self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp()})
@@ -966,6 +969,7 @@ const proto = {
       })
 
       socket.on("PLAY_PASS",function(){
+        console.log("PLAY_PASS!!!")
         const desk = self.getDesk(socket);
         if(desk){
           if(desk.state != 1){
@@ -1025,7 +1029,6 @@ const proto = {
                 const userObj = desk.positions[i];
                 userObj.cards = [];
                 for (let k = 0; k < 7; k++) {
-                  console.log("初始化拿牌")
                   userObj.cards.push(desk.cards.shift());
                 }
               self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
