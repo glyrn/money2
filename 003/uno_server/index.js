@@ -377,7 +377,7 @@ const proto = {
     }
   },
   makePass:function(desk,curPosId){
-
+    console.log("makePass")
     var plusNum = 0;
     var last_card = desk.out_cards[desk.out_cards.length - 1];
     if(!last_card) return;
@@ -969,6 +969,7 @@ const proto = {
       })
 
       socket.on("PLAY_PASS",function(){
+        console.log("PLAY_PASS!!!")
         const desk = self.getDesk(socket);
         if(desk){
           if(desk.state != 1){
