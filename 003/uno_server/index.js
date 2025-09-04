@@ -83,6 +83,16 @@ const proto = {
           // cards.push({type:1,value:i,color:1})
         }
       }
+      //debug
+
+      // cards.push({type:1,value:0,color:1})
+      // cards.push({type:2,value:'stop',color:1});
+      // cards.push({type:2,value:'stop',color:1});
+      // cards.push({type:2,value:'turn',color:1});
+      // cards.push({type:2,value:'turn',color:1});
+      // cards.push({type:2,value:'plus2',color:1});
+      // cards.push({type:2,value:'plus2',color:1});
+
       cards.push({type:1,value:0,color:c})
       cards.push({type:2,value:'stop',color:c});
       cards.push({type:2,value:'stop',color:c});
@@ -372,6 +382,20 @@ const proto = {
             userObj.delayPass.execFunc();
             userObj.delayPass = null;
             userObj.targetTimerTime = null;
+        }
+      }
+    }
+  },
+  gameSchedule:function(){
+    for (let i = 0; i < this.desks.length; i++) {
+      var desk = this.desks[i];
+      //开始游戏
+      if(desk.state == 1){
+        var curUserObj = desk.positions[desk.cur_posId];
+        var time_value = getTimeStamp() - curUserObj.targetTimerTime;
+        //当前玩家 正在离线
+        if(time_value <= 0 && curUserObj.disconnectTime > 0){
+          this.makePass(desk,desk.cur_posId);
         }
       }
     }
@@ -698,7 +722,12 @@ const proto = {
     function checkDelayTask(){
       self.checkDelayTask()
     }
-    setInterval(checkDelayTask,1000)
+    setInterval(checkDelayTask,1000);
+
+    // function gameSchedule(){
+    //   self.gameSchedule();
+    // }
+    // setInterval(gameSchedule,1000);
 
     io.on('connection', function(socket){
       socket.on('pong', function(data){
@@ -791,10 +820,10 @@ const proto = {
           if(desk.positions[curPosId].cards.length == 1 && obj.type == 2){  //最后一张不能出功能牌
             //补摸一张
             var card = desk.cards.shift();
-            console.log("补摸ing",card)
+            console.log("补摸ing",card);
             desk.positions[curPosId].cards.push(card);
-            console.log(desk.positions[curPosId].name,"手牌：",userObj.cards,userObj.cards.length);
-            self.broadCastRoom("PLUS_CARD_ONLY",{card:card,posId:curPosId});
+            console.log(desk.positions[curPosId].name,"手牌：", desk.positions[curPosId].cards, desk.positions[curPosId].cards.length);
+            self.broadCastRoom("PLUS_CARD_ONLY",desk.deskId,{plus_num:1,card:card,posId:curPosId});
             isOk = true;
           }else {
             //数字牌
@@ -852,7 +881,6 @@ const proto = {
             desk.out_cards.push(obj);
             var new_cards = [];
             var has_skip = false;
-            var _score = 0;
             for (let i = 0; i < desk.positions[curPosId].cards.length; i++) {
               var _card = desk.positions[curPosId].cards[i];
               if(_card.value == "color" && obj.value == 'color' && !has_skip){
@@ -969,7 +997,6 @@ const proto = {
       })
 
       socket.on("PLAY_PASS",function(){
-        console.log("PLAY_PASS!!!")
         const desk = self.getDesk(socket);
         if(desk){
           if(desk.state != 1){
@@ -1028,6 +1055,7 @@ const proto = {
             for (let i = 0; i < ready_count; i++) {
                 const userObj = desk.positions[i];
                 userObj.cards = [];
+                //debug
                 for (let k = 0; k < 7; k++) {
                   userObj.cards.push(desk.cards.shift());
                 }
