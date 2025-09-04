@@ -288,6 +288,7 @@ const proto = {
     for (let i = 0; i < this.desks.length; i++) {
       var desk = this.desks[i];
       const game = this.gameDatas[desk.deskId];
+
       //叫分阶段
       if(game && game.getStatus() == 1){
 
@@ -367,12 +368,51 @@ const proto = {
             }
           }
         }
-         
+      }
+      //检测弃局
+      if(desk.state == 0 && desk.deprecate_time > 0){
+        desk.deprecate_time--;
+        if(desk.deprecate_time > 0){
+          
+        }else{ //时间到
+
+          if(!desk.hadDeprecateGame){
+              desk.hadDeprecateGame = true;
+
+            this.deprecateGame(desk);
+          }
+        }
       }
     }
   },
+   //作废本局
+  deprecateGame:function(desk){
+    this.broadCastRoom("GAME_OVER", desk.deskId,  {invalid:1,winner: [],loser: [],score: 0,ratio: 0});
+    // this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
 
+    desk.state = 0;
+    var ycscore_list = [];
+    for (let i = 0; i < desk.positions.length; i++) {
+      desk.positions[i].state = 1;
+      if(desk.positions[i].uid >0) {
+        ycscore_list.push({
+          uid: desk.positions[i].uid,
+          name: desk.positions[i].name,
+          score: desk.positions[i].gain_score,
+          is_win: 0,
+          avatorUrl:desk.positions[i].avatorUrl,
+        })
+      }
+    }
+    if(!desk.score_list) desk.score_list = [];
+    desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
 
+      this.sendYcGameOver({
+        room_id:desk.name,
+        game_id:2,
+        score_list:desk.score_list,
+      });
+  },
   checkDisconnect:function(){
     for (let i = 0; i < this.desks.length; i++) {
       for (let j = 0; j < this.desks[i].positions.length; j++) {
@@ -408,33 +448,37 @@ const proto = {
             desk.state = 0;
             desk.play_index = 1;
             desk.ready_count = -1;
+            desk.ob_socket_map = {};
+            desk.hadDeprecateGame = false;
+            desk.deprecate_time = 30;
           }
 
-          this.broadCastRoom("GAME_OVER", desk.deskId,  {invalid:1,winner: [],loser: [],score: 0,ratio: 0});
-          // this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
+          this.deprecateGame(desk);
+          // this.broadCastRoom("GAME_OVER", desk.deskId,  {invalid:1,winner: [],loser: [],score: 0,ratio: 0});
+          // // this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
 
-          desk.state = 0;
-          var ycscore_list = [];
-          for (let i = 0; i < desk.positions.length; i++) {
-            desk.positions[i].state = 1;
-            if(desk.positions[i].uid >0) {
-              ycscore_list.push({
-                uid: desk.positions[i].uid,
-                name: desk.positions[i].name,
-                score: desk.positions[i].gain_score,
-                is_win: 0,
-                avatorUrl:desk.positions[i].avatorUrl,
-              })
-            }
-          }
-          if(!desk.score_list) desk.score_list = [];
-          desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+          // desk.state = 0;
+          // var ycscore_list = [];
+          // for (let i = 0; i < desk.positions.length; i++) {
+          //   desk.positions[i].state = 1;
+          //   if(desk.positions[i].uid >0) {
+          //     ycscore_list.push({
+          //       uid: desk.positions[i].uid,
+          //       name: desk.positions[i].name,
+          //       score: desk.positions[i].gain_score,
+          //       is_win: 0,
+          //       avatorUrl:desk.positions[i].avatorUrl,
+          //     })
+          //   }
+          // }
+          // if(!desk.score_list) desk.score_list = [];
+          // desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
     
-            this.sendYcGameOver({
-              room_id:desk.name,
-              game_id:2,
-              score_list:desk.score_list,
-            });
+          //   this.sendYcGameOver({
+          //     room_id:desk.name,
+          //     game_id:2,
+          //     score_list:desk.score_list,
+          //   });
           
         }
       }
@@ -475,34 +519,38 @@ const proto = {
             this.desks[i].state = 0;
             this.desks[i].play_index = 1;
             this.desks[i].ready_count = -1;
+            this.desks[i].ob_socket_map = {};
+            this.desks[i].hadDeprecateGame = false;
+            this.desks[i].deprecate_time = 30;
           }
 
           let desk = this.desks[i];
-          this.broadCastRoom("GAME_OVER", desk.deskId,  {invalid:1,winner: [],loser: [],score: 0,ratio: 0});
-          // this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
+          this.deprecateGame(desk);
+          // this.broadCastRoom("GAME_OVER", desk.deskId,  {invalid:1,winner: [],loser: [],score: 0,ratio: 0});
+          // // this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
 
-          desk.state = 0;
-          var ycscore_list = [];
-          for (let i = 0; i < desk.positions.length; i++) {
-            desk.positions[i].state = 1;
-            if(desk.positions[i].uid >0) {
-              ycscore_list.push({
-                uid: desk.positions[i].uid,
-                name: desk.positions[i].name,
-                score: desk.positions[i].gain_score,
-                is_win: 0,
-                avatorUrl:desk.positions[i].avatorUrl,
-              })
-            }
-          }
-          if(!desk.score_list) desk.score_list = [];
-          desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+          // desk.state = 0;
+          // var ycscore_list = [];
+          // for (let i = 0; i < desk.positions.length; i++) {
+          //   desk.positions[i].state = 1;
+          //   if(desk.positions[i].uid >0) {
+          //     ycscore_list.push({
+          //       uid: desk.positions[i].uid,
+          //       name: desk.positions[i].name,
+          //       score: desk.positions[i].gain_score,
+          //       is_win: 0,
+          //       avatorUrl:desk.positions[i].avatorUrl,
+          //     })
+          //   }
+          // }
+          // if(!desk.score_list) desk.score_list = [];
+          // desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
     
-            this.sendYcGameOver({
-              room_id:desk.name,
-              game_id:2,
-              score_list:desk.score_list,
-            });
+          //   this.sendYcGameOver({
+          //     room_id:desk.name,
+          //     game_id:2,
+          //     score_list:desk.score_list,
+          //   });
         }
       }
     }
@@ -808,6 +856,8 @@ const proto = {
             room.play_count = obj.play_count;
             room.base_score = obj.base_score;
             room.islaizi = obj.play_mode;
+            room.deprecate_time = 30;
+            room.hadDeprecateGame = false;
 
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];
