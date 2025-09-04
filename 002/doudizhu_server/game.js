@@ -410,7 +410,7 @@ Object.assign(
         if (this.status === 1) {
           this.userScore[posId] = data;
           const maxScoreInfo = this.getMaxScoreInfo();
-          console.log(data)
+          // console.log(data)
            // 是否有人叫了3分或者都叫完
           if(this.checkAllUserCalledScore()){
             //全部pass
