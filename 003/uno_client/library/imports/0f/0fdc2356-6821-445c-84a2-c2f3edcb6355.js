@@ -117,6 +117,55 @@ var gameMgr = function gameMgr() {
     this.playerData[this.getPlayerDataKey(posId)] = data;
   };
 
+  that.reset = function () {
+    that.playerData = {
+      left: {
+        uid: 0,
+        state: 0,
+        //0没人，1未准备 2准备
+        cards: [],
+        name: '',
+        avatarUrl: '',
+        score: 500,
+        score_offset: 0,
+        target_timer_value: 0
+      },
+      top: {
+        uid: 0,
+        state: 0,
+        //0没人，1未准备 2准备
+        cards: [],
+        name: '',
+        avatarUrl: '',
+        score: 500,
+        score_offset: 0,
+        target_timer_value: 0
+      },
+      right: {
+        uid: 0,
+        state: 0,
+        //0没人，1未准备 2准备
+        cards: [],
+        name: '',
+        avatarUrl: '',
+        score: 500,
+        score_offset: 0,
+        target_timer_value: 0
+      },
+      self: {
+        uid: 0,
+        state: 0,
+        //0没人，1未准备 2准备
+        cards: [],
+        name: '',
+        avatarUrl: '',
+        score: 500,
+        score_offset: 0,
+        target_timer_value: 0
+      }
+    };
+  };
+
   that.getPlayerDataKey = function (targetPosId) {
     var selfPosId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 

@@ -167,6 +167,7 @@ const socketMgr = function(){
         })
         _socket.on("SET_RECOVER_STATUS",function(data){
             _gameMgr.isRecover = data.isRecover;
+            _eventMgr.fire("SET_RECOVER_STATUS")
         });
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 2;

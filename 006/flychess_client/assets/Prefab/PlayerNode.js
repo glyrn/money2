@@ -50,30 +50,7 @@ cc.Class({
             this.chess_list[i].resumeAllActions()
         }
     },
-    // //进入后台恢复强刷画面
-    // renderNowGame(){
-    //     var all_places = this.map.getComponent('Map').getPosPlaces(this.posId);
-    //     for (let i = 0; i < this.chess_list.length; i++) {
-    //         var target_place_node;
-    //         var moveTo;
-    //         if(this.chess_steps[i] > -1) {
-    //             if(this.chess_steps[i] == 0 && this.chess_status[i] == 1){ //起机
-    //                 target_place_node = this.standup_pos;
-    //                 moveTo = this.chess_list[i].parent.convertToNodeSpaceAR(target_place_node.parent.convertToWorldSpaceAR(target_place_node.position))
-    //             }else{
-    //                 if(this.chess_steps[i] == all_places.length - 1){//终点
-    //                     moveTo = this.finish_tags[i].position;
-    //                     this.finish_tags[i].active = true;
-    //                 }else{
-    //                     target_place_node = all_places[this.chess_steps[i]];
-    //                     moveTo = this.chess_list[i].parent.convertToNodeSpaceAR(target_place_node.parent.convertToWorldSpaceAR(target_place_node.position))
-    //                 }
-    //             }
-    //             this.chess_list[i].position = moveTo;
-    //         }
-    //     }
-    //     this.render();
-    // },
+
     onPlayMoveStepAnim(chess_idx,num){
 
         for (let i = 0; i < this.chess_list.length; i++) {
@@ -120,13 +97,13 @@ cc.Class({
 
             this.chess_list[i].getChildByName('select_icon').getComponent(cc.Button).interactable = this.posId == globalData.gameMgr.posId;
             if(this.chess_status[i] == 0){
-                this.chess_list[i].getChildByName('select_icon').active = isCanUp;
+                this.chess_list[i].getChildByName('select_icon').active = isCanUp && this.posId == globalData.gameMgr.posId;
                 if(isCanUp) hasActive = true;
             }else if (this.chess_status[i] == 1){
-                this.chess_list[i].getChildByName('select_icon').active = true;
+                this.chess_list[i].getChildByName('select_icon').active = this.posId == globalData.gameMgr.posId;
                 hasActive = true;
             }else if (this.chess_status[i] == 2){
-                this.chess_list[i].getChildByName('select_icon').active = true;
+                this.chess_list[i].getChildByName('select_icon').active = this.posId == globalData.gameMgr.posId;
                 hasActive = true;
             }else if (this.chess_status[i] == 3){
                 this.chess_list[i].getChildByName('select_icon').active = false;
@@ -528,6 +505,11 @@ cc.Class({
             this.chess_list[i].position = this.finish_tags[i].position;
         }
     },
+    resetChessSelectIcon(){
+        for (let i = 0; i < this.chess_list.length; i++) {
+            this.chess_list[i].getChildByName('select_icon').active = false;
+        }
+    },
     render(){
 
         var that = this;
@@ -549,8 +531,14 @@ cc.Class({
 
             if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
 
+                const exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg'];
+                const ext = data.avatorUrl.slice(data.avatorUrl.lastIndexOf('.'));
+                const is_image = exts.includes(ext.toLowerCase());
+                var url = is_image ? data.avatorUrl : data.avatorUrl + '?aa=aa.jpg';
+                
+                console.log("头像：",url)
                 // var avatorUrl = 'http://'+window.defines.serverUrl+'/avator/'+ data.uid + '.jpg';
-                cc.loader.load(data.avatorUrl, function (err, img) {
+                cc.loader.load(url, function (err, img) {
                     if (!err) {
                         that._avatorUrl = data.avatorUrl;
                         that.img_avatar.spriteFrame = new cc.SpriteFrame(img);

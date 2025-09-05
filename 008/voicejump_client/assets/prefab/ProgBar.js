@@ -33,7 +33,14 @@ cc.Class({
             this['avator' + i].node.active = true;
             that['avator' + i].node.getChildByName("label").active = false;
             if(globalData.gameMgr.playerData[i].avatorUrl){
-                cc.loader.load(globalData.gameMgr.playerData[i].avatorUrl, function (err, img) {
+
+                let avatorUrl = globalData.gameMgr.playerData[i].avatorUrl;
+                const exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg'];
+                const ext = avatorUrl.slice(avatorUrl.lastIndexOf('.'));
+                const is_image = exts.includes(ext.toLowerCase());
+                var url = is_image ? avatorUrl : avatorUrl + '?aa=aa.jpg';
+                console.log("头像:",url)
+                cc.loader.load(url, function (err, img) {
                     if (!err) {
                         that['avator' + i].spriteFrame = new cc.SpriteFrame(img);
                         that['avator' + i].node.x = 0;

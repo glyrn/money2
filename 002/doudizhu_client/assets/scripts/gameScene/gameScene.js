@@ -23,6 +23,7 @@ cc.Class({
         labTopCardScore:cc.Label,
         globalSelfAnim:cc.Animation,
         audioTpl:cc.Prefab,
+        panel_loading:cc.Node,
     },
     onLoad () {
 
@@ -124,6 +125,14 @@ cc.Class({
         globalData.eventlister.on("CONNECT_STATE",function(data){
             that.renderPlayerNode();
         });
+        globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            that.panel_loading.active = false;
+        })
+        globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
+        })
 
         this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
@@ -154,6 +163,32 @@ cc.Class({
         }, that);
     },
 
+    update:function(){
+
+        var that = this;
+        var now = Math.floor(Date.parse(new Date()) / 1000);
+        var timer_value = globalData.gameMgr.roomState.server_time + globalData.gameMgr.roomState.timeout - now;
+        
+        if(timer_value >= 0 && (globalData.gameMgr.roomState.state == 1 || globalData.gameMgr.roomState.state == 2)) {
+            
+
+            // globalData.eventlister.fire("UPDATE_TIMER");
+            that.renderPlayerClock();
+            
+            // if (timer_value == 0) {
+            //     globalData.gameMgr.roomState.server_time =0;
+            //     globalData.gameMgr.roomState.timeout = 0;
+   
+            //     if (globalData.gameMgr.roomState.state == 2 && globalData.gameMgr.roomState.ctxPos === 'self') {
+            //         globalData.eventlister.fire('auto_play_card')
+            //     }else if(globalData.gameMgr.roomState.state == 1 && globalData.gameMgr.roomState.ctxPos === 'self'){
+            //         //不抢
+            //         globalData.socketMgr.call_score(0);
+            //     }
+              
+            // }
+        }
+    },
     onTouchStart(event){
         let pos = event.getLocation();
         let beginPos = this._beginPos = this._player_node_list[0].getComponent('PlayerNode').node.parent.convertToNodeSpaceAR(pos);
@@ -186,7 +221,7 @@ cc.Class({
     },
     renderRoom(){
         this.lab_roomid.string = 
-            "底分:"+globalData.gameMgr.base_score +
+            "版本: 1.0.1 底分:"+globalData.gameMgr.base_score +
             "  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         this.labTopCardScore.string = '';
     },

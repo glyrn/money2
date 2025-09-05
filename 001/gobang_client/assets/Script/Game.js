@@ -69,6 +69,7 @@ cc.Class({
         tips:cc.Node,
         note_item_prefab:cc.Node,
         note_item_content:cc.Node,
+        panel_loading:cc.Node,
     },
     //退出游戏
     // onBtnQuit(){
@@ -290,7 +291,7 @@ cc.Class({
 
         globalData.eventlister.on("GAME_START",function(){
             self.retrack_lock = false;
-            self.game_start.node.active = true;
+            self.game_start.node.active = !globalData.gameMgr.isRecover;
             self.game_start.play()
             self.pushNoteMsg("游戏开始 第"+globalData.gameMgr.play_index+"局");
             for (let i = 0; i < self.chessList.length; i++) {
@@ -316,7 +317,8 @@ cc.Class({
         })
 
         globalData.eventlister.on("MESSAGE",function(msg){
-            self.tips.active = true;
+            
+            self.tips.active = !globalData.gameMgr.isRecover;
             self.lab_tips.string = msg;
             self.scheduleOnce(function () {
                 self.tips.active = false;
@@ -349,8 +351,14 @@ cc.Class({
         globalData.eventlister.on("CONNECT_STATE",function(data){
             self.render();
         });
+        globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
+        })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             self.render();
+            self.panel_loading.active = false;
         })
     },
 
@@ -499,6 +507,9 @@ cc.Class({
             this.my_node.active = false;
             this.target_node.active = false;
             this.lab_warning.active = true;
+
+            this.panel_loading.active = false;
+            console.log("this.panel_loading.active false")
         }else{
 
             this.lab_warning.active = false;

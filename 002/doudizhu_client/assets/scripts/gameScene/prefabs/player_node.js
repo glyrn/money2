@@ -596,7 +596,13 @@ cc.Class({
             // }else{
             //     avatorUrl = 'http://42.51.37.98:8001/avator/'+playerData.uid+'.jpg'
             // }
-            cc.loader.load(playerData.avatarUrl, function(err,img){
+
+            const exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg'];
+            const ext = playerData.avatarUrl.slice(playerData.avatarUrl.lastIndexOf('.'));
+            const is_image = exts.includes(ext.toLowerCase());
+            var url = is_image ? playerData.avatarUrl : playerData.avatarUrl + '?aa=aa.jpg';
+            
+            cc.loader.load(url, function(err,img){
                 if(!err){
                     that._avatarUrl = playerData.avatarUrl;
                     that.img_avatar.spriteFrame = new cc.SpriteFrame(img);
