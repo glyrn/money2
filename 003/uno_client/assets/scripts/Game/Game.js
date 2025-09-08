@@ -36,6 +36,7 @@ cc.Class({
         lab_warninig:cc.Node,
         lab_items:cc.Node,
         audioTpl:cc.Prefab,
+        panel_loading:cc.Node,
         // btn_score_close:cc.Node,
     },
     onLoad() {
@@ -125,7 +126,13 @@ cc.Class({
             that.renderPlayer();
         })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            that.panel_loading.active = false;
             that.renderPlayer();
+        })
+        globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
         })
 
         var audioObj = cc.instantiate(this.audioTpl);
@@ -152,33 +159,33 @@ cc.Class({
         }, that);
     },
 
-    updateTimer:function(){
+    update:function(){
 
-        var now = Date.parse(new Date()) / 1000;
+        var now = Math.floor(Date.parse(new Date()) / 1000);
         var timer_value = globalData.gameMgr.playerData.self.target_timer_value - now;
         if (timer_value >= 0) {
             if(globalData.gameMgr.roomState.state == 1) {
                 this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
                 this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
                 this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color'+globalData.gameMgr.cur_out_color];
-                
+                this.isExecuteAutoPlay = false;
                 if (timer_value == 0) {
                     globalData.gameMgr.playerData.self.target_timer_value = 0;
                     
-                    if(globalData.gameMgr.playerData.self.posId == globalData.gameMgr.playerData.turn){
-                        //检查是否最后一张
-                        var cards = globalData.gameMgr.playerData.self.cards;
-                        if(cards.length == 1 && cards[0].type == 2){
-                            //直接pass
-                            this.onBtnPass();
-                        }else{
-                            if (this.onBtnTips()) {
-                                this.onBtnPlayCard();
-                            } else {
-                                this.onBtnPass();
-                            }
-                        }
-                    }
+                //     if(globalData.gameMgr.playerData.self.posId == globalData.gameMgr.playerData.turn){
+                //         //检查是否最后一张
+                //         var cards = globalData.gameMgr.playerData.self.cards;
+                //         if(cards.length == 1 && cards[0].type == 2){
+                //             //直接pass
+                //             this.onBtnPass();
+                //         }else{
+                //             if (this.onBtnTips()) {
+                //                 this.onBtnPlayCard();
+                //             } else {
+                //                 this.onBtnPass();
+                //             }
+                //         }
+                //     }
                 }
             }
         }
@@ -197,6 +204,9 @@ cc.Class({
         return this._onBtnTips();
     },
     _onBtnTips(only_check=false){
+        if(this._out_cards.length <= 0){
+            return false;
+        }
         var card = this._out_cards[this._out_cards.length-1].getComponent('Card')._data;
         return this._player_list['self'].getComponent('Player').selectTips(card,only_check);
     },
@@ -518,8 +528,12 @@ cc.Class({
 
         //有玩家逃跑 无效回合
         if(data.invalid == 1){
+            
             this.lab_warninig.active = true;
             this.lab_items.active = false;
+
+            this.panel_loading.active = false;
+            console.log("this.panel_loading.active false")
         }else{
             this.lab_warninig.active = false;
             this.lab_items.active = true;
@@ -536,9 +550,6 @@ cc.Class({
             }
         }
     },
-    onDestroy(){
-        if(this._updateTimer) clearInterval(this._updateTimer);
-    },
     reset(){
         for (let i = 0; i < this._out_cards.length; i++) {
             this._out_cards[i].destroy();
@@ -548,13 +559,6 @@ cc.Class({
         this._player_list['left'].getComponent("Player").reset()
         this._player_list['top'].getComponent("Player").reset()
         this._player_list['right'].getComponent("Player").reset();
-
-        var that = this;
-        if(this._updateTimer) clearInterval(this._updateTimer);
-        this._updateTimer = setInterval(function(){
-            that.updateTimer();
-        },1000);
-        that.updateTimer();
     }
 
 });

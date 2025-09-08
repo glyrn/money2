@@ -32,6 +32,7 @@ cc.Class({
         if(data.invalid == 1){
             this.lab_warning.active = true;
             this.lab_contents.active = false;
+
         }else{
 
             this.lab_warning.active = false;

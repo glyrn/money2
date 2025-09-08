@@ -168,8 +168,20 @@ const socketMgr = function(){
         _socket.on("SET_RECOVER_STATUS",function(data){
             
             _gameMgr.isRecover = data.isRecover;
-            console.log("收到SET_RECOVER_STATUS",_gameMgr.isRecover)
+            console.log("收到SET_RECOVER_STATUS",_gameMgr.isRecover);
+            _eventMgr.fire("SET_RECOVER_STATUS")
         });
+
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            console.log("进入后台")
+            _eventMgr.removeAllLister();
+            _socket.close();
+        },that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            console.log("回来前台")
+            that.initSocket();
+        },that);
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){

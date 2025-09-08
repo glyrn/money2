@@ -91,6 +91,8 @@ const socketMgr = function(){
             
             _gameMgr.isRecover = data.isRecover;
             console.log("收到SET_RECOVER_STATUS",_gameMgr.isRecover)
+
+            _eventMgr.fire("SET_RECOVER_STATUS");
         });
 
         _socket.on('PREPARE_SUCCESS',function(data){
@@ -198,7 +200,8 @@ const socketMgr = function(){
             globalData.gameMgr.playerData.self.target_timer_value = 0;
             //剔除
             if(data.posId ==  _gameMgr.playerData.self.posId){
-                var new_cards = [];
+
+                var new_cards = []; 
                 var is_del = false;
                 for (let i = 0; i < _gameMgr.playerData.self.cards.length; i++) {
                     var _card = _gameMgr.playerData.self.cards[i];
@@ -288,6 +291,7 @@ const socketMgr = function(){
             console.log("进入后台")
             _eventMgr.removeAllLister();
             _socket.close();
+            _gameMgr.reset();
         },that);
         cc.game.on(cc.game.EVENT_SHOW, function(){
             console.log("回来前台")

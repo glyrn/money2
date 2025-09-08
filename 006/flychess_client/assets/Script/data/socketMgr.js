@@ -114,6 +114,7 @@ const socketMgr = function(){
         });
         _socket.on("SET_RECOVER_STATUS",function(data){
             _gameMgr.isRecover = data.isRecover;
+            _eventMgr.fire("SET_RECOVER_STATUS");
         });
 
         _socket.on("MAKE_DICE_NUM_SUCCESS",function(data){

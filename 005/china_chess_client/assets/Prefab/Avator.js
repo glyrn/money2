@@ -41,7 +41,12 @@ cc.Class({
                 // } else {
                 //     avatorUrl = 'http://42.51.37.98:8004/avator/' + data.uid + '.jpg'
                 // }
-                cc.loader.load(data.avatorUrl, function (err, img) {
+                const exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg'];
+                const ext = data.avatorUrl.slice(data.avatorUrl.lastIndexOf('.'));
+                const is_image = exts.includes(ext.toLowerCase());
+                var url = is_image ? data.avatorUrl : data.avatorUrl + '?aa=aa.jpg';
+
+                cc.loader.load(url, function (err, img) {
                     if (!err) {
                         that._avatorUrl = data.avatorUrl;
                         that.img_avatar.spriteFrame = new cc.SpriteFrame(img);

@@ -25669,15 +25669,10 @@
     "prog_bar": {
       "__id__": 189
     },
-    "_lastVoiceTime": 0,
-    "_lastJump1Time": 0,
-    "_lastJump2Time": 0,
-    "_voiceCDTime": 200,
-    "_jump1CDTime": 700,
-    "_jump2CDTime": 1000,
     "prog_voice": {
       "__id__": 157
     },
+    "panel_loading": null,
     "_id": "fakx6zZaZKdb5OnLn9NUHf"
   },
   {

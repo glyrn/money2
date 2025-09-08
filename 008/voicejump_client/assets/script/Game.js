@@ -27,14 +27,13 @@ cc.Class({
         btn_score:cc.Node,
         tips:cc.Node,
         prog_bar:ProgBar,
-        _lastVoiceTime:0,
-        _lastJump1Time:0,
-        _lastJump2Time:0,
-        _voiceCDTime:100,
-        _jump1CDTime:700,
-        _jump2CDTime:1000,
+        // _lastVoiceTime:0,
+        // _lastJump1Time:0,
+        // _lastJump2Time:0,
+        // _voiceCDTime:100,
+        // _jump1CDTime:700,
+        // _jump2CDTime:1000,
         prog_voice:cc.Node,
-        
     },
     onLoad() {
 
@@ -152,7 +151,7 @@ cc.Class({
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             that.render();
 
-            console.log("check:"+globalData.gameMgr.is_ob);
+            // console.log("check:"+globalData.gameMgr.is_ob);
             //观众不用麦克风
             if(!globalData.gameMgr.is_ob){
                 //初始化麦克风
@@ -164,7 +163,6 @@ cc.Class({
                     });
             }
         });
-        
     },
     onBtnReady(){
         globalData.socketMgr.prepare()

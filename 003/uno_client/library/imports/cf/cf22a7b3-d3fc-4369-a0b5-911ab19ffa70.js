@@ -42,7 +42,8 @@ cc.Class({
     globalAnim: cc.Animation,
     lab_warninig: cc.Node,
     lab_items: cc.Node,
-    audioTpl: cc.Prefab // btn_score_close:cc.Node,
+    audioTpl: cc.Prefab,
+    panel_loading: cc.Node // btn_score_close:cc.Node,
 
   },
   onLoad: function onLoad() {
@@ -140,7 +141,14 @@ cc.Class({
     });
 
     _globalData["default"].eventlister.on("LOGIN_SUCCESS", function () {
+      that.panel_loading.active = false;
       that.renderPlayer();
+    });
+
+    _globalData["default"].eventlister.on("SET_RECOVER_STATUS", function () {
+      if (_globalData["default"].gameMgr.isRecover == false) {
+        that.panel_loading.active = false;
+      }
     });
 
     var audioObj = cc.instantiate(this.audioTpl);
@@ -166,8 +174,8 @@ cc.Class({
       }
     }, that);
   },
-  updateTimer: function updateTimer() {
-    var now = Date.parse(new Date()) / 1000;
+  update: function update() {
+    var now = Math.floor(Date.parse(new Date()) / 1000);
     var timer_value = _globalData["default"].gameMgr.playerData.self.target_timer_value - now;
 
     if (timer_value >= 0) {
@@ -175,25 +183,23 @@ cc.Class({
         this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
         this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
         this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color' + _globalData["default"].gameMgr.cur_out_color];
+        this.isExecuteAutoPlay = false;
 
         if (timer_value == 0) {
-          _globalData["default"].gameMgr.playerData.self.target_timer_value = 0;
-
-          if (_globalData["default"].gameMgr.playerData.self.posId == _globalData["default"].gameMgr.playerData.turn) {
-            //检查是否最后一张
-            var cards = _globalData["default"].gameMgr.playerData.self.cards;
-
-            if (cards.length == 1 && cards[0].type == 2) {
-              //直接pass
-              this.onBtnPass();
-            } else {
-              if (this.onBtnTips()) {
-                this.onBtnPlayCard();
-              } else {
-                this.onBtnPass();
-              }
-            }
-          }
+          _globalData["default"].gameMgr.playerData.self.target_timer_value = 0; //     if(globalData.gameMgr.playerData.self.posId == globalData.gameMgr.playerData.turn){
+          //         //检查是否最后一张
+          //         var cards = globalData.gameMgr.playerData.self.cards;
+          //         if(cards.length == 1 && cards[0].type == 2){
+          //             //直接pass
+          //             this.onBtnPass();
+          //         }else{
+          //             if (this.onBtnTips()) {
+          //                 this.onBtnPlayCard();
+          //             } else {
+          //                 this.onBtnPass();
+          //             }
+          //         }
+          //     }
         }
       }
     }
@@ -213,6 +219,10 @@ cc.Class({
   },
   _onBtnTips: function _onBtnTips() {
     var only_check = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+    if (this._out_cards.length <= 0) {
+      return false;
+    }
 
     var card = this._out_cards[this._out_cards.length - 1].getComponent('Card')._data;
 
@@ -544,9 +554,6 @@ cc.Class({
       }
     }
   },
-  onDestroy: function onDestroy() {
-    if (this._updateTimer) clearInterval(this._updateTimer);
-  },
   reset: function reset() {
     for (var i = 0; i < this._out_cards.length; i++) {
       this._out_cards[i].destroy();
@@ -561,13 +568,6 @@ cc.Class({
     this._player_list['top'].getComponent("Player").reset();
 
     this._player_list['right'].getComponent("Player").reset();
-
-    var that = this;
-    if (this._updateTimer) clearInterval(this._updateTimer);
-    this._updateTimer = setInterval(function () {
-      that.updateTimer();
-    }, 1000);
-    that.updateTimer();
   }
 });
 

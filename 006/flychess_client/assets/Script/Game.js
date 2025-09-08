@@ -34,6 +34,7 @@ cc.Class({
         btn_score_close:cc.Node,
         map:Map,
         audioTpl:cc.Prefab,
+        panel_loading:cc.Node,
     },
     //退出游戏
     onBtnQuit(){
@@ -158,7 +159,7 @@ cc.Class({
         }
 
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
-        this.lab_room.string = "局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "版本:1.0.3 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
 
         //发送退出游戏事件
         // if(isQuit){
@@ -173,6 +174,9 @@ cc.Class({
             // lab_title.string = "有玩家逃跑，本局无效";
             this.lab_warning.active = true;
             this.lab_contents.active = false;
+
+            this.panel_loading.active = false;
+            console.log("this.panel_loading.active false")
         }else{
             this.lab_warning.active = false;
             this.lab_contents.active = true;
@@ -232,9 +236,6 @@ cc.Class({
         globalData.eventlister.on('FINISH_CHESS_SUCCESS',function(data){
             that.playerNodes[data.posId].finishChess(data.idx);
         });
-        // globalData.eventlister.on("STANDUP_CHESS_SUCCESS",function(data){
-        //     that.playerNodes[data.posId]._standUpChess(data.idx);
-        // })
         globalData.eventlister.on('GAME_OVER',function(data){
             that.onGameOver(data)
         });
@@ -258,7 +259,13 @@ cc.Class({
             // cc.playMusic("sound/bg",true,1);
 
             that.render();
+            that.panel_loading.active = false; 
         });
+        globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
+        })
 
         var audioObj = cc.instantiate(this.audioTpl);
         audioObj.parent = that.node;
@@ -290,6 +297,9 @@ cc.Class({
         for (let i = 0; i < this.playerNodes.length; i++) {
             this.playerNodes[i].cleanDice();
         }
+        for (let i = 0; i < this.playerNodes.length; i++) {
+            this.playerNodes[i].resetChessSelectIcon();
+        }
 
         if(globalData.gameMgr.isRecover){
             this.dice.getComponent("Dice").showNum(num,cbFunc)
@@ -301,19 +311,23 @@ cc.Class({
     nextPlayerDice(data){
 
         this._isCanMakeDiceLock = false;
-        console.log(data.posId)
+        // console.log(data.posId)
         this.onShowTips("请【"+globalData.gameMgr.playerData[data.posId].name+"】骰筛子");
         for (const i in globalData.gameMgr.playerData) {
             this.playerNodes[globalData.gameMgr.playerData[i].posId].setTurnFlag(data.posId == i);
         }
 
-        console.log("nextPlayerDice",globalData.gameMgr.posId,data.posId)
+        console.log("轮到",data.posId,"  我是：",globalData.gameMgr.posId)
 
         this.dice.active = globalData.gameMgr.posId == data.posId && !globalData.gameMgr.is_ob;
         if(this.dice.active){
             this.dice.getComponent(cc.Button).interactable = true;
         }
         this.dice.getComponent('Dice').isShow = true;
+
+        for (let i = 0; i < this.playerNodes.length; i++) {
+            this.playerNodes[i].resetChessSelectIcon();
+        }
     },
 
     resumeAllActions(){

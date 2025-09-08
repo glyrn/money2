@@ -110,6 +110,8 @@ var socketMgr = function socketMgr() {
     _socket.on("SET_RECOVER_STATUS", function (data) {
       _gameMgr.isRecover = data.isRecover;
       console.log("收到SET_RECOVER_STATUS", _gameMgr.isRecover);
+
+      _eventMgr.fire("SET_RECOVER_STATUS");
     });
 
     _socket.on('PREPARE_SUCCESS', function (data) {
@@ -333,6 +335,8 @@ var socketMgr = function socketMgr() {
       _eventMgr.removeAllLister();
 
       _socket.close();
+
+      _gameMgr.reset();
     }, that);
     cc.game.on(cc.game.EVENT_SHOW, function () {
       console.log("回来前台");

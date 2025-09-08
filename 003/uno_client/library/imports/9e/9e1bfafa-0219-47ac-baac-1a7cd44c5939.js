@@ -117,12 +117,12 @@ cc.Class({
 
         if (_globalData["default"].gameMgr.cur_out_posId == data.posId) {
           if (_globalData["default"].gameMgr.cur_out_value == "turn") {
-            if (!this._hadPlayAnim['anim_small_turn']) {
+            if (!this._hadPlayAnim['anim_small_turn'] && !_globalData["default"].gameMgr.isRecover) {
               this.anim_pos.play("anim_small_turn");
               this._hadPlayAnim['anim_small_turn'] = true;
             }
           } else if (_globalData["default"].gameMgr.cur_out_value == "stop") {
-            if (!this._hadPlayAnim['anim_small_stop']) {
+            if (!this._hadPlayAnim['anim_small_stop'] && !_globalData["default"].gameMgr.isRecover) {
               this.anim_pos.play("anim_small_stop");
               this._hadPlayAnim['anim_small_stop'] = true;
             }
@@ -135,7 +135,7 @@ cc.Class({
         var isShowUno = data.cards.length == 1;
 
         if (isShowUno && data.posId == _globalData["default"].gameMgr.playerData.turn) {
-          if (!this._hadPlayAnim['anim_uno']) {
+          if (!this._hadPlayAnim['anim_uno'] && !_globalData["default"].gameMgr.isRecover) {
             this.anim_pos.play("anim_uno");
             cc.playEffect("sound/uno", false, 1);
             this._hadPlayAnim['anim_uno'] = true;

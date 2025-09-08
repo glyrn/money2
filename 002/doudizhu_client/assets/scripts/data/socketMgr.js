@@ -104,8 +104,7 @@ const socketMgr = function(){
             }
             _gameMgr.posState.self.isDizhu = false;
             _eventMgr.fire("POS_STATUS_CHANGE");
-
-            // _gameMgr.checkBeat();
+            _eventMgr.fire("LOGIN_SUCCESS")
 
             if(_cbLogin) {
                 _cbLogin();
@@ -343,7 +342,8 @@ const socketMgr = function(){
         _socket.on("SET_RECOVER_STATUS",function(data){
             
             _gameMgr.isRecover = data.isRecover;
-            console.log("收到SET_RECOVER_STATUS",_gameMgr.isRecover)
+            console.log("收到SET_RECOVER_STATUS",_gameMgr.isRecover);
+            _eventMgr.fire("SET_RECOVER_STATUS")
         });
 
         cc.game.targetOff(that);

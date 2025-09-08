@@ -49,6 +49,7 @@ cc.Class({
         lab_warning:cc.Node,
         lab_contents:cc.Node,
         btn_score_close:cc.Node,
+        panel_loading:cc.Node, 
     },
     //退出游戏
     onBtnQuit(){
@@ -177,6 +178,12 @@ cc.Class({
         })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             that.render();
+            that.panel_loading.active = false;
+        })
+        globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
         })
         globalData.eventlister.on('PREPARE_SUCCESS',function(prepare_uid){
             //准备成功
@@ -263,7 +270,7 @@ cc.Class({
     gameStart:function(){
 
         var that = this;
-        this.game_start.active = true;
+        this.game_start.active = !globalData.gameMgr.isRecover;
         this.game_start.getComponent(cc.Animation).play()
         this.retrack_lock = true;
 
@@ -335,6 +342,9 @@ cc.Class({
         if(data.invalid == 1){
             this.lab_warning.active = true;
             this.lab_contents.active = false;
+
+            this.panel_loading.active = false;
+            console.log("this.panel_loading.active false")
         }else{
 
             this.lab_warning.active = false;
@@ -376,7 +386,7 @@ cc.Class({
     },
     showTips:function(msg){
 
-        this.tips.active = true;
+        this.tips.active = !globalData.gameMgr.isRecover;
         this.lab_tips.string = msg;
         this.scheduleOnce(function () {
             this.tips.active = false;
@@ -386,7 +396,7 @@ cc.Class({
 
         cc.playEffect('jiangjun',false,1);
 
-        this.img_jiangjun.active = true;
+        this.img_jiangjun.active = !globalData.gameMgr.isRecover;
         this.img_jiangjun.getComponent(cc.Animation).play();
         this.scheduleOnce(function () {
             this.img_jiangjun.active = false;
