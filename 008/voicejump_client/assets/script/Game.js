@@ -34,6 +34,7 @@ cc.Class({
         // _jump1CDTime:700,
         // _jump2CDTime:1000,
         prog_voice:cc.Node,
+        panel_loading:cc.Node,
     },
     onLoad() {
 
@@ -150,7 +151,7 @@ cc.Class({
 
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             that.render();
-
+            that.panel_loading.active = false;
             // console.log("check:"+globalData.gameMgr.is_ob);
             //观众不用麦克风
             if(!globalData.gameMgr.is_ob){
@@ -163,6 +164,12 @@ cc.Class({
                     });
             }
         });
+
+         globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
+        })
     },
     onBtnReady(){
         globalData.socketMgr.prepare()

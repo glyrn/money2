@@ -106,6 +106,7 @@ const socketMgr = function(){
         });
         _socket.on("LOGIN_SUCCESS", function (data) {
             _gameMgr.roomId = data.roomId;
+            _gameMgr.server_time = data.server_time;
             var playerData = data.playerData;
             for (let i = 0; i < playerData.length; i++) {
                 if(playerData[i]){
@@ -114,6 +115,8 @@ const socketMgr = function(){
                 }
             }
             _gameMgr.play_index = 0;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
             // _gameMgr.checkBeat();
 
             _eventMgr.fire("LOGIN_SUCCESS")

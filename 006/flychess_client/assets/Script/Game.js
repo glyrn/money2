@@ -1,6 +1,7 @@
 import globalData from "./data/globalData.js"
 import PlayerNode from '../Prefab/PlayerNode.js'
 import Map from '../Prefab/Map.js'
+import PanelAvators from "../Prefab/PanelAvators"
 cc.Class({
     extends: cc.Component,
 
@@ -35,6 +36,7 @@ cc.Class({
         map:Map,
         audioTpl:cc.Prefab,
         panel_loading:cc.Node,
+        panel_avators:PanelAvators,
     },
     //退出游戏
     onBtnQuit(){
@@ -213,12 +215,15 @@ cc.Class({
             that.onBackHome(data)
         });
         globalData.eventlister.on('PREPARE_SUCCESS',function(data){
+            that.panel_avators.render();
             that.onPrepareSuccess(data)
         })
         globalData.eventlister.on('SIT_CHANGE',function(data){
+            that.panel_avators.render();
             that.onSitChange(data)
         });
         globalData.eventlister.on('GAME_START',function(data){
+            that.panel_avators.node.active = false;
             that.onGameStart(data)
         });
         globalData.eventlister.on('MAKE_DICE_NUM_SUCCESS',function(data){
@@ -257,7 +262,7 @@ cc.Class({
             }
             // this.btn_score.active = false;
             // cc.playMusic("sound/bg",true,1);
-
+            that.panel_avators.render();
             that.render();
             that.panel_loading.active = false; 
         });

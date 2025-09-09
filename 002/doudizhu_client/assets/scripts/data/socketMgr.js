@@ -97,6 +97,9 @@ const socketMgr = function(){
             _gameMgr.base_score = data.base_score;
             _gameMgr.play_count = data.play_count;
             _gameMgr.play_index = data.play_index;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
 
             for (const posId in data.posInfos) {
                 var pos = data.posInfos[posId];
@@ -293,7 +296,7 @@ const socketMgr = function(){
         });
 
         _socket.on('GAME_OVER', function (data) {
-
+            console.log("gameover",data)
             _gameMgr.startTimer(false);//停止计时器
             _gameMgr.roomState.state = 3;
 

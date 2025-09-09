@@ -320,6 +320,7 @@ const proto = {
 
         if(desk.time_out > 0){
           desk.time_out--;
+          
         }else{ //时间到
 
           if(!desk.hadExecutePlayCard){
@@ -381,7 +382,7 @@ const proto = {
       if(desk.state == 0 && desk.deprecate_time > 0){
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
-          
+          console.log(desk.deprecate_time)
         }else{ //时间到
 
           if(!desk.hadDeprecateGame){
@@ -395,6 +396,7 @@ const proto = {
   },
    //作废本局
   deprecateGame:function(desk){
+    console.log("弃局!!")
     this.broadCastRoom("GAME_OVER", desk.deskId,  {invalid:1,winner: [],loser: [],score: 0,ratio: 0});
     // this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
 
@@ -861,6 +863,7 @@ const proto = {
                   play_count:room.play_count,
                   play_index:room.play_index,
                   posInfos:playerData,
+                  server_time:getTimeStamp(),
                 });
                 self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
 

@@ -105,6 +105,10 @@ const socketMgr = function(){
             _gameMgr.posId = data.posId;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
+            
             // console.log(_gameMgr.playerData)
             // _gameMgr.checkBeat();
             _eventMgr.fire("LOGIN_SUCCESS");

@@ -6,6 +6,8 @@ cc._RF.push(module, 'cf22aez0/xDaaC1kRqxn/pw', 'Game');
 
 var _globalData = _interopRequireDefault(require("../globalData"));
 
+var _PanelAvators = _interopRequireDefault(require("../../Prefab/PanelAvators"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 cc.Class({
@@ -43,7 +45,8 @@ cc.Class({
     lab_warninig: cc.Node,
     lab_items: cc.Node,
     audioTpl: cc.Prefab,
-    panel_loading: cc.Node // btn_score_close:cc.Node,
+    panel_loading: cc.Node,
+    panel_avators: _PanelAvators["default"] // btn_score_close:cc.Node,
 
   },
   onLoad: function onLoad() {
@@ -62,12 +65,14 @@ cc.Class({
 
     _globalData["default"].eventlister.on('PREPARE_SUCCESS', function (posId) {
       //准备成功
+      that.panel_avators.render();
       that.renderRoom();
       that.renderPlayer();
     });
 
     _globalData["default"].eventlister.on('SIT_CHANGE', function () {
       that.panel_ctrl.active = false;
+      that.panel_avators.render();
       that.renderPlayer();
     });
 
@@ -78,6 +83,7 @@ cc.Class({
       that.btn_quit.active = false;
       that.panel_continue.active = false;
       that.card_color.node.active = false;
+      that.panel_avators.node.active = false;
       that.renderPlayer();
       that.hideSelectColor();
       that.renderRoom();
@@ -142,6 +148,7 @@ cc.Class({
 
     _globalData["default"].eventlister.on("LOGIN_SUCCESS", function () {
       that.panel_loading.active = false;
+      that.panel_avators.render();
       that.renderPlayer();
     });
 
@@ -537,6 +544,8 @@ cc.Class({
     if (data.invalid == 1) {
       this.lab_warninig.active = true;
       this.lab_items.active = false;
+      this.panel_loading.active = false;
+      console.log("this.panel_loading.active false");
     } else {
       this.lab_warninig.active = false;
       this.lab_items.active = true;

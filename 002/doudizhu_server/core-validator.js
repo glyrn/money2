@@ -756,8 +756,70 @@ module.exports.validate_laizi = function(cards,laizis) {
         }
     });
 
+     let set_normal_check = {};
+        //是否有相同超过2张的牌
+        let hasMoreThan2 = false;
+        normal_cards.forEach(function(_card){
+            if(!set_normal_check[_card]){
+                set_normal_check[_card] = 1;
+            }else{
+                set_normal_check[_card]++;
+            }
+            if(set_normal_check[_card] > 2){
+                hasMoreThan2 = true;
+            }
+        });
+
     var is_same_normal = normal_cards.every((element) => element === normal_cards[0]);
-    
+
+    //纯3
+    if(cards.length == 3){
+        for (const _card in set_normal_check) {
+            if (set_normal_check[_card] + laizi_cards.length == 3) {
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:parseInt(_card),type:"AAA"}] 
+                };
+            }
+        }
+        if(laizi_cards.length == 3 && ((new Set(laizi_cards).size) === 1)){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:parseInt(laizi_cards[0]),type:"AAA"}] 
+            };
+        }
+    }
+
+    //3带1
+    if(cards.length == 4){
+        for (const _card in set_normal_check) {
+            if (set_normal_check[_card] + laizi_cards.length == 3) {
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:parseInt(_card),type:"AAAB"}] 
+                };
+            }
+        }
+    }
+    //3带2
+    if(cards.length == 5){
+        var mark_cards = null;
+        for (const _card in set_normal_check) {
+            if(set_normal_check[_card] == 2 && mark_cards == null){
+                mark_cards = _card;
+            }
+            if ((_card != mark_cards) && set_normal_check[_card] + laizi_cards.length == 3) {
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:parseInt(_card),type:"AAABB"}] 
+                };
+            }
+        }
+    }
     //纯软炸弹
     if(normal_cards.length == 0 && laizi_cards.length >= 4){
         //4张癞子
@@ -809,21 +871,6 @@ module.exports.validate_laizi = function(cards,laizis) {
     //检测顺子
     if(!is_same_normal && cards.length >= 5){
 
-        let set_normal_check = {};
-        //是否有相同超过2张的牌
-        let hasMoreThan2 = false;
-        normal_cards.forEach(function(_card){
-            if(!set_normal_check[_card]){
-                set_normal_check[_card] = 1;
-            }else{
-                set_normal_check[_card]++;
-            }
-            if(set_normal_check[_card] > 2){
-                hasMoreThan2 = true;
-            }
-        });
-
-        
         //尝试检测单顺子
         let min_value = Math.min.apply(Math,normal_cards);
         //单顺子

@@ -151,7 +151,7 @@ cc.Class({
     renderGameOverPlane(index){
 
         this.panel_gameover.active = !globalData.gameMgr.isRecover;
-        let data = this.score_list[index-1];
+        let data = this.score_list[this.score_list.length-1];
 
         //有人逃跑 无效局
         if(data && data.invalid == 1){

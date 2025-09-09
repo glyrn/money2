@@ -49,6 +49,11 @@ function getCurrentIP() {
   }
   return null;
 }
+
+function getTimeStamp(){
+   return Math.floor(new Date().getTime() / 1000);
+}
+
 const proto = {
 
   time:function (){
@@ -215,6 +220,7 @@ const proto = {
   deprecateGame:function(desk){
 
     //广播给剩余的观众弃局
+    console.log("弃局!!")
     this.broadCastRoom("GAME_OVER_DEPRECATE",desk.deskId);
     desk.state = 0;
     desk.deprecate_time = 0;
@@ -252,7 +258,7 @@ const proto = {
 
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
-          // console.log(desk.deprecate_time)
+          console.log(desk.deprecate_time)
         }else{ //时间到
 
           if(!desk.hadDeprecateGame){
@@ -575,6 +581,7 @@ const proto = {
                 play_count:room.play_count,
                 self:obj,
                 target:target,
+                server_time:getTimeStamp(),
               });
 
               self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj},obj.uid);

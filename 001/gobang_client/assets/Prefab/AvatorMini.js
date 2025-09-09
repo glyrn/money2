@@ -18,8 +18,8 @@ cc.Class({
             return;
         }
 
-
         this.lab_name.string = data.name;
+
         if(flag == 'pc') {
 
             this.img_avatar.spriteFrame = this.pcSpriteFrame
@@ -31,7 +31,6 @@ cc.Class({
                 const ext = data.avatorUrl.slice(data.avatorUrl.lastIndexOf('.'));
                 const is_image = exts.includes(ext.toLowerCase());
                 var url = is_image ? data.avatorUrl : data.avatorUrl + '?aa=aa.jpg';
-
 
                 cc.loader.load(url, function (err, img) {
                     if (!err) {

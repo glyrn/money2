@@ -109,6 +109,9 @@ const socketMgr = function(){
             _gameMgr.posId = data.posId;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
             // _gameMgr.checkBeat();
             
             _eventMgr.fire("LOGIN_SUCCESS");
@@ -167,7 +170,7 @@ const socketMgr = function(){
         })
         _socket.on("SET_RECOVER_STATUS",function(data){
             _gameMgr.isRecover = data.isRecover;
-            _eventMgr.fire("SET_RECOVER_STATUS")
+            _eventMgr.fire("SET_RECOVER_STATUS");
         });
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 2;
@@ -210,6 +213,15 @@ const socketMgr = function(){
     }
     that.birdMove = function(data){
         if(that.checkIsObserve()) return;
+        if(!that._cur_x){
+            that._cur_x = data.cur_x;
+        }else{
+            if(data.cur_x <= that._cur_x){
+                //去除冗余数据
+                return;
+            }
+        }
+
         _socket.emit('BIRD_MOVE',data);
     }
     that.fallOver = function(data){

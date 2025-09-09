@@ -2,7 +2,7 @@ import globalData from "./data/globalData.js"
 import chessLogic from "./data/chessLogic.js"
 import playLogic from "./data/playLogic.js"
 import AvatorMini from "../Prefab/AvatorMini";
-
+import PanelAvators from "../Prefab/PanelAvators"
 cc.Class({
     extends: cc.Component,
 
@@ -50,6 +50,7 @@ cc.Class({
         lab_contents:cc.Node,
         btn_score_close:cc.Node,
         panel_loading:cc.Node, 
+        panel_avators:PanelAvators,
     },
     //退出游戏
     onBtnQuit(){
@@ -156,6 +157,7 @@ cc.Class({
 
 
         globalData.eventlister.on("GAME_START",function(){
+            that.panel_avators.node.active = false;
             that.gameStart()
         });
         globalData.eventlister.on("GAME_OVER",function(data){
@@ -174,9 +176,11 @@ cc.Class({
         });
         //刷新对手
         globalData.eventlister.on("SIT_CHANGE",function(data){
+            that.panel_avators.render();
             that.render();
         })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            that.panel_avators.render();
             that.render();
             that.panel_loading.active = false;
         })
@@ -197,6 +201,7 @@ cc.Class({
                     globalData.gameMgr.playerData.target.uid == prepare_uid){
                     globalData.gameMgr.playerData.target.state = 2;
                 }
+                that.panel_avators.render();
                 that.render();
             }
         });
