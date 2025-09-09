@@ -1,4 +1,5 @@
 import globalData from "../globalData";
+import PanelAvators from "../../Prefab/PanelAvators";
 
 cc.Class({
     extends: cc.Component,
@@ -24,6 +25,7 @@ cc.Class({
         globalSelfAnim:cc.Animation,
         audioTpl:cc.Prefab,
         panel_loading:cc.Node,
+        panel_avators:PanelAvators,
     },
     onLoad () {
 
@@ -42,12 +44,14 @@ cc.Class({
             //准备成功
             that.renderPlayerNode();
             that.renderBeforeUI();
+            that.panel_avators.render();
         });
 
         //有其他玩家坐下
         globalData.eventlister.on("POS_STATUS_CHANGE",function(){
             that.renderPlayerNode();
             that.renderRoom();
+            that.panel_avators.render();
         });
 
         globalData.eventlister.on("GAME_START",function(){
@@ -57,6 +61,7 @@ cc.Class({
             that.renderRoom();
             cc.playEffect("sound/wash_card",false,1);
             that.globalSelfAnim.node.active = false;
+            that.panel_avators.node.active = false;
 
         });
         globalData.eventlister.on("SHOW_TOP_CARD",function(data){
@@ -127,6 +132,7 @@ cc.Class({
         });
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             that.panel_loading.active = false;
+            that.panel_avators.render();
         })
         globalData.eventlister.on("SET_RECOVER_STATUS",function(){
             if(globalData.gameMgr.isRecover == false){
@@ -221,7 +227,7 @@ cc.Class({
     },
     renderRoom(){
         this.lab_roomid.string = 
-            "版本: 1.0.1 底分:"+globalData.gameMgr.base_score +
+            "版本: 1.0.2 底分:"+globalData.gameMgr.base_score +
             "  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         this.labTopCardScore.string = '';
     },

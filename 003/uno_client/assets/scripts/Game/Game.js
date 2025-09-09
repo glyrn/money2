@@ -1,5 +1,5 @@
 import globalData from "../globalData";
-
+import PanelAvators from "../../Prefab/PanelAvators";
 cc.Class({
     extends: cc.Component,
 
@@ -37,6 +37,7 @@ cc.Class({
         lab_items:cc.Node,
         audioTpl:cc.Prefab,
         panel_loading:cc.Node,
+        panel_avators:PanelAvators,
         // btn_score_close:cc.Node,
     },
     onLoad() {
@@ -59,11 +60,13 @@ cc.Class({
 
         globalData.eventlister.on('PREPARE_SUCCESS',function(posId){
             //准备成功
+            that.panel_avators.render();
             that.renderRoom()
             that.renderPlayer();
         });
         globalData.eventlister.on('SIT_CHANGE',function(){
             that.panel_ctrl.active = false;
+            that.panel_avators.render();
             that.renderPlayer();
         })
 
@@ -74,6 +77,7 @@ cc.Class({
             that.btn_quit.active = false;
             that.panel_continue.active = false;
             that.card_color.node.active = false;
+            that.panel_avators.node.active = false;
             that.renderPlayer();
             that.hideSelectColor();
             that.renderRoom();
@@ -127,6 +131,7 @@ cc.Class({
         })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             that.panel_loading.active = false;
+            that.panel_avators.render();
             that.renderPlayer();
         })
         globalData.eventlister.on("SET_RECOVER_STATUS",function(){

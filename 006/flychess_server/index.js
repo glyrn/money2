@@ -47,6 +47,11 @@ function getCurrentIP() {
   }
   return null;
 }
+
+function getTimeStamp(){
+   return Math.floor(new Date().getTime() / 1000);
+}
+
 const proto = {
 
   time:function (){
@@ -269,6 +274,7 @@ const proto = {
   },
   deprecateGame:function(desk){
 
+    console.log("发送弃局！")
     this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
     desk.state = 0;
     desk.hadDeprecateGame = false;
@@ -622,6 +628,7 @@ const proto = {
                 ready_count:room.ready_count,
                 play_count:room.play_count,
                 playerData:playerData,
+                server_time:getTimeStamp(),
               });
               self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
 

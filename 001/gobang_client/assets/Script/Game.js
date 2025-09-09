@@ -1,5 +1,6 @@
 import globalData from "./data/globalData.js"
 import AvatorMini from "../Prefab/AvatorMini"
+import PanelAvators from "../Prefab/PanelAvators"
 cc.Class({
     extends: cc.Component,
 
@@ -70,6 +71,7 @@ cc.Class({
         note_item_prefab:cc.Node,
         note_item_content:cc.Node,
         panel_loading:cc.Node,
+        panel_avators:PanelAvators,
     },
     //退出游戏
     // onBtnQuit(){
@@ -235,7 +237,7 @@ cc.Class({
         globalData.eventlister.on("SIT_CHANGE",function(data){
             self.avator_target.active = data.target != null;
             self.avator_target.getComponent("Avator").setData(data.target);
-
+            self.panel_avators.render();
             //对手逃跑
             if(data.target == null){
                 self.render();
@@ -285,6 +287,7 @@ cc.Class({
                     globalData.gameMgr.playerData.target.uid == prepare_uid){
                     globalData.gameMgr.playerData.target.state = 2;
                 }
+                self.panel_avators.render();
                 self.render();
             }
         });
@@ -297,7 +300,7 @@ cc.Class({
             for (let i = 0; i < self.chessList.length; i++) {
                 self.chessList[i].getComponent(cc.Sprite).spriteFrame = null;
             }
-
+            self.panel_avators.node.active = false;
             self.scheduleOnce(function () {
                 self.game_start.node.active = false;
             },1.5)
@@ -353,12 +356,13 @@ cc.Class({
         });
         globalData.eventlister.on("SET_RECOVER_STATUS",function(){
             if(globalData.gameMgr.isRecover == false){
-                that.panel_loading.active = false;
+                self.panel_loading.active = false;
             }
         })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             self.render();
             self.panel_loading.active = false;
+            self.panel_avators.render();
         })
     },
 
@@ -384,7 +388,7 @@ cc.Class({
             this.avator_target.getComponent("Avator").setData(globalData.gameMgr.playerData.target);
         }
 
-        this.lab_room.string = "局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "版本1.0 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
     },
     makeRetrackWithPc(){
         var del_list = [];

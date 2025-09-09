@@ -32,8 +32,8 @@ cc.Class({
         this.btn_quit.active = false;
         //发送退出游戏事件
         if(isQuit){
-            window.parent.postMessage({'quitGame':1}, "*");
-            console.log("发送退出事件")
+            // window.parent.postMessage({'quitGame':1}, "*");
+            // console.log("发送退出事件")
         }
     },
     onBtnPrepare(){

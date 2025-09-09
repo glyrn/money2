@@ -50,6 +50,9 @@ function getCurrentIP() {
   return null;
 }
 
+function getTimeStamp(){
+   return Math.floor(new Date().getTime() / 1000);
+}
 
 const proto = {
 
@@ -275,7 +278,7 @@ const proto = {
     }
   },
   deprecateGame:function(desk){
-
+    console.log("弃局!!")
     this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
     // this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
 
@@ -316,7 +319,7 @@ const proto = {
 
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
-          // console.log(desk.deprecate_time)
+          console.log(desk.deprecate_time)
         }else{ //时间到
 
           if(!desk.hadDeprecateGame){
@@ -637,6 +640,7 @@ const proto = {
                   ready_count:room.ready_count,
                   play_count:room.play_count,
                   playerData:playerData,
+                  server_time:getTimeStamp(),
                 });
                 self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
 

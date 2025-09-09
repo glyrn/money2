@@ -51,6 +51,9 @@ function getCurrentIP() {
   return null;
 }
 
+function getTimeStamp(){
+   return Math.floor(new Date().getTime() / 1000);
+}
 
 const proto = {
 
@@ -718,6 +721,7 @@ const proto = {
                 play_count:room.play_count,
                 self:obj,
                 target:target,
+                server_time:getTimeStamp(),
               });
 
               self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj},obj.uid)

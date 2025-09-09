@@ -107,6 +107,9 @@ const socketMgr = function(){
             _gameMgr.play_mode = data.play_mode;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
             // _gameMgr.checkBeat();
             _eventMgr.fire("LOGIN_SUCCESS");
             if (_cbLogin) {
