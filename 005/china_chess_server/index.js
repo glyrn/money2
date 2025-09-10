@@ -352,9 +352,6 @@ const proto = {
             this.desks[i].state = 0;
             this.desks[i].play_index = 0;
             this.desks[i].play_mode = -1;
-            // this.desks[i].ob_socket_map = {};
-            // this.desks[i].deprecate_time = 30;
-            // this.desks[i].hadDeprecateGame = false;
           }
             
             // this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
@@ -392,6 +389,7 @@ const proto = {
       }
       desk.name = '';
       desk.state = 0;
+      desk.deprecate_time = 0;
       desk.play_index = 0;
       desk.ready_count = -1;
       desk.ob_socket_map = {};

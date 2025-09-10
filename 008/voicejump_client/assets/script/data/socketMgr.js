@@ -166,6 +166,9 @@ const socketMgr = function(){
                 _gameMgr.playerData[posId].game_type = 'normal';
             }
             _gameMgr.roomState.gametime_remain = parseInt(data.start_time) + 5 * 60;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
             _eventMgr.fire("GAME_START",data);
         })
         _socket.on("SET_RECOVER_STATUS",function(data){

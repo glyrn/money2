@@ -524,8 +524,6 @@ const proto = {
             this.desks[i].state = 0;
             this.desks[i].play_index = 0;
             this.desks[i].play_mode = -1;
-            this.desks[i].deprecate_time = 30;
-            this.desks[i].hadDeprecateGame = false;
           }else{
             for (let k = 0; k < this.desks[i].chequer.length; k++) {
               this.desks[i].chequer[k].state = -1;
@@ -563,6 +561,7 @@ const proto = {
       }
       desk.name = '';
       desk.state = 0;
+      desk.deprecate_time = 0;
       desk.play_index = 0;
       desk.ready_count = -1;
       desk.ob_socket_map = {};

@@ -559,6 +559,7 @@ const proto = {
       }
       desk.name = '';
       desk.state = 0;
+      desk.deprecate_time = 0;
       desk.play_index = 1;
       desk.ready_count = -1;
       desk.ob_socket_map = {};
