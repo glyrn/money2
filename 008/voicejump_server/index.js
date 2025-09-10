@@ -412,8 +412,6 @@ const proto = {
             this.desks[i].state = 0;
             this.desks[i].play_index = 0;
             this.desks[i].ready_count = -1;
-            this.desks[i].hadDeprecateGame = false;
-            this.desks[i].deprecate_time = 30;
           }
 
             let desk = this.desks[i];
