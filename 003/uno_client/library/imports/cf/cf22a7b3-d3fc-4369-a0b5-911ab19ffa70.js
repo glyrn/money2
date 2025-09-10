@@ -286,6 +286,7 @@ cc.Class({
   renderRoom: function renderRoom() {
     this.renderRoomTitle();
     this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2 && !_globalData["default"].gameMgr.is_ob;
+    this.panel_avators.node.active = this.btn_ready.active;
     var isQuit = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2 && !_globalData["default"].gameMgr.is_ob;
     this.btn_quit.active = false; // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 

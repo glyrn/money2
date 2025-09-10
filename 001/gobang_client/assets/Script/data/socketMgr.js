@@ -135,11 +135,9 @@ const socketMgr = function(){
 
         _socket.on('GAME_START',function(data){
             _gameMgr.roomState.state = 1;//进行中
-            _gameMgr.playerData.turn = data;
-            _gameMgr.play_index++;
-            if(_gameMgr.play_index > _gameMgr.play_count){
-                _gameMgr.play_index = 1;
-            }
+            _gameMgr.playerData.turn = data.posId;
+            _gameMgr.play_index = data.play_index;
+            console.log("_gameMgr.play_index",data.play_index)
             //重置 悔棋次数
             _gameMgr.playerData.self.retrack_num = 5;
             _gameMgr.playerData.target.retrack_num = 5;
@@ -150,6 +148,7 @@ const socketMgr = function(){
 
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 0;
+            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
             _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
             _eventMgr.fire("GAME_OVER",data);
         });

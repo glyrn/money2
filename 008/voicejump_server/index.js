@@ -672,13 +672,14 @@ const proto = {
           }
 
           if(desk.ready_count == ready_count ){
-            desk.state = 1;//开始游戏
+           
             isStartGame = true;
           }
 
           self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),prepare_posId);
-          if(isStartGame)
+          if(isStartGame && desk.state == 0)
           {
+            desk.state = 1;//开始游戏
             desk.play_index++;
             if(desk.play_index > desk.play_count){
               desk.play_index -= desk.play_count;

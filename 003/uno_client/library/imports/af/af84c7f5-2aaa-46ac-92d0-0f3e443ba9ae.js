@@ -210,6 +210,7 @@ var socketMgr = function socketMgr() {
     _socket.on('GAME_OVER', function (data) {
       _gameMgr.roomState.state = 2;
       _gameMgr.roomState.gametime_remain = 0;
+      _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
 
       for (var i = 0; i < data.score_list.length; i++) {
         var playerData = _gameMgr.getPlayerData(i);

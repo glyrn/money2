@@ -73,7 +73,7 @@ const proto = {
         ready_count:-1,
         play_count:0,
         base_score:100,
-        play_index:1,
+        play_index:0,
         ob_socket_map:{},
       }
       for (let j = 0; j < 4; j++) {
@@ -258,7 +258,7 @@ const proto = {
         desk.islaizi = 0;
         desk.base_score = 100;
         desk.play_count = 0;
-        desk.play_index = 1;
+        desk.play_index = 0;
         desk.name = '';
       }
     }
@@ -459,7 +459,7 @@ const proto = {
           if(isClean){
             desk.name = '';
             desk.state = 0;
-            desk.play_index = 1;
+            desk.play_index = 0;
             desk.ready_count = -1;
           }
 
@@ -503,7 +503,7 @@ const proto = {
           if(isClean){
             this.desks[i].name = '';
             this.desks[i].state = 0;
-            this.desks[i].play_index = 1;
+            this.desks[i].play_index = 0;
             this.desks[i].ready_count = -1;
           }
 
@@ -526,7 +526,7 @@ const proto = {
     let desk = this.getDeskById(deskId);
     desk.score_list = [];
 
-    this.broadCastRoom("GAME_START",deskId, { cards });
+    this.broadCastRoom("GAME_START",deskId, { cards:cards,play_index:desk.play_index });
 
     desk.time_out = 15;
     desk.hadExecuteCallScore = false;
@@ -560,7 +560,7 @@ const proto = {
       desk.name = '';
       desk.state = 0;
       desk.deprecate_time = 0;
-      desk.play_index = 1;
+      desk.play_index = 0;
       desk.ready_count = -1;
       desk.ob_socket_map = {};
     }
@@ -691,9 +691,7 @@ const proto = {
 
     var deskId = desk.deskId;
     var gameResult = game.getResult();
-    console.log("游戏结果：",gameResult);
-    this.broadCastRoom('GAME_OVER', deskId, gameResult);
-
+    
     var score = desk.base_score * gameResult.score * gameResult.ratio;
     var score_list = [];
     for (let j = 0; j < gameResult.winner.length; j++) {
@@ -724,14 +722,16 @@ const proto = {
       })
     }
 
-    desk.play_index++;
-    if(desk.play_count < desk.play_index){ //剩余局数为0
-      desk.play_index = 1;
-    }
     this.updatePosStatus(deskId, 0, 1);
     this.updatePosStatus(deskId, 1, 1);
     this.updatePosStatus(deskId, 2, 1);
     game.init();
+    desk.state = 0;
+    desk.deprecate_time = 0;
+    desk.hadDeprecateGame = false;
+    console.log("游戏结果：",gameResult);
+    this.broadCastRoom('GAME_OVER', deskId, gameResult);
+    
   },
   //发送给云村数据
   sendYcGameOver:function(data){
@@ -862,7 +862,7 @@ const proto = {
                   base_score:room.base_score,
                   ready_count:room.ready_count,
                   play_count:room.play_count,
-                  play_index:room.play_index,
+                  // play_index:room.play_index,
                   posInfos:playerData,
                   server_time:getTimeStamp(),
                 });
@@ -898,13 +898,18 @@ const proto = {
           }
 
           if(ready_count == 3 ){
-            desk.state = 1;//开始游戏
             isStartGame = true;
           }
 
           self.broadCastRoom("PREPARE_SUCCESS",desk.deskId,prepare_posId);
-          if(isStartGame)
+  
+          if(isStartGame && desk.state == 0)
           {
+            desk.state = 1;//开始游戏
+            desk.play_index++;
+            if(desk.play_index > desk.play_count){
+              desk.play_index -= desk.play_count;
+            }
             //重置成绩
             if(desk.play_index == 1){
               desk.score_list = [];

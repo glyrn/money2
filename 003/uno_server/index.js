@@ -1018,13 +1018,14 @@ const proto = {
               desk.ready_count == 3 && ready_count == 3 ||
               desk.ready_count == 4 && ready_count == 4 ){
             desk.ready_count = ready_count;
-            desk.state = 1;//开始游戏
+           
             isStartGame = true;
           }
 
           self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),{posId:self.getPosId(socket),server_time:getTimeStamp()});
-          if(isStartGame)
+          if(isStartGame && desk.state == 0)
           {
+            desk.state = 1;//开始游戏
             desk.direct = 1;//顺时针方向
             desk.cards = self.createCards();
             desk.cur_posId = self.getRandomNumForRange(ready_count-1);

@@ -177,6 +177,7 @@ const socketMgr = function(){
         });
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 2;
+            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
             _gameMgr.score_list.push(data);
             for (const posId in _gameMgr.playerData) {
                 if(_gameMgr.playerData[posId]){

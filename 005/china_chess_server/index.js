@@ -606,21 +606,21 @@ const proto = {
           }
 
           if(self.desks[i].play_mode == 0 && ready_count == 1){ //人机
-            self.desks[i].state = 1;//开始游戏
             isStartGame = true;
           }else if(self.desks[i].play_mode == 1 && ready_count == 2){ //人人
-            self.desks[i].state = 1;//开始游戏
             isStartGame = true;
           }
-        }
+      
+          self.broadCastRoom("PREPARE_SUCCESS",self.desks[i].deskId,self.getUid(socket));
 
-        self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),self.getUid(socket));
-        if(isStartGame)
-        {
-          var room = self.getDesk(socket);
-          if(room){
+          if(isStartGame && self.desks[i].state == 0)
+          {
+            self.desks[i].state = 1;
+
+            var room = self.desks[i];
+            room.state = 1;//开始游戏
             room.turn = 0;
-            self.broadCastRoom("GAME_START",self.getDeskId(socket),room.turn);
+            self.broadCastRoom("GAME_START",self.desks[i].deskId,room.turn);
 
             room.play_index++;
             if(room.play_index > room.play_count){
@@ -708,6 +708,7 @@ const proto = {
       socket.on('REQ_GAME_OVER',function(data){
         var room = self.getDesk(socket);
         if(room){
+          room.state = 0;
           var score_list = [];
           for (let i = 0; i < room.positions.length; i++) {
             room.positions[i].state = 1;

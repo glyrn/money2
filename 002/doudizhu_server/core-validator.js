@@ -794,14 +794,20 @@ module.exports.validate_laizi = function(cards,laizis) {
 
     //3带1
     if(cards.length == 4){
+        var key_max = 0;
         for (const _card in set_normal_check) {
             if (set_normal_check[_card] + laizi_cards.length == 3) {
-                return {
-                    status: true,
-                    len: cards.length,
-                    types: [{key:parseInt(_card),type:"AAAB"}] 
-                };
+                if(parseInt(_card) > parseInt(key_max)){
+                    key_max = _card;
+                }
             }
+        }
+        if(key_max > 0){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:parseInt(key_max),type:"AAAB"}] 
+            };
         }
     }
     //3带2

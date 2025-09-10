@@ -130,6 +130,7 @@ const socketMgr = function(){
             _eventMgr.fire("SIT_CHANGE",data);
             //对手逃跑 游戏结束
             if(data.target == null){
+                
                 _eventMgr.fire('GAME_OVER',{invalid:1,score:0,winer:globalData.gameMgr.playerData.self.posId});
             }
         });
@@ -223,7 +224,7 @@ const socketMgr = function(){
     that.reqGameOver = function(data){
         if(that.checkIsObserve()) return;
         _socket.emit("REQ_GAME_OVER", data);
-
+        
         _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
     }
     that.checkIsObserve = function(){

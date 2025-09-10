@@ -656,13 +656,14 @@ const proto = {
           }
 
           if(desk.ready_count == ready_count){
-            desk.state = 1;//开始游戏
+           
             isStartGame = true;
           }
 
           self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),self.getPosId(socket));
-          if(isStartGame)
+          if(isStartGame && desk.state == 0)
           {
+            desk.state = 1;//开始游戏
             desk.cur_posId = self.getRandomNumForRange(ready_count-1);
             var bomb_idxs = {};
             //不要炸弹了

@@ -152,6 +152,8 @@ cc.Class({
     render(){
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
             globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 && !globalData.gameMgr.is_ob;
+        
+        this.panel_avators.node.active = this.btn_ready.active;
         var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
         this.btn_quit.active = false;
         for (let i = 0; i < this.playerNodes.length; i++) {

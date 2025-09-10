@@ -268,6 +268,8 @@ cc.Class({
         this.renderRoomTitle();
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
             globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
+
+        this.panel_avators.node.active = this.btn_ready.active;
         var isQuit = globalData.gameMgr.is_quit
             && globalData.gameMgr.roomState.state == 2 && !globalData.gameMgr.is_ob;
         this.btn_quit.active = false;
