@@ -367,6 +367,12 @@ const proto = {
     var deskId = 0;
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
+      for (const socket_id in roomObj.ob_socket_map) {
+        //观众找到自己
+        if(roomObj.ob_socket_map[socket_id].ouid == uid){
+          uid = roomObj.ob_socket_map[socket_id].uid; //重置一下uid 清一下玩家残留数据
+        }
+      }
       for (let j = 0; j < roomObj.positions.length; j++) {
         var userObj = roomObj.positions[j];
         if(userObj.uid == uid){
@@ -400,7 +406,7 @@ const proto = {
     if(obj.ob_uid){
         
         //预先保存观众socket
-        roomObj.ob_socket_map[socket.id] = {socket:socket,uid:null};
+        roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:null};
 
         //推送其中一个在线玩家的数据
         for (let j = 0; j < roomObj.positions.length; j++) {
@@ -408,7 +414,7 @@ const proto = {
           if(userObj.uid > 0 && userObj.disconnectTime == null){
             
             //保存观众socket + uid
-            roomObj.ob_socket_map[socket.id] = {socket:socket,uid:userObj.uid};
+            roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
 
             for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
               var emitObj = userObj.recover_disconnect_data[k];

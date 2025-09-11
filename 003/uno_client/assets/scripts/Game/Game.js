@@ -95,7 +95,9 @@ cc.Class({
             that.renderPlayer();
             if(globalData.gameMgr.is_quit || data.invalid == 1){ //有人逃跑
                 that.panel_continue.active = false;
+                
                 that.onBtnCurScore();
+
                 if(!globalData.gameMgr.isRecover){
                     cc.playEffect("sound/win",false,1);
                 }
@@ -256,7 +258,7 @@ cc.Class({
     renderRoomTitle(){
         var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
         this.lab_roomid.string = 
-            "局数:"+globalData.gameMgr.play_index +
+            "版本1.1 局数:"+globalData.gameMgr.play_index +
             "  特定分数:"+cc.args['specific_score'];
         if(distance > 0){
             const minutes = Math.floor((distance % ( 60 * 60)) /  60);

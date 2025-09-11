@@ -161,7 +161,8 @@ const socketMgr = function(){
             _gameMgr.posState.left.ctxCards = [];
             _gameMgr.posState.right.ctxCards = [];
             _gameMgr.posState.self.ctxCards = [];
-
+            _gameMgr.posState.laizi.cards = [];
+            console.log("刷新一局")
             _eventMgr.fire("GAME_START");
         });
 

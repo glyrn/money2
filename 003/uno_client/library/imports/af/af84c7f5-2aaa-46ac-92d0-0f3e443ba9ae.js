@@ -369,8 +369,7 @@ var socketMgr = function socketMgr() {
   };
 
   that.checkIsObserve = function () {
-    if (_gameMgr.is_ob) {
-      _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
+    if (_gameMgr.is_ob) {// _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
     }
 
     return _gameMgr.is_ob;
