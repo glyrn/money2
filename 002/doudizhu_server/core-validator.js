@@ -826,6 +826,23 @@ module.exports.validate_laizi = function(cards,laizis) {
             }
         }
     }
+    //四带二
+    if(cards.length == 6){
+        console.log("检测4带2")
+        var mark_cards = null;
+        for (const _card in set_normal_check) {
+            if(set_normal_check[_card] == 2 && mark_cards == null){
+                mark_cards = _card;
+            }
+            if ((_card != mark_cards) && set_normal_check[_card] + laizi_cards.length == 4) {
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:parseInt(_card),type:"AAAABC"}] 
+                };
+            }
+        }
+    }
     //纯软炸弹
     if(normal_cards.length == 0 && laizi_cards.length >= 4){
         //4张癞子
