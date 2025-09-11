@@ -369,7 +369,7 @@ cc.Class({
     render(){
 
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
+            globalData.gameMgr.playerData.self.state < 2;
 
         var is_quit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count;
         this.panel_avators.node.active = this.btn_ready.active && !is_quit;

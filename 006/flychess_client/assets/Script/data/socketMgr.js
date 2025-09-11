@@ -162,6 +162,12 @@ const socketMgr = function(){
             }
 
             _eventMgr.fire("GAME_START",data);
+
+            // //debug
+            // that.finish_chess(0,0);
+            // that.finish_chess(0,1);
+            // that.finish_chess(0,2);
+            // that.finish_chess(0,3);
         })
 
         _socket.on('GAME_OVER',function(data){

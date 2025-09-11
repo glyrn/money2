@@ -743,7 +743,10 @@ const proto = {
           self.broadCastRoom("FINISH_CHESS_SUCCESS",desk.deskId,data);
 
           if(self.checkOver(desk.deskId,posId) && desk.state == 1){
-            desk.state = 2; //游戏结束
+            desk.state = 0; //游戏结束
+            desk.deprecate_time = 0;
+            desk.hadDeprecateGame = false;
+            
             var score_list = {};
             var ycscore_list = [];
             for (let i = 0; i < desk.positions.length; i++) {

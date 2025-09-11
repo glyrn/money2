@@ -25,7 +25,7 @@ cc.Class({
     },
     render(){
 
-        this.btn_ready.active = globalData.gameMgr.posState.self.state < 2 && !globalData.gameMgr.is_ob;
+        this.btn_ready.active = globalData.gameMgr.posState.self.state < 2;
        
         var isQuit = globalData.gameMgr.roomState.state == 3 &&
             globalData.gameMgr.play_index >= globalData.gameMgr.play_count &&

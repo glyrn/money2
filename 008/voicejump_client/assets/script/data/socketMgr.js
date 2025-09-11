@@ -170,6 +170,9 @@ const socketMgr = function(){
             var now = Math.floor(new Date().getTime() / 1000);
             _gameMgr.diff_time = now - data.server_time;
             _eventMgr.fire("GAME_START",data);
+
+            //debug
+            // that.fallOver({cur_x:0,cur_y:0});
         })
         _socket.on("SET_RECOVER_STATUS",function(data){
             _gameMgr.isRecover = data.isRecover;
@@ -178,6 +181,7 @@ const socketMgr = function(){
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 2;
             _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = 0;
             _gameMgr.score_list.push(data);
             for (const posId in _gameMgr.playerData) {
                 if(_gameMgr.playerData[posId]){

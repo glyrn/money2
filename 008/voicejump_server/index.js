@@ -266,6 +266,9 @@ const proto = {
       }
     }
     desk.state = 0;
+    desk.deprecate_time = 0;
+    desk.hadDeprecateGame = false;
+    
     this.broadCastRoom("GAME_OVER",desk.deskId,{score_list:score_list});
     if(!desk.score_list) desk.score_list = [];
     desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});

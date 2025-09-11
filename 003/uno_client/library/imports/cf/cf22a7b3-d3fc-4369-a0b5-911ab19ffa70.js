@@ -285,18 +285,15 @@ cc.Class({
   },
   renderRoom: function renderRoom() {
     this.renderRoomTitle();
-    this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2 && !_globalData["default"].gameMgr.is_ob;
-    this.panel_avators.node.active = this.btn_ready.active;
-    var isQuit = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2 && !_globalData["default"].gameMgr.is_ob;
+    this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2;
+    var isQuit = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2;
+    this.panel_avators.node.active = this.btn_ready.active && !isQuit;
     this.btn_quit.active = false; // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 
     this.btn_score.active = false; //发送退出游戏事件
 
-    if (isQuit) {
-      window.parent.postMessage({
-        'quitGame': 1
-      }, "*");
-      console.log("发送退出事件");
+    if (isQuit) {// window.parent.postMessage({'quitGame':1}, "*");
+      // console.log("发送退出事件")
     }
   },
   renderPlayer: function renderPlayer() {
