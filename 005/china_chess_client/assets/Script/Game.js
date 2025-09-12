@@ -244,7 +244,11 @@ cc.Class({
     render(){
 
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
+            globalData.gameMgr.playerData.self.state < 2;
+        console.log("this.btn_ready.active ",this.btn_ready.active)
+        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count ;
+        this.panel_avators.node.active = this.btn_ready.active && !isQuit;
+
         this.btn_quit.active = false;
         this.avator_my.active = true;
         this.avator_target.active = true;
@@ -292,6 +296,7 @@ cc.Class({
     gameOver:function(data){
 
         globalData.gameMgr.roomState.state = 2; //结束
+        globalData.gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
         globalData.gameMgr.score_list.push(data);
 
         globalData.gameMgr.playerData.self.score = parseInt(globalData.gameMgr.playerData.self.score);
@@ -328,7 +333,7 @@ cc.Class({
         // this.select_icon.active = false;
         this.touchChess = null;
         this.render()
-        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
+        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count ;
         this.btn_quit.active = false;
 
         globalData.socketMgr.reqGameOver(data);

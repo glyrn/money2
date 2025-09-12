@@ -282,6 +282,9 @@ const proto = {
     // console.log('胜利',roomId,tag,posId);
     const desk = this.getDeskById(roomId);
     desk.state = 0;
+    desk.deprecate_time = 0;
+    desk.hadDeprecateGame = false;
+
     if(desk.play_mode == 1) { // 人人对战
       for (let i = 0; i < desk.positions.length; i++) {
         desk.positions[i].state = 1;
@@ -424,7 +427,7 @@ const proto = {
 
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
-          // console.log("desk.deprecate_time:",desk.deprecate_time)
+          console.log(desk.deprecate_time)
         }else{ //时间到
 
           if(!desk.hadDeprecateGame){
@@ -537,8 +540,24 @@ const proto = {
   },
   clearRoomByUid:function(uid){
     var deskId = 0;
+    var isFind = false;
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
+      for (const socket_id in roomObj.ob_socket_map) {
+        //观众找到自己 观众要离开
+        if(roomObj.ob_socket_map[socket_id].ouid == uid){
+          let userObjNum = 0;
+          for (let j = 0; j < roomObj.positions.length; j++) {
+            var userObj = roomObj.positions[j];
+            if(userObj.uid > 0) userObjNum++;
+          }
+          //空房间 要顺便清一下房间内的玩家信息
+          if(userObjNum == 0 && isFind == false){
+            isFind = true;
+            deskId = roomObj.deskId;
+          }
+        }
+      }
       for (let j = 0; j < roomObj.positions.length; j++) {
         var userObj = roomObj.positions[j];
         if(userObj.uid == uid){
@@ -576,7 +595,7 @@ const proto = {
     if(obj.ob_uid){
         
         //预先保存观众socket
-        roomObj.ob_socket_map[socket.id] = {socket:socket,uid:null};
+        roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:null};
 
         //推送其中一个在线玩家的数据
         for (let j = 0; j < roomObj.positions.length; j++) {
@@ -584,7 +603,7 @@ const proto = {
           if(userObj.uid > 0 && userObj.disconnectTime == null){
             
             //保存观众socket + uid
-            roomObj.ob_socket_map[socket.id] = {socket:socket,uid:userObj.uid};
+            roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
 
             for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
               var emitObj = userObj.recover_disconnect_data[k];
@@ -746,15 +765,14 @@ const proto = {
             }
           }
           if(roomObj.play_mode == 0 && ready_count == 1){ //人机
-            roomObj.state = 1;//开始游戏
             isStartGame = true;
           }else if(roomObj.play_mode == 1 && ready_count == 2){ //人人
-            roomObj.state = 1;//开始游戏
             isStartGame = true;
           }
           self.broadCastRoom("PREPARE_SUCCESS",roomObj.deskId,self.getUid(socket));
-          if(isStartGame)
+          if(isStartGame && roomObj.state == 0)
           {
+            roomObj.state = 1;//开始游戏
             roomObj.play_index++;
             if(roomObj.play_index > roomObj.play_count){
               roomObj.play_index -= roomObj.play_count;
@@ -765,7 +783,7 @@ const proto = {
             }
             //从玩家1开始
             roomObj.cur_posId = 1;
-            self.broadCastRoom("GAME_START",self.getDeskId(socket),1);
+            self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:1,play_index:roomObj.play_index});
           }
         }
       });

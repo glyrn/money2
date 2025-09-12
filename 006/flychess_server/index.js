@@ -418,8 +418,24 @@ const proto = {
   },
   clearRoomByUid:function(uid){
     var deskId = 0;
+    var isFind = false;
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
+      for (const socket_id in roomObj.ob_socket_map) {
+        //观众找到自己 观众要离开
+        if(roomObj.ob_socket_map[socket_id].ouid == uid){
+          let userObjNum = 0;
+          for (let j = 0; j < roomObj.positions.length; j++) {
+            var userObj = roomObj.positions[j];
+            if(userObj.uid > 0) userObjNum++;
+          }
+          //空房间 要顺便清一下房间内的玩家信息
+          if(userObjNum == 0 && isFind == false){
+            isFind = true;
+            deskId = roomObj.deskId;
+          }
+        }
+      }
       for (let j = 0; j < roomObj.positions.length; j++) {
         var userObj = roomObj.positions[j];
         if(userObj.uid == uid){
@@ -454,7 +470,7 @@ const proto = {
     if(obj.ob_uid){
         
         //预先保存观众socket
-        roomObj.ob_socket_map[socket.id] = {socket:socket,uid:null};
+        roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:null};
 
         //推送其中一个在线玩家的数据
         for (let j = 0; j < roomObj.positions.length; j++) {
@@ -462,7 +478,7 @@ const proto = {
           if(userObj.uid > 0 && userObj.disconnectTime == null){
             
             //保存观众socket + uid
-            roomObj.ob_socket_map[socket.id] = {socket:socket,uid:userObj.uid};
+            roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
 
             for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
               var emitObj = userObj.recover_disconnect_data[k];
@@ -656,13 +672,14 @@ const proto = {
           }
 
           if(desk.ready_count == ready_count){
-            desk.state = 1;//开始游戏
+           
             isStartGame = true;
           }
 
           self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),self.getPosId(socket));
-          if(isStartGame)
+          if(isStartGame && desk.state == 0)
           {
+            desk.state = 1;//开始游戏
             desk.cur_posId = self.getRandomNumForRange(ready_count-1);
             var bomb_idxs = {};
             //不要炸弹了
@@ -742,7 +759,10 @@ const proto = {
           self.broadCastRoom("FINISH_CHESS_SUCCESS",desk.deskId,data);
 
           if(self.checkOver(desk.deskId,posId) && desk.state == 1){
-            desk.state = 2; //游戏结束
+            desk.state = 0; //游戏结束
+            desk.deprecate_time = 0;
+            desk.hadDeprecateGame = false;
+            
             var score_list = {};
             var ycscore_list = [];
             for (let i = 0; i < desk.positions.length; i++) {

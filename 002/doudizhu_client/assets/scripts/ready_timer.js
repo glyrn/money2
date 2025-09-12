@@ -10,7 +10,7 @@ cc.Class({
     update(){
         var _gameMgr = globalData.gameMgr;
         var server_time = _gameMgr.server_time;
-        if(_gameMgr.posState.self.state < 2 && server_time){
+        if(_gameMgr.posState.self.state < 2 && (_gameMgr.roomState.state == 0 || _gameMgr.roomState.state == 3) && server_time){
             var now = Math.floor(new Date().getTime() / 1000);
             var time_value = server_time + 5 - now + _gameMgr.diff_time;
             console.log("time_value",time_value)

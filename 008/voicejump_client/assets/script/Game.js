@@ -192,7 +192,10 @@ cc.Class({
         this.renderRoomTitle();
         if(globalData.gameMgr.playerData[globalData.gameMgr.posId]){
             this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-                globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 && !globalData.gameMgr.is_ob;
+                globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 ;
+            
+            var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count ;
+            this.panel_avators.active = this.btn_ready.active && !isQuit;
         }
 
         this.lab_score.node.active = globalData.gameMgr.roomState.state == 1;//游戏进行中

@@ -162,10 +162,17 @@ const socketMgr = function(){
             }
 
             _eventMgr.fire("GAME_START",data);
+
+            // //debug
+            // that.finish_chess(0,0);
+            // that.finish_chess(0,1);
+            // that.finish_chess(0,2);
+            // that.finish_chess(0,3);
         })
 
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 2;
+            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
             for (const posId in _gameMgr.playerData) {
                 if(_gameMgr.playerData[posId]){
                     _gameMgr.playerData[posId].score = data.invalid == 1 ? 0 : data.score_list[posId];

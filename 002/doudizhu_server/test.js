@@ -907,20 +907,27 @@ function validate_laizi(cards,laizis){
     }
     //3带1
     if(cards.length == 4){
+        var key_max = 0;
         for (const _card in set_normal_check) {
             if (set_normal_check[_card] + laizi_cards.length == 3) {
-                return {
-                    status: true,
-                    len: cards.length,
-                    types: [{key:parseInt(_card),type:"AAAB"}] 
-                };
+                if(parseInt(_card) > parseInt(key_max)){
+                    key_max = _card;
+                }
             }
+        }
+        if(key_max > 0){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:parseInt(key_max),type:"AAAB"}] 
+            };
         }
     }
     //3带2
     if(cards.length == 5){
         var mark_cards = null;
         for (const _card in set_normal_check) {
+            console.log(_card)
             if(set_normal_check[_card] == 2 && mark_cards == null){
                 mark_cards = _card;
             }
@@ -929,6 +936,23 @@ function validate_laizi(cards,laizis){
                     status: true,
                     len: cards.length,
                     types: [{key:parseInt(_card),type:"AAABB"}] 
+                };
+            }
+        }
+    }
+    //四带二
+    if(cards.length == 6){
+        console.log("检测4带2")
+        var mark_cards = null;
+        for (const _card in set_normal_check) {
+            if(set_normal_check[_card] == 2 && mark_cards == null){
+                mark_cards = _card;
+            }
+            if ((_card != mark_cards) && set_normal_check[_card] + laizi_cards.length == 4) {
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:parseInt(_card),type:"AAAABC"}] 
                 };
             }
         }
@@ -1260,7 +1284,7 @@ function validate_laizi(cards,laizis){
     };
 }
 
-var laizis = [2,5];
+var laizis = [8,5];
 var cards1 = [2,2,2,2,5,5,5,5];
 var cards2 = [8,8,8,2,5,5,5,5];
 var cards3 = [2,2,2,2,5,5,5];
@@ -1278,7 +1302,7 @@ var cards14 = [3,4,5,6,7];
 var cards15 = [10,10,10,5,5,8,8,8,2];
 var cards16 = [10,10,5,9,9,8,8,2,2];
 var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
-var cards18 = [5,5,5];
+var cards18 = [10,10,10,8,3,3];
 // console.log(validate_laizi(cards1,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));

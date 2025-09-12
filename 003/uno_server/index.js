@@ -339,6 +339,7 @@ const proto = {
           ycscore_list.sort((a, b) => {
             return b.score - a.score;
           });
+          console.log("GAME_OVER超时")
           this.broadCastRoom("GAME_OVER", desk.deskId, {winer: winer, score_list: score_list,cards_list:cards_list});
           if(!desk.score_list) desk.score_list = [];
           desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
@@ -584,8 +585,24 @@ const proto = {
   },
   clearRoomByUid:function(uid){
     var deskId = 0;
+    var isFind = false;
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
+      for (const socket_id in roomObj.ob_socket_map) {
+        //观众找到自己 观众要离开
+        if(roomObj.ob_socket_map[socket_id].ouid == uid){
+          let userObjNum = 0;
+          for (let j = 0; j < roomObj.positions.length; j++) {
+            var userObj = roomObj.positions[j];
+            if(userObj.uid > 0) userObjNum++;
+          }
+          //空房间 要顺便清一下房间内的玩家信息
+          if(userObjNum == 0 && isFind == false){
+            isFind = true;
+            deskId = roomObj.deskId;
+          }
+        }
+      }
       for (let j = 0; j < roomObj.positions.length; j++) {
         var userObj = roomObj.positions[j];
         if(userObj.uid == uid){
@@ -620,7 +637,7 @@ const proto = {
     if(obj.ob_uid){
         
         //预先保存观众socket
-        roomObj.ob_socket_map[socket.id] = {socket:socket,uid:null};
+        roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:null};
 
         //推送其中一个在线玩家的数据
         for (let j = 0; j < roomObj.positions.length; j++) {
@@ -628,7 +645,7 @@ const proto = {
           if(userObj.uid > 0 && userObj.disconnectTime == null){
             
             //保存观众socket + uid
-            roomObj.ob_socket_map[socket.id] = {socket:socket,uid:userObj.uid};
+            roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
 
             for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
               var emitObj = userObj.recover_disconnect_data[k];
@@ -654,6 +671,7 @@ const proto = {
         this.clients[obj.uid] = socket;
 
         //重连恢复
+        console.log("断线重连")
         socket.emit("SET_RECOVER_STATUS",{isRecover:true});
         for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
           var emitObj = userObj.recover_disconnect_data[k];
@@ -1018,13 +1036,14 @@ const proto = {
               desk.ready_count == 3 && ready_count == 3 ||
               desk.ready_count == 4 && ready_count == 4 ){
             desk.ready_count = ready_count;
-            desk.state = 1;//开始游戏
+           
             isStartGame = true;
           }
 
           self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),{posId:self.getPosId(socket),server_time:getTimeStamp()});
-          if(isStartGame)
+          if(isStartGame && desk.state == 0)
           {
+            desk.state = 1;//开始游戏
             desk.direct = 1;//顺时针方向
             desk.cards = self.createCards();
             desk.cur_posId = self.getRandomNumForRange(ready_count-1);

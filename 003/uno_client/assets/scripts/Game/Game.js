@@ -95,7 +95,9 @@ cc.Class({
             that.renderPlayer();
             if(globalData.gameMgr.is_quit || data.invalid == 1){ //有人逃跑
                 that.panel_continue.active = false;
+                
                 that.onBtnCurScore();
+
                 if(!globalData.gameMgr.isRecover){
                     cc.playEffect("sound/win",false,1);
                 }
@@ -256,7 +258,7 @@ cc.Class({
     renderRoomTitle(){
         var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
         this.lab_roomid.string = 
-            "局数:"+globalData.gameMgr.play_index +
+            "版本1.1 局数:"+globalData.gameMgr.play_index +
             "  特定分数:"+cc.args['specific_score'];
         if(distance > 0){
             const minutes = Math.floor((distance % ( 60 * 60)) /  60);
@@ -267,9 +269,12 @@ cc.Class({
     renderRoom(){
         this.renderRoomTitle();
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
+            globalData.gameMgr.playerData.self.state < 2 ;
+
         var isQuit = globalData.gameMgr.is_quit
-            && globalData.gameMgr.roomState.state == 2 && !globalData.gameMgr.is_ob;
+            && globalData.gameMgr.roomState.state == 2 ;
+        this.panel_avators.node.active = this.btn_ready.active && !isQuit;
+        
         this.btn_quit.active = false;
 
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
@@ -277,8 +282,8 @@ cc.Class({
 
         //发送退出游戏事件
         if(isQuit){
-            window.parent.postMessage({'quitGame':1}, "*");
-            console.log("发送退出事件")
+            // window.parent.postMessage({'quitGame':1}, "*");
+            // console.log("发送退出事件")
         }
     },
     renderPlayer(){

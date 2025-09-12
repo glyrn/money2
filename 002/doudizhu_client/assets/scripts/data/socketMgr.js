@@ -96,7 +96,7 @@ const socketMgr = function(){
             _gameMgr.isLaizi = data.islaizi;
             _gameMgr.base_score = data.base_score;
             _gameMgr.play_count = data.play_count;
-            _gameMgr.play_index = data.play_index;
+            _gameMgr.play_index = 0;
             _gameMgr.server_time = data.server_time;
             var now = Math.floor(new Date().getTime() / 1000);
             _gameMgr.diff_time = now - data.server_time;
@@ -128,9 +128,9 @@ const socketMgr = function(){
             });
         });
 
-        _socket.on('ROOM_STATUS_CHANGE', function (data) {
-            _gameMgr.roomState.state = data.state;
-        });
+        // _socket.on('ROOM_STATUS_CHANGE', function (data) {
+        //     _gameMgr.roomState.state = data.state;
+        // });
 
 
         _socket.on('PREPARE_SUCCESS', function (posId) {
@@ -144,6 +144,7 @@ const socketMgr = function(){
 
         _socket.on('GAME_START', function (data) {
             _gameMgr.roomState.state = 1;
+            _gameMgr.play_index = data.play_index;
             _gameMgr.initCards(data.cards);
             _gameMgr.posState.left.callScore = -1;
             _gameMgr.posState.right.callScore = -1;
@@ -160,7 +161,8 @@ const socketMgr = function(){
             _gameMgr.posState.left.ctxCards = [];
             _gameMgr.posState.right.ctxCards = [];
             _gameMgr.posState.self.ctxCards = [];
-
+            _gameMgr.posState.laizi.cards = [];
+            console.log("刷新一局")
             _eventMgr.fire("GAME_START");
         });
 
@@ -298,6 +300,8 @@ const socketMgr = function(){
         _socket.on('GAME_OVER', function (data) {
             console.log("gameover",data)
             _gameMgr.startTimer(false);//停止计时器
+            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = 0;
             _gameMgr.roomState.state = 3;
 
             if(_gameMgr.posState.left.state != 0) {
@@ -321,11 +325,11 @@ const socketMgr = function(){
             _eventMgr.fire('GAME_OVER1',data);
             _eventMgr.fire('GAME_OVER2',data);
 
-            _gameMgr.play_index++;
+            // _gameMgr.play_index++;
             _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
             console.log("game_over",_gameMgr.is_quit);
             if(_gameMgr.play_count < _gameMgr.play_index){ //剩余局数为0
-                _gameMgr.play_index = 1;
+                _gameMgr.play_index = 0;
                 _gameMgr.score_list = [];
             }
         });
