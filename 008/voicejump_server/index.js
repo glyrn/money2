@@ -266,7 +266,7 @@ const proto = {
       }
     }
     desk.state = 0;
-    desk.deprecate_time = 0;
+    desk.deprecate_time = 30;
     desk.hadDeprecateGame = false;
     
     this.broadCastRoom("GAME_OVER",desk.deskId,{score_list:score_list});

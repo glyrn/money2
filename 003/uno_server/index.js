@@ -295,6 +295,8 @@ const proto = {
             desk.positions[i].state = 1;
           }
           desk.state = 0;
+          desk.deprecate_time = 30;
+          desk.hadDeprecateGame = false;
 
           var winer = 0;
           //超过游戏时间 算手牌少的人赢
@@ -929,6 +931,8 @@ const proto = {
                 desk.positions[i].state = 1;
               }
               desk.state = 0;
+              desk.deprecate_time = 30;
+              desk.hadDeprecateGame = false;
 
               var winer = curPosId;
 

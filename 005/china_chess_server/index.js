@@ -725,6 +725,9 @@ const proto = {
         var room = self.getDesk(socket);
         if(room){
           room.state = 0;
+          room.deprecate_time = 30;
+          room.hadDeprecateGame = false;
+          
           var score_list = [];
           for (let i = 0; i < room.positions.length; i++) {
             room.positions[i].state = 1;

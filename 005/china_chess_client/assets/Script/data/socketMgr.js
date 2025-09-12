@@ -223,9 +223,15 @@ const socketMgr = function(){
     }
     that.reqGameOver = function(data){
         if(that.checkIsObserve()) return;
+        //客户端行为
+        var now = Math.floor(new Date().getTime() / 1000);
+        _gameMgr.server_time = now;
+        _gameMgr.diff_time = 0;
+        _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
+
+        if(_gameMgr.isRecover) return;
         _socket.emit("REQ_GAME_OVER", data);
         
-        _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
     }
     that.checkIsObserve = function(){
         if(_gameMgr.is_ob){

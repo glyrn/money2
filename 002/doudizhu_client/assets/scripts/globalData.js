@@ -15,5 +15,6 @@ globalData.socketMgr.setEventlister(globalData.eventlister)
 globalData.socketMgr.setUtil(globalData.utils);
 globalData.gameMgr.setSocketMgr(globalData.socketMgr)
 globalData.gameMgr.setEventlister(globalData.eventlister)
+cc.globalData = globalData;
 
 export default globalData
