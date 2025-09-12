@@ -18,28 +18,8 @@ const socketMgr = function(){
     that.setUtils = function(utils){
         _utils = utils
     },
-    that.initSocket = function() {
-        var opts = {
-            'reconnection': true,
-            'reconnectionDelay': 1000,
-            'maxReconnectionAttempts': 100,
-            'force new connection': true,
-            'transports': ['websocket', 'polling'],
-        }
-        console.log(defines.serverUrl)
-        var protocol = ''
-        if(defines.isDebug){
-            protocol = 'ws://';
-        }else{
-            opts['path'] = '/fxq_socket.io';
-            protocol = 'wss://';
-        }
-        console.log(protocol+defines.serverUrl)
-        _socket = window.io.connect(protocol+defines.serverUrl, opts);
-        _socket.on('connect', () => {
-            console.log('Connected to the server!');
-
-            _eventMgr.removeAllLister()
+    that.reloadGameScene = function(){
+         _eventMgr.removeAllLister()
             cc.director.preloadScene("Game",function(){},function() {
                 if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
                     cc.director.loadScene("Game",function(){
@@ -68,6 +48,29 @@ const socketMgr = function(){
                     });
                 }
             });
+    }
+    that.initSocket = function() {
+        var opts = {
+            'reconnection': true,
+            'reconnectionDelay': 1000,
+            'maxReconnectionAttempts': 100,
+            'force new connection': true,
+            'transports': ['websocket', 'polling'],
+        }
+        console.log(defines.serverUrl)
+        var protocol = ''
+        if(defines.isDebug){
+            protocol = 'ws://';
+        }else{
+            opts['path'] = '/fxq_socket.io';
+            protocol = 'wss://';
+        }
+        console.log(protocol+defines.serverUrl)
+        _socket = window.io.connect(protocol+defines.serverUrl, opts);
+        _socket.on('connect', () => {
+            console.log('Connected to the server!');
+
+            that.reloadGameScene();
 
         });
         _socket.on('connect_error', (error) => {
@@ -84,6 +87,7 @@ const socketMgr = function(){
         });
         _socket.on("MESSAGE", function (msg) {
             _eventMgr.fire('MESSAGE', msg);
+            if(_gameMgr.isRecover) return;
             console.log("MESSAGE:" + msg);
         });
 
@@ -101,6 +105,10 @@ const socketMgr = function(){
             _gameMgr.posId = data.posId;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
+            
             // console.log(_gameMgr.playerData)
             // _gameMgr.checkBeat();
             _eventMgr.fire("LOGIN_SUCCESS");
@@ -110,6 +118,7 @@ const socketMgr = function(){
         });
         _socket.on("SET_RECOVER_STATUS",function(data){
             _gameMgr.isRecover = data.isRecover;
+            _eventMgr.fire("SET_RECOVER_STATUS");
         });
 
         _socket.on("MAKE_DICE_NUM_SUCCESS",function(data){
@@ -153,10 +162,18 @@ const socketMgr = function(){
             }
 
             _eventMgr.fire("GAME_START",data);
+
+            // //debug
+            // that.finish_chess(0,0);
+            // that.finish_chess(0,1);
+            // that.finish_chess(0,2);
+            // that.finish_chess(0,3);
         })
 
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 2;
+            _gameMgr.diff_time = 0;
+            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
             for (const posId in _gameMgr.playerData) {
                 if(_gameMgr.playerData[posId]){
                     _gameMgr.playerData[posId].score = data.invalid == 1 ? 0 : data.score_list[posId];
@@ -175,15 +192,16 @@ const socketMgr = function(){
             _eventMgr.fire('CONNECT_STATE',data);
         });
 
-        // 监听游戏回到前台事件
-        cc.game.off(cc.game.EVENT_SHOW);
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            console.log("进入后台")
+            _eventMgr.removeAllLister();
+            _socket.close();
+        },that);
         cc.game.on(cc.game.EVENT_SHOW, function(){
-            setTimeout(() => {
-                _eventMgr.removeAllLister();
-                cc.assetManager.releaseAll();
-                cc.game.restart();
-            }, 0);
-        }, that);
+            console.log("回来前台")
+            that.initSocket();
+        },that);
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,ready_count,play_count,ob_uid,cbFunc){
@@ -204,10 +222,12 @@ const socketMgr = function(){
     }
     that.makeDiceNum = function(){
         if(that.checkIsObserve()) return;
+        if(_gameMgr.isRecover) return;
         _socket.emit('MAKE_DICE_NUM');
     }
     that.playMoveStep = function(chess_idx,num){
         if(that.checkIsObserve()) return;
+        if(_gameMgr.isRecover) return;
         _socket.emit('PLAY_MOVE_STEP', {idx:chess_idx,num:num});
     }
     that.nextPlayerDice = function(){
@@ -219,10 +239,7 @@ const socketMgr = function(){
         if(that.checkIsObserve()) return;
         _socket.emit('FINISH_CHESS', {posId:posId,idx:chess_idx});
     }
-    // that.standUpChess = function(posId,chess_idx){
-    //     if(that.checkIsObserve()) return;
-    //     _socket.emit('STANDUP_CHESS', {posId:posId,idx:chess_idx});
-    // }
+
     that.getSocket = function(){
         return _socket;
     }

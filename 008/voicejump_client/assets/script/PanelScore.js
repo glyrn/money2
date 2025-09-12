@@ -11,6 +11,7 @@ cc.Class({
         lab_warning:cc.Node,
         lab_contents:cc.Node,
         btn_score_close:cc.Node,
+        panel_loading:cc.Node,
     },
     onLoad(){
         this.cur_idx = 0;
@@ -32,6 +33,8 @@ cc.Class({
         if(data.invalid == 1){
             this.lab_warning.active = true;
             this.lab_contents.active = false;
+            this.panel_loading.active = false;
+
         }else{
 
             this.lab_warning.active = false;

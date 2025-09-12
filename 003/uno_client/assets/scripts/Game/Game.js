@@ -1,5 +1,5 @@
 import globalData from "../globalData";
-
+import PanelAvators from "../../Prefab/PanelAvators";
 cc.Class({
     extends: cc.Component,
 
@@ -35,6 +35,9 @@ cc.Class({
         globalAnim:cc.Animation,
         lab_warninig:cc.Node,
         lab_items:cc.Node,
+        audioTpl:cc.Prefab,
+        panel_loading:cc.Node,
+        panel_avators:PanelAvators,
         // btn_score_close:cc.Node,
     },
     onLoad() {
@@ -52,17 +55,18 @@ cc.Class({
 
         this._initCardColorPos = this.card_color.node.position;
         this.img_deck.active = false;
-        // cc.playMusic("sound/bg",true,1);
 
         this.renderRoom();
 
         globalData.eventlister.on('PREPARE_SUCCESS',function(posId){
             //准备成功
+            that.panel_avators.render();
             that.renderRoom()
             that.renderPlayer();
         });
         globalData.eventlister.on('SIT_CHANGE',function(){
             that.panel_ctrl.active = false;
+            that.panel_avators.render();
             that.renderPlayer();
         })
 
@@ -73,6 +77,7 @@ cc.Class({
             that.btn_quit.active = false;
             that.panel_continue.active = false;
             that.card_color.node.active = false;
+            that.panel_avators.node.active = false;
             that.renderPlayer();
             that.hideSelectColor();
             that.renderRoom();
@@ -90,9 +95,12 @@ cc.Class({
             that.renderPlayer();
             if(globalData.gameMgr.is_quit || data.invalid == 1){ //有人逃跑
                 that.panel_continue.active = false;
+                
                 that.onBtnCurScore();
 
-                cc.playEffect("sound/win",false,1);
+                if(!globalData.gameMgr.isRecover){
+                    cc.playEffect("sound/win",false,1);
+                }
             }else{
                 that.panel_continue.active = true;
             }
@@ -124,40 +132,67 @@ cc.Class({
             that.renderPlayer();
         })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            that.panel_loading.active = false;
+            that.panel_avators.render();
             that.renderPlayer();
         })
+        globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
+        })
+
+        var audioObj = cc.instantiate(this.audioTpl);
+        audioObj.parent = that.node;
+        cc.audioObj = audioObj;
+        
+        // 监听游戏回到前台事件
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            if(!cc.audioObj){
+                var audioObj = cc.instantiate(that.audioTpl);
+                audioObj.parent = that.node;
+                cc.audioObj = audioObj;
+            }
+            if(cc.isPlayingGlobalBg === 0){
+                cc.audioObj.getComponent(cc.AudioSource).stop();
+            }
+        }, that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            if(cc.audioObj){
+                cc.audioObj.destroy();
+                cc.audioObj = null;
+            }
+        }, that);
     },
 
-    start(){
-        
-    },
     update:function(){
 
-        var now = Date.parse(new Date()) / 1000;
+        var now = Math.floor(Date.parse(new Date()) / 1000);
         var timer_value = globalData.gameMgr.playerData.self.target_timer_value - now;
         if (timer_value >= 0) {
             if(globalData.gameMgr.roomState.state == 1) {
                 this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
                 this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
                 this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color'+globalData.gameMgr.cur_out_color];
-                
+                this.isExecuteAutoPlay = false;
                 if (timer_value == 0) {
                     globalData.gameMgr.playerData.self.target_timer_value = 0;
                     
-                    if(globalData.gameMgr.playerData.self.posId == globalData.gameMgr.playerData.turn){
-                        //检查是否最后一张
-                        var cards = globalData.gameMgr.playerData.self.cards;
-                        if(cards.length == 1 && cards[0].type == 2){
-                            //直接pass
-                            this.onBtnPass();
-                        }else{
-                            if (this.onBtnTips()) {
-                                this.onBtnPlayCard();
-                            } else {
-                                this.onBtnPass();
-                            }
-                        }
-                    }
+                //     if(globalData.gameMgr.playerData.self.posId == globalData.gameMgr.playerData.turn){
+                //         //检查是否最后一张
+                //         var cards = globalData.gameMgr.playerData.self.cards;
+                //         if(cards.length == 1 && cards[0].type == 2){
+                //             //直接pass
+                //             this.onBtnPass();
+                //         }else{
+                //             if (this.onBtnTips()) {
+                //                 this.onBtnPlayCard();
+                //             } else {
+                //                 this.onBtnPass();
+                //             }
+                //         }
+                //     }
                 }
             }
         }
@@ -176,6 +211,9 @@ cc.Class({
         return this._onBtnTips();
     },
     _onBtnTips(only_check=false){
+        if(this._out_cards.length <= 0){
+            return false;
+        }
         var card = this._out_cards[this._out_cards.length-1].getComponent('Card')._data;
         return this._player_list['self'].getComponent('Player').selectTips(card,only_check);
     },
@@ -220,7 +258,7 @@ cc.Class({
     renderRoomTitle(){
         var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
         this.lab_roomid.string = 
-            "局数:"+globalData.gameMgr.play_index +
+            "版本1.1 局数:"+globalData.gameMgr.play_index +
             "  特定分数:"+cc.args['specific_score'];
         if(distance > 0){
             const minutes = Math.floor((distance % ( 60 * 60)) /  60);
@@ -231,9 +269,12 @@ cc.Class({
     renderRoom(){
         this.renderRoomTitle();
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
+            globalData.gameMgr.playerData.self.state < 2 ;
+
         var isQuit = globalData.gameMgr.is_quit
-            && globalData.gameMgr.roomState.state == 2 && !globalData.gameMgr.is_ob;
+            && globalData.gameMgr.roomState.state == 2 ;
+        this.panel_avators.node.active = this.btn_ready.active && !isQuit;
+        
         this.btn_quit.active = false;
 
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
@@ -241,8 +282,8 @@ cc.Class({
 
         //发送退出游戏事件
         if(isQuit){
-            window.parent.postMessage({'quitGame':1}, "*");
-            console.log("发送退出事件")
+            // window.parent.postMessage({'quitGame':1}, "*");
+            // console.log("发送退出事件")
         }
     },
     renderPlayer(){
@@ -265,7 +306,6 @@ cc.Class({
         var deck_pos = this.img_deck.position;
         var node = cc.instantiate(this.card);
         node.parent = this.node.getChildByName('players_seat').getChildByName("card_container");
-        // node.parent = this.node;
 
         function getRandomArbitrary(min, max) {
             return Math.random() * (max - min) + min;
@@ -275,36 +315,52 @@ cc.Class({
         this._out_cards.push(node);
         var offsetX = getRandomArbitrary(-30,30);
         var offsetY = getRandomArbitrary(-30,30);
-        //不是轮到自己 要延长一点动画时间
-        // var offset_time = 0;
-        // if(globalData.gameMgr.playerData.turn != globalData.gameMgr.playerData.self.posId){
-        //     offset_time = 0.125;
-        // }
+
         var actions = [
             cc.delayTime(0.15),
             cc.moveTo(0.2, cc.v2(out_pos.x + offsetX,out_pos.y + offsetY)),
         ];
-
+        //初始牌
         if(posId == -1){
-            node.position = deck_pos;
-            actions.push(cc.callFunc(function () {
+            
+            //无动画
+            if(globalData.gameMgr.isRecover){
                 node.getComponent("Card").render(card);
-
+                node.position = cc.v2(out_pos.x + offsetX,out_pos.y + offsetY);
+                
                 // 轮到自己
                 if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
                     if(!that._onBtnTips(true)){
                         that.onBtnPass();
                     }
                 }
-            }, that));
+            //有动画
+            }else{
+                node.position = deck_pos;
+                actions.push(cc.callFunc(function () {
+                    node.getComponent("Card").render(card);
+
+                    // 轮到自己
+                    if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
+                        if(!that._onBtnTips(true)){
+                            that.onBtnPass();
+                        }
+                    }
+                }, that));
+                node.runAction(cc.sequence(actions));
+            }
 
             globalData.gameMgr.card_remain--;
             this.renderRemainCard();
+
         }else{
-            node.getComponent("Card").render(card);
-            actions.push(cc.callFunc(function () {
+            //无动画
+            if(globalData.gameMgr.isRecover){
+                node.getComponent("Card").render(card);
                 node.getComponent("Card").checkShowColor();
                 that.checkRedundanceCard();
+
+                node.position = cc.v2(out_pos.x + offsetX,out_pos.y + offsetY);
 
                 // 轮到自己
                 if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
@@ -312,12 +368,28 @@ cc.Class({
                         that.onBtnPass();
                     }
                 }
-            }, that));
-            if(globalData.gameMgr.getPlayerDataKey(posId))
-                node.position = this._player_list[globalData.gameMgr.getPlayerDataKey(posId)].position;
-        }
-        node.runAction(cc.sequence(actions));
+            }else{//有动画
+                node.getComponent("Card").render(card);
+                actions.push(cc.callFunc(function () {
+                    node.getComponent("Card").checkShowColor();
+                    that.checkRedundanceCard();
 
+                    // 轮到自己
+                    if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
+                        if(!that._onBtnTips(true)){
+                            that.onBtnPass();
+                        }
+                    }
+                }, that));
+                if(globalData.gameMgr.getPlayerDataKey(posId))
+                    node.position = this._player_list[globalData.gameMgr.getPlayerDataKey(posId)].position;
+                
+                node.runAction(cc.sequence(actions));
+            }
+        }
+
+        
+       
         console.log("card.value：",card.value)
         //播放全局动画
         if(card.value == 'plus4'){
@@ -329,8 +401,9 @@ cc.Class({
         }else if(card.value == 'stop'){
             this.showGlobalEffect("anim_stop")
         }
-
-        cc.playEffect("sound/play_card",false,1);
+        if(!globalData.gameMgr.isRecover){
+            cc.playEffect("sound/play_card",false,1);
+        }
     },
     pushCardToPlayer:function(data){
         var deck_pos = this.img_deck.position;
@@ -338,32 +411,46 @@ cc.Class({
 
         var that = this;
         var plus_nodes = [];
+
         for (let i = 0; i < data.plus_num; i++) {
-
-            globalData.gameMgr.card_remain--;
-            var node = cc.instantiate(this.card);
-            node.parent = this.node.getChildByName("players_seat").getChildByName("card_container");
-            node.position = deck_pos;
-            plus_nodes.push(node);
-            node.runAction(cc.sequence([
-                cc.delayTime(0.15 * (i-1)),
-                cc.moveTo(0.2 , moveTo),
-                cc.callFunc(function (selector, selectorTarget, _data) {
-
-                    if(i == data.plus_num - 1)
-                    {
-                        that.renderPlayer();
-
-                        // 轮到自己
-                        if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
-                            if(!that._onBtnTips(true)){
-                                that.onBtnPass();
-                            }
+            //无动画
+            if(globalData.gameMgr.isRecover){
+                if(i == data.plus_num - 1)
+                {
+                    that.renderPlayer();
+                    // 轮到自己
+                    if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
+                        if(!that._onBtnTips(true)){
+                            that.onBtnPass();
                         }
                     }
-                    selector.destroy();
-                }, that)
-            ]));
+                }
+            //有动画
+            }else{
+                var node = cc.instantiate(this.card);
+                node.parent = this.node.getChildByName("players_seat").getChildByName("card_container");
+                node.position = deck_pos;
+                plus_nodes.push(node);
+                node.runAction(cc.sequence([
+                    cc.delayTime(0.15 * (i-1)),
+                    cc.moveTo(0.2 , moveTo),
+                    cc.callFunc(function (selector, selectorTarget, _data) {
+
+                        if(i == data.plus_num - 1)
+                        {
+                            that.renderPlayer();
+
+                            // 轮到自己
+                            if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
+                                if(!that._onBtnTips(true)){
+                                    that.onBtnPass();
+                                }
+                            }
+                        }
+                        selector.destroy();
+                    }, that)
+                ]));
+            }
         }
         this.renderRemainCard();
     },
@@ -386,12 +473,17 @@ cc.Class({
             var card = this._out_cards.shift();
 
             card.active = false;
-            card.runAction(cc.sequence([
-                cc.delayTime(0.15),
-                cc.callFunc(function (selector, selectorTarget, _data) {
-                    selector.destroy();
-                }, that)
-            ]));
+            //无动画
+            if(globalData.gameMgr.isRecover){
+                card.destroy();
+            }else{
+                card.runAction(cc.sequence([
+                    cc.delayTime(0.15),
+                    cc.callFunc(function (selector, selectorTarget, _data) {
+                        selector.destroy();
+                    }, that)
+                ]));
+            }
         }
     },
     showSelectColor:function(){
@@ -409,9 +501,14 @@ cc.Class({
         this.card_color.spriteFrame = this['sp_color' + color];
         this.card_color.node.active = true;
 
-        this.card_color.node.position = cc.v2(-50,136)
-        this.card_color.node.stopAllActions();
-        this.card_color.node.runAction(cc.moveTo(0.4,this._initCardColorPos));
+        //无动画
+        if(globalData.gameMgr.isRecover){
+            this.card_color.node.position = this._initCardColorPos;
+        }else{//有动画
+            this.card_color.node.position = cc.v2(-50,136)
+            this.card_color.node.stopAllActions();
+            this.card_color.node.runAction(cc.moveTo(0.4,this._initCardColorPos));
+        }
     },
     hideCardColor:function(){
         this.card_color.node.active = false;
@@ -425,21 +522,28 @@ cc.Class({
         },1);
     },
     showGlobalEffect:function(data){
-        this.globalAnim.node.active = true;
-        this.globalAnim.play(data);
-        var that = this;
-        this.scheduleOnce(function () {
-            that.globalAnim.node.active = false;
-        },1);
+        //无动画
+        if(!globalData.gameMgr.isRecover){
+            this.globalAnim.node.active = true;
+            this.globalAnim.play(data);
+            var that = this;
+            this.scheduleOnce(function () {
+                that.globalAnim.node.active = false;
+            },1);
+        }
     },
     renderScorePanel(){
-        this.panel_score.active = true;
+        this.panel_score.active = !globalData.gameMgr.isRecover;
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
 
         //有玩家逃跑 无效回合
         if(data.invalid == 1){
+            
             this.lab_warninig.active = true;
             this.lab_items.active = false;
+
+            this.panel_loading.active = false;
+            console.log("this.panel_loading.active false")
         }else{
             this.lab_warninig.active = false;
             this.lab_items.active = true;
@@ -464,7 +568,7 @@ cc.Class({
         this._player_list['self'].getComponent("Player").reset()
         this._player_list['left'].getComponent("Player").reset()
         this._player_list['top'].getComponent("Player").reset()
-        this._player_list['right'].getComponent("Player").reset()
+        this._player_list['right'].getComponent("Player").reset();
     }
 
 });

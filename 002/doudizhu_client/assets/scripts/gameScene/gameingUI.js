@@ -30,7 +30,8 @@ cc.Class({
         btn_score:cc.Node,
         lab_contents:cc.Node,
         lab_warning:cc.Node,
-        btn_score_close:cc.Node,
+        btn_score_close:cc.Node, 
+        panel_loading:cc.Node,
     },
 
     onLoad (){
@@ -68,7 +69,9 @@ cc.Class({
         this.btn_scores = [this.btn_score1,this.btn_score2,this.btn_score3];
 
     },
-
+    update(){
+        this.renderClock();
+    },
     start () {
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
     },
@@ -105,7 +108,8 @@ cc.Class({
     },
 
     renderClock(){
-        this.playing_clock_label.string = globalData.gameMgr.roomState.timeout;
+        var now = Math.floor(Date.parse(new Date()) / 1000);
+        this.playing_clock_label.string = Math.max(0,globalData.gameMgr.roomState.server_time + globalData.gameMgr.roomState.timeout - now);
     },
     render(){
 
@@ -135,7 +139,7 @@ cc.Class({
             }
         }
 
-        this.renderClock();
+        // this.renderClock();
     },
     renderTips(msg) {
         this.panel_tip.active = true;
@@ -146,14 +150,16 @@ cc.Class({
     },
     renderGameOverPlane(index){
 
-        this.panel_gameover.active = true;
-        let data = this.score_list[index-1];
+        this.panel_gameover.active = !globalData.gameMgr.isRecover;
+        let data = this.score_list[this.score_list.length-1];
 
         //有人逃跑 无效局
         if(data && data.invalid == 1){
             this.lab_contents.active = false;
             this.lab_warning.active = true;
 
+            this.panel_loading.active = false;
+            console.log("this.panel_loading.active false")
         }else{
             this.lab_contents.active = true;
             this.lab_warning.active = false;

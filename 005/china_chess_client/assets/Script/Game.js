@@ -2,7 +2,7 @@ import globalData from "./data/globalData.js"
 import chessLogic from "./data/chessLogic.js"
 import playLogic from "./data/playLogic.js"
 import AvatorMini from "../Prefab/AvatorMini";
-
+import PanelAvators from "../Prefab/PanelAvators"
 cc.Class({
     extends: cc.Component,
 
@@ -49,6 +49,8 @@ cc.Class({
         lab_warning:cc.Node,
         lab_contents:cc.Node,
         btn_score_close:cc.Node,
+        panel_loading:cc.Node, 
+        panel_avators:PanelAvators,
     },
     //退出游戏
     onBtnQuit(){
@@ -155,6 +157,7 @@ cc.Class({
 
 
         globalData.eventlister.on("GAME_START",function(){
+            that.panel_avators.node.active = false;
             that.gameStart()
         });
         globalData.eventlister.on("GAME_OVER",function(data){
@@ -173,10 +176,18 @@ cc.Class({
         });
         //刷新对手
         globalData.eventlister.on("SIT_CHANGE",function(data){
+            that.panel_avators.render();
             that.render();
         })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            that.panel_avators.render();
             that.render();
+            that.panel_loading.active = false;
+        })
+        globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
         })
         globalData.eventlister.on('PREPARE_SUCCESS',function(prepare_uid){
             //准备成功
@@ -190,6 +201,7 @@ cc.Class({
                     globalData.gameMgr.playerData.target.uid == prepare_uid){
                     globalData.gameMgr.playerData.target.state = 2;
                 }
+                that.panel_avators.render();
                 that.render();
             }
         });
@@ -232,7 +244,11 @@ cc.Class({
     render(){
 
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData.self.state < 2 && !globalData.gameMgr.is_ob;
+            globalData.gameMgr.playerData.self.state < 2;
+        console.log("this.btn_ready.active ",this.btn_ready.active)
+        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count ;
+        this.panel_avators.node.active = this.btn_ready.active && !isQuit;
+
         this.btn_quit.active = false;
         this.avator_my.active = true;
         this.avator_target.active = true;
@@ -263,7 +279,7 @@ cc.Class({
     gameStart:function(){
 
         var that = this;
-        this.game_start.active = true;
+        this.game_start.active = !globalData.gameMgr.isRecover;
         this.game_start.getComponent(cc.Animation).play()
         this.retrack_lock = true;
 
@@ -280,6 +296,7 @@ cc.Class({
     gameOver:function(data){
 
         globalData.gameMgr.roomState.state = 2; //结束
+        globalData.gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
         globalData.gameMgr.score_list.push(data);
 
         globalData.gameMgr.playerData.self.score = parseInt(globalData.gameMgr.playerData.self.score);
@@ -316,7 +333,7 @@ cc.Class({
         // this.select_icon.active = false;
         this.touchChess = null;
         this.render()
-        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
+        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count ;
         this.btn_quit.active = false;
 
         globalData.socketMgr.reqGameOver(data);
@@ -329,12 +346,15 @@ cc.Class({
     },
     renderScorePanel(){
 
-        this.panel_over.active = true;
+        this.panel_over.active = !globalData.gameMgr.isRecover;
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
         //有人逃跑
         if(data.invalid == 1){
             this.lab_warning.active = true;
             this.lab_contents.active = false;
+
+            this.panel_loading.active = false;
+            console.log("this.panel_loading.active false")
         }else{
 
             this.lab_warning.active = false;
@@ -376,7 +396,7 @@ cc.Class({
     },
     showTips:function(msg){
 
-        this.tips.active = true;
+        this.tips.active = !globalData.gameMgr.isRecover;
         this.lab_tips.string = msg;
         this.scheduleOnce(function () {
             this.tips.active = false;
@@ -386,7 +406,7 @@ cc.Class({
 
         cc.playEffect('jiangjun',false,1);
 
-        this.img_jiangjun.active = true;
+        this.img_jiangjun.active = !globalData.gameMgr.isRecover;
         this.img_jiangjun.getComponent(cc.Animation).play();
         this.scheduleOnce(function () {
             this.img_jiangjun.active = false;

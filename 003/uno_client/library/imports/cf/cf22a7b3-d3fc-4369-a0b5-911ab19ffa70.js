@@ -6,6 +6,8 @@ cc._RF.push(module, 'cf22aez0/xDaaC1kRqxn/pw', 'Game');
 
 var _globalData = _interopRequireDefault(require("../globalData"));
 
+var _PanelAvators = _interopRequireDefault(require("../../Prefab/PanelAvators"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 cc.Class({
@@ -41,7 +43,10 @@ cc.Class({
     panel_continue: cc.Node,
     globalAnim: cc.Animation,
     lab_warninig: cc.Node,
-    lab_items: cc.Node // btn_score_close:cc.Node,
+    lab_items: cc.Node,
+    audioTpl: cc.Prefab,
+    panel_loading: cc.Node,
+    panel_avators: _PanelAvators["default"] // btn_score_close:cc.Node,
 
   },
   onLoad: function onLoad() {
@@ -55,18 +60,19 @@ cc.Class({
     this._player_list['top'].active = false;
     this._player_list['right'].active = false;
     this._initCardColorPos = this.card_color.node.position;
-    this.img_deck.active = false; // cc.playMusic("sound/bg",true,1);
-
+    this.img_deck.active = false;
     this.renderRoom();
 
     _globalData["default"].eventlister.on('PREPARE_SUCCESS', function (posId) {
       //准备成功
+      that.panel_avators.render();
       that.renderRoom();
       that.renderPlayer();
     });
 
     _globalData["default"].eventlister.on('SIT_CHANGE', function () {
       that.panel_ctrl.active = false;
+      that.panel_avators.render();
       that.renderPlayer();
     });
 
@@ -77,6 +83,7 @@ cc.Class({
       that.btn_quit.active = false;
       that.panel_continue.active = false;
       that.card_color.node.active = false;
+      that.panel_avators.node.active = false;
       that.renderPlayer();
       that.hideSelectColor();
       that.renderRoom();
@@ -96,7 +103,10 @@ cc.Class({
         //有人逃跑
         that.panel_continue.active = false;
         that.onBtnCurScore();
-        cc.playEffect("sound/win", false, 1);
+
+        if (!_globalData["default"].gameMgr.isRecover) {
+          cc.playEffect("sound/win", false, 1);
+        }
       } else {
         that.panel_continue.active = true;
       }
@@ -137,12 +147,42 @@ cc.Class({
     });
 
     _globalData["default"].eventlister.on("LOGIN_SUCCESS", function () {
+      that.panel_loading.active = false;
+      that.panel_avators.render();
       that.renderPlayer();
     });
+
+    _globalData["default"].eventlister.on("SET_RECOVER_STATUS", function () {
+      if (_globalData["default"].gameMgr.isRecover == false) {
+        that.panel_loading.active = false;
+      }
+    });
+
+    var audioObj = cc.instantiate(this.audioTpl);
+    audioObj.parent = that.node;
+    cc.audioObj = audioObj; // 监听游戏回到前台事件
+
+    cc.game.targetOff(that);
+    cc.game.on(cc.game.EVENT_SHOW, function () {
+      if (!cc.audioObj) {
+        var audioObj = cc.instantiate(that.audioTpl);
+        audioObj.parent = that.node;
+        cc.audioObj = audioObj;
+      }
+
+      if (cc.isPlayingGlobalBg === 0) {
+        cc.audioObj.getComponent(cc.AudioSource).stop();
+      }
+    }, that);
+    cc.game.on(cc.game.EVENT_HIDE, function () {
+      if (cc.audioObj) {
+        cc.audioObj.destroy();
+        cc.audioObj = null;
+      }
+    }, that);
   },
-  start: function start() {},
   update: function update() {
-    var now = Date.parse(new Date()) / 1000;
+    var now = Math.floor(Date.parse(new Date()) / 1000);
     var timer_value = _globalData["default"].gameMgr.playerData.self.target_timer_value - now;
 
     if (timer_value >= 0) {
@@ -150,25 +190,23 @@ cc.Class({
         this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
         this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
         this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color' + _globalData["default"].gameMgr.cur_out_color];
+        this.isExecuteAutoPlay = false;
 
         if (timer_value == 0) {
-          _globalData["default"].gameMgr.playerData.self.target_timer_value = 0;
-
-          if (_globalData["default"].gameMgr.playerData.self.posId == _globalData["default"].gameMgr.playerData.turn) {
-            //检查是否最后一张
-            var cards = _globalData["default"].gameMgr.playerData.self.cards;
-
-            if (cards.length == 1 && cards[0].type == 2) {
-              //直接pass
-              this.onBtnPass();
-            } else {
-              if (this.onBtnTips()) {
-                this.onBtnPlayCard();
-              } else {
-                this.onBtnPass();
-              }
-            }
-          }
+          _globalData["default"].gameMgr.playerData.self.target_timer_value = 0; //     if(globalData.gameMgr.playerData.self.posId == globalData.gameMgr.playerData.turn){
+          //         //检查是否最后一张
+          //         var cards = globalData.gameMgr.playerData.self.cards;
+          //         if(cards.length == 1 && cards[0].type == 2){
+          //             //直接pass
+          //             this.onBtnPass();
+          //         }else{
+          //             if (this.onBtnTips()) {
+          //                 this.onBtnPlayCard();
+          //             } else {
+          //                 this.onBtnPass();
+          //             }
+          //         }
+          //     }
         }
       }
     }
@@ -188,6 +226,10 @@ cc.Class({
   },
   _onBtnTips: function _onBtnTips() {
     var only_check = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+    if (this._out_cards.length <= 0) {
+      return false;
+    }
 
     var card = this._out_cards[this._out_cards.length - 1].getComponent('Card')._data;
 
@@ -233,7 +275,7 @@ cc.Class({
   },
   renderRoomTitle: function renderRoomTitle() {
     var distance = _globalData["default"].gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
-    this.lab_roomid.string = "局数:" + _globalData["default"].gameMgr.play_index + "  特定分数:" + cc.args['specific_score'];
+    this.lab_roomid.string = "版本1.1 局数:" + _globalData["default"].gameMgr.play_index + "  特定分数:" + cc.args['specific_score'];
 
     if (distance > 0) {
       var minutes = Math.floor(distance % (60 * 60) / 60);
@@ -243,17 +285,15 @@ cc.Class({
   },
   renderRoom: function renderRoom() {
     this.renderRoomTitle();
-    this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2 && !_globalData["default"].gameMgr.is_ob;
-    var isQuit = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2 && !_globalData["default"].gameMgr.is_ob;
+    this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2;
+    var isQuit = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2;
+    this.panel_avators.node.active = this.btn_ready.active && !isQuit;
     this.btn_quit.active = false; // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 
     this.btn_score.active = false; //发送退出游戏事件
 
-    if (isQuit) {
-      window.parent.postMessage({
-        'quitGame': 1
-      }, "*");
-      console.log("发送退出事件");
+    if (isQuit) {// window.parent.postMessage({'quitGame':1}, "*");
+      // console.log("发送退出事件")
     }
   },
   renderPlayer: function renderPlayer() {
@@ -277,7 +317,7 @@ cc.Class({
     var out_pos = cc.find("out_pos", this.node).position;
     var deck_pos = this.img_deck.position;
     var node = cc.instantiate(this.card);
-    node.parent = this.node.getChildByName('players_seat').getChildByName("card_container"); // node.parent = this.node;
+    node.parent = this.node.getChildByName('players_seat').getChildByName("card_container");
 
     function getRandomArbitrary(min, max) {
       return Math.random() * (max - min) + min;
@@ -289,43 +329,68 @@ cc.Class({
     this._out_cards.push(node);
 
     var offsetX = getRandomArbitrary(-30, 30);
-    var offsetY = getRandomArbitrary(-30, 30); //不是轮到自己 要延长一点动画时间
-    // var offset_time = 0;
-    // if(globalData.gameMgr.playerData.turn != globalData.gameMgr.playerData.self.posId){
-    //     offset_time = 0.125;
-    // }
-
-    var actions = [cc.delayTime(0.15), cc.moveTo(0.2, cc.v2(out_pos.x + offsetX, out_pos.y + offsetY))];
+    var offsetY = getRandomArbitrary(-30, 30);
+    var actions = [cc.delayTime(0.15), cc.moveTo(0.2, cc.v2(out_pos.x + offsetX, out_pos.y + offsetY))]; //初始牌
 
     if (posId == -1) {
-      node.position = deck_pos;
-      actions.push(cc.callFunc(function () {
-        node.getComponent("Card").render(card); // 轮到自己
+      //无动画
+      if (_globalData["default"].gameMgr.isRecover) {
+        node.getComponent("Card").render(card);
+        node.position = cc.v2(out_pos.x + offsetX, out_pos.y + offsetY); // 轮到自己
 
         if (_globalData["default"].gameMgr.playerData.turn == _globalData["default"].gameMgr.playerData.self.posId) {
           if (!that._onBtnTips(true)) {
             that.onBtnPass();
           }
-        }
-      }, that));
+        } //有动画
+
+      } else {
+        node.position = deck_pos;
+        actions.push(cc.callFunc(function () {
+          node.getComponent("Card").render(card); // 轮到自己
+
+          if (_globalData["default"].gameMgr.playerData.turn == _globalData["default"].gameMgr.playerData.self.posId) {
+            if (!that._onBtnTips(true)) {
+              that.onBtnPass();
+            }
+          }
+        }, that));
+        node.runAction(cc.sequence(actions));
+      }
+
       _globalData["default"].gameMgr.card_remain--;
       this.renderRemainCard();
     } else {
-      node.getComponent("Card").render(card);
-      actions.push(cc.callFunc(function () {
+      //无动画
+      if (_globalData["default"].gameMgr.isRecover) {
+        node.getComponent("Card").render(card);
         node.getComponent("Card").checkShowColor();
-        that.checkRedundanceCard(); // 轮到自己
+        that.checkRedundanceCard();
+        node.position = cc.v2(out_pos.x + offsetX, out_pos.y + offsetY); // 轮到自己
 
         if (_globalData["default"].gameMgr.playerData.turn == _globalData["default"].gameMgr.playerData.self.posId) {
           if (!that._onBtnTips(true)) {
             that.onBtnPass();
           }
         }
-      }, that));
-      if (_globalData["default"].gameMgr.getPlayerDataKey(posId)) node.position = this._player_list[_globalData["default"].gameMgr.getPlayerDataKey(posId)].position;
+      } else {
+        //有动画
+        node.getComponent("Card").render(card);
+        actions.push(cc.callFunc(function () {
+          node.getComponent("Card").checkShowColor();
+          that.checkRedundanceCard(); // 轮到自己
+
+          if (_globalData["default"].gameMgr.playerData.turn == _globalData["default"].gameMgr.playerData.self.posId) {
+            if (!that._onBtnTips(true)) {
+              that.onBtnPass();
+            }
+          }
+        }, that));
+        if (_globalData["default"].gameMgr.getPlayerDataKey(posId)) node.position = this._player_list[_globalData["default"].gameMgr.getPlayerDataKey(posId)].position;
+        node.runAction(cc.sequence(actions));
+      }
     }
 
-    node.runAction(cc.sequence(actions));
     console.log("card.value：", card.value); //播放全局动画
 
     if (card.value == 'plus4') {
@@ -338,7 +403,9 @@ cc.Class({
       this.showGlobalEffect("anim_stop");
     }
 
-    cc.playEffect("sound/play_card", false, 1);
+    if (!_globalData["default"].gameMgr.isRecover) {
+      cc.playEffect("sound/play_card", false, 1);
+    }
   },
   pushCardToPlayer: function pushCardToPlayer(data) {
     var _this = this;
@@ -351,12 +418,8 @@ cc.Class({
     var plus_nodes = [];
 
     var _loop = function _loop(i) {
-      _globalData["default"].gameMgr.card_remain--;
-      node = cc.instantiate(_this.card);
-      node.parent = _this.node.getChildByName("players_seat").getChildByName("card_container");
-      node.position = deck_pos;
-      plus_nodes.push(node);
-      node.runAction(cc.sequence([cc.delayTime(0.15 * (i - 1)), cc.moveTo(0.2, moveTo), cc.callFunc(function (selector, selectorTarget, _data) {
+      //无动画
+      if (_globalData["default"].gameMgr.isRecover) {
         if (i == data.plus_num - 1) {
           that.renderPlayer(); // 轮到自己
 
@@ -365,10 +428,27 @@ cc.Class({
               that.onBtnPass();
             }
           }
-        }
+        } //有动画
 
-        selector.destroy();
-      }, that)]));
+      } else {
+        node = cc.instantiate(_this.card);
+        node.parent = _this.node.getChildByName("players_seat").getChildByName("card_container");
+        node.position = deck_pos;
+        plus_nodes.push(node);
+        node.runAction(cc.sequence([cc.delayTime(0.15 * (i - 1)), cc.moveTo(0.2, moveTo), cc.callFunc(function (selector, selectorTarget, _data) {
+          if (i == data.plus_num - 1) {
+            that.renderPlayer(); // 轮到自己
+
+            if (_globalData["default"].gameMgr.playerData.turn == _globalData["default"].gameMgr.playerData.self.posId) {
+              if (!that._onBtnTips(true)) {
+                that.onBtnPass();
+              }
+            }
+          }
+
+          selector.destroy();
+        }, that)]));
+      }
     };
 
     for (var i = 0; i < data.plus_num; i++) {
@@ -399,10 +479,15 @@ cc.Class({
 
       var card = this._out_cards.shift();
 
-      card.active = false;
-      card.runAction(cc.sequence([cc.delayTime(0.15), cc.callFunc(function (selector, selectorTarget, _data) {
-        selector.destroy();
-      }, that)]));
+      card.active = false; //无动画
+
+      if (_globalData["default"].gameMgr.isRecover) {
+        card.destroy();
+      } else {
+        card.runAction(cc.sequence([cc.delayTime(0.15), cc.callFunc(function (selector, selectorTarget, _data) {
+          selector.destroy();
+        }, that)]));
+      }
     }
   },
   showSelectColor: function showSelectColor() {
@@ -418,10 +503,16 @@ cc.Class({
     //当前颜色
     this._cur_out_color = color;
     this.card_color.spriteFrame = this['sp_color' + color];
-    this.card_color.node.active = true;
-    this.card_color.node.position = cc.v2(-50, 136);
-    this.card_color.node.stopAllActions();
-    this.card_color.node.runAction(cc.moveTo(0.4, this._initCardColorPos));
+    this.card_color.node.active = true; //无动画
+
+    if (_globalData["default"].gameMgr.isRecover) {
+      this.card_color.node.position = this._initCardColorPos;
+    } else {
+      //有动画
+      this.card_color.node.position = cc.v2(-50, 136);
+      this.card_color.node.stopAllActions();
+      this.card_color.node.runAction(cc.moveTo(0.4, this._initCardColorPos));
+    }
   },
   hideCardColor: function hideCardColor() {
     this.card_color.node.active = false;
@@ -434,20 +525,25 @@ cc.Class({
     }, 1);
   },
   showGlobalEffect: function showGlobalEffect(data) {
-    this.globalAnim.node.active = true;
-    this.globalAnim.play(data);
-    var that = this;
-    this.scheduleOnce(function () {
-      that.globalAnim.node.active = false;
-    }, 1);
+    //无动画
+    if (!_globalData["default"].gameMgr.isRecover) {
+      this.globalAnim.node.active = true;
+      this.globalAnim.play(data);
+      var that = this;
+      this.scheduleOnce(function () {
+        that.globalAnim.node.active = false;
+      }, 1);
+    }
   },
   renderScorePanel: function renderScorePanel() {
-    this.panel_score.active = true;
+    this.panel_score.active = !_globalData["default"].gameMgr.isRecover;
     var data = _globalData["default"].gameMgr.score_list[this._cur_score_idx]; //有玩家逃跑 无效回合
 
     if (data.invalid == 1) {
       this.lab_warninig.active = true;
       this.lab_items.active = false;
+      this.panel_loading.active = false;
+      console.log("this.panel_loading.active false");
     } else {
       this.lab_warninig.active = false;
       this.lab_items.active = true;

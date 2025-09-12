@@ -1,6 +1,7 @@
 import globalData from "./data/globalData.js"
 import PlayerNode from '../Prefab/PlayerNode.js'
 import Map from '../Prefab/Map.js'
+import PanelAvators from "../Prefab/PanelAvators"
 cc.Class({
     extends: cc.Component,
 
@@ -33,6 +34,9 @@ cc.Class({
         lab_contents:cc.Node,
         btn_score_close:cc.Node,
         map:Map,
+        audioTpl:cc.Prefab,
+        panel_loading:cc.Node,
+        panel_avators:PanelAvators,
     },
     //退出游戏
     onBtnQuit(){
@@ -111,7 +115,8 @@ cc.Class({
         this.onShowTips("游戏结束！");
         globalData.gameMgr.roomState.state = 2; //结束
         globalData.gameMgr.score_list.push(data);
-        this.panel_game_over.active = true;
+
+        this.panel_game_over.active = !globalData.gameMgr.isRecover;
         // this.btn_score.active = true;
         this.dice.active = false;
         this.dice.getComponent('Dice').isShow = false;
@@ -146,8 +151,12 @@ cc.Class({
     },
     render(){
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-            globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 && !globalData.gameMgr.is_ob;
-        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count && !globalData.gameMgr.is_ob;
+            globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 ;
+        
+        
+        var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count;
+        this.panel_avators.node.active = this.btn_ready.active && !isQuit;
+
         this.btn_quit.active = false;
         for (let i = 0; i < this.playerNodes.length; i++) {
             if(globalData.gameMgr.playerData[i]){
@@ -156,7 +165,7 @@ cc.Class({
         }
 
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
-        this.lab_room.string = "局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "版本:1.0.3 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
 
         //发送退出游戏事件
         // if(isQuit){
@@ -171,6 +180,9 @@ cc.Class({
             // lab_title.string = "有玩家逃跑，本局无效";
             this.lab_warning.active = true;
             this.lab_contents.active = false;
+
+            this.panel_loading.active = false;
+            console.log("this.panel_loading.active false")
         }else{
             this.lab_warning.active = false;
             this.lab_contents.active = true;
@@ -197,9 +209,6 @@ cc.Class({
     onLoad(){
         var that = this;
         //进入后台继续动画
-        that.handleMainLoopTimer=setInterval(()=>{
-            cc.director.mainLoop();
-        }, 1000 / 60);
 
         this.playerNodes = [this.player_node1,this.player_node2,this.player_node3,this.player_node4];
         // this.btn_ready.active = true;
@@ -210,12 +219,15 @@ cc.Class({
             that.onBackHome(data)
         });
         globalData.eventlister.on('PREPARE_SUCCESS',function(data){
+            that.panel_avators.render();
             that.onPrepareSuccess(data)
         })
         globalData.eventlister.on('SIT_CHANGE',function(data){
+            that.panel_avators.render();
             that.onSitChange(data)
         });
         globalData.eventlister.on('GAME_START',function(data){
+            that.panel_avators.node.active = false;
             that.onGameStart(data)
         });
         globalData.eventlister.on('MAKE_DICE_NUM_SUCCESS',function(data){
@@ -233,9 +245,6 @@ cc.Class({
         globalData.eventlister.on('FINISH_CHESS_SUCCESS',function(data){
             that.playerNodes[data.posId].finishChess(data.idx);
         });
-        // globalData.eventlister.on("STANDUP_CHESS_SUCCESS",function(data){
-        //     that.playerNodes[data.posId]._standUpChess(data.idx);
-        // })
         globalData.eventlister.on('GAME_OVER',function(data){
             that.onGameOver(data)
         });
@@ -256,10 +265,39 @@ cc.Class({
                 }
             }
             // this.btn_score.active = false;
-            cc.playMusic("sound/bg",true,1);
-
+            // cc.playMusic("sound/bg",true,1);
+            that.panel_avators.render();
             that.render();
+            that.panel_loading.active = false; 
+        });
+        globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
         })
+
+        var audioObj = cc.instantiate(this.audioTpl);
+        audioObj.parent = that.node;
+        cc.audioObj = audioObj;
+        
+        // 监听游戏回到前台事件
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            if(!cc.audioObj){
+                var audioObj = cc.instantiate(that.audioTpl);
+                audioObj.parent = that.node;
+                cc.audioObj = audioObj;
+            }
+            if(cc.isPlayingGlobalBg === 0){
+                cc.audioObj.getComponent(cc.AudioSource).stop();
+            }
+        }, that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            if(cc.audioObj){
+                cc.audioObj.destroy();
+                cc.audioObj = null;
+            }
+        }, that);
     },
 
 
@@ -267,6 +305,9 @@ cc.Class({
         console.log("showDiceNum")
         for (let i = 0; i < this.playerNodes.length; i++) {
             this.playerNodes[i].cleanDice();
+        }
+        for (let i = 0; i < this.playerNodes.length; i++) {
+            this.playerNodes[i].resetChessSelectIcon();
         }
 
         if(globalData.gameMgr.isRecover){
@@ -279,19 +320,23 @@ cc.Class({
     nextPlayerDice(data){
 
         this._isCanMakeDiceLock = false;
-        console.log(data.posId)
+        // console.log(data.posId)
         this.onShowTips("请【"+globalData.gameMgr.playerData[data.posId].name+"】骰筛子");
         for (const i in globalData.gameMgr.playerData) {
             this.playerNodes[globalData.gameMgr.playerData[i].posId].setTurnFlag(data.posId == i);
         }
 
-        console.log("nextPlayerDice",globalData.gameMgr.posId,data.posId)
+        console.log("轮到",data.posId,"  我是：",globalData.gameMgr.posId)
 
         this.dice.active = globalData.gameMgr.posId == data.posId && !globalData.gameMgr.is_ob;
         if(this.dice.active){
             this.dice.getComponent(cc.Button).interactable = true;
         }
         this.dice.getComponent('Dice').isShow = true;
+
+        for (let i = 0; i < this.playerNodes.length; i++) {
+            this.playerNodes[i].resetChessSelectIcon();
+        }
     },
 
     resumeAllActions(){

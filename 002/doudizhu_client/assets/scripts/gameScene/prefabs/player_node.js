@@ -80,6 +80,17 @@ cc.Class({
 
         if(globalData.gameMgr.roomState.ctxCard.key > 0){
 
+            //获取当前癞子
+            var curLaiziCards = [];
+            let laiziCards = globalData.gameMgr.posState.laizi.cards;
+            playerData.cards.forEach(_card=>{
+                for(var laizi_card_key in laiziCards){
+                    if(laiziCards[laizi_card_key].value == _card.value){
+                        curLaiziCards.push(_card);
+                    }
+                }
+            });
+
             for (let i = 1; i <= 13; i++) {
                 var find_count = 0;
                 var is_find = false;
@@ -94,10 +105,14 @@ cc.Class({
                                 find_count++;
                                 select_card_list.push(card);
 
-                                if (find_count == 3) {
+                                if (find_count == 3 || find_count + curLaiziCards.length >= 3) {
+                                    //补上癞子
+                                    for(var __i=0;__i< 3 - find_count;__i++){
+                                        select_card_list.push(curLaiziCards[__i])
+                                    }
+
                                     var singleCard;
                                     playerData.cards.forEach(card => {
-
                                         select_card_list.forEach(_card => {
                                             if (card.value != _card.value) {
                                                 singleCard = card;
@@ -109,7 +124,27 @@ cc.Class({
                                         is_find = true;
                                     }
                                 }
-                            } 
+                            }else{
+                                //纯3癞子
+                                if(is_find == false && curLaiziCards.length >=3){
+                                    for(var __i=0;__i< 3 - find_count;__i++){
+                                        select_card_list.push(curLaiziCards[__i])
+                                    }
+
+                                    var singleCard;
+                                    playerData.cards.forEach(card => {
+                                        select_card_list.forEach(_card => {
+                                            if (card.value != _card.value) {
+                                                singleCard = card;
+                                            }
+                                        })
+                                    })
+                                    if (singleCard) {
+                                        select_card_list.push(singleCard);
+                                        is_find = true;
+                                    }
+                                }
+                            }
                         // 3带2 
                         }else if(globalData.gameMgr.roomState.ctxCard.type == 'AAABB' && globalData.gameMgr.roomState.ctxCard.len == 5) {
                             //尝试3带2
@@ -117,7 +152,12 @@ cc.Class({
                                 find_count++;
                                 select_card_list.push(card);
                                 console.log("尝试3带2",find_count,card)
-                                if (find_count == 3) {
+                                if (find_count == 3 || find_count + curLaiziCards.length >= 3) {
+                                    //补上癞子
+                                    for(var __i=0;__i< 3 - find_count;__i++){
+                                        select_card_list.push(curLaiziCards[__i])
+                                    }
+
                                     var checkCards = [];
                                     playerData.cards.forEach(__card => {
                                         //跳过AAA牌
@@ -154,6 +194,50 @@ cc.Class({
                                         }
                                     }
 
+                                }
+                            }else{
+                                //纯3癞子
+                                if(is_find == false && curLaiziCards.length >=3){
+                                    select_card_list = [];
+                                    for(var __i=0;__i< 3;__i++){
+                                        select_card_list.push(curLaiziCards[__i])
+                                    }
+
+                                    var checkCards = [];
+                                    playerData.cards.forEach(__card => {
+                                        //跳过AAA牌
+                                        var isSkipCard = false;
+                                        select_card_list.forEach(_card => {
+                                            if (_card.value == __card.value) {
+                                                isSkipCard = true;
+                                            }
+                                        });
+                                        if (!isSkipCard) {
+                                            checkCards.push(__card);
+                                        }
+                                    })
+                                    var elementsCount = {};
+                                    checkCards.forEach(_card => {
+                                        var element = elementsCount[_card.value];
+                                        if (element) {
+                                            element.push(_card);
+                                        } else {
+                                            element = [_card];
+                                        }
+                                        elementsCount[_card.value] = element;
+                                    });
+                                    
+                                    for (const k in elementsCount) {
+                                        var element = elementsCount[k];
+                                        //跳过AAA牌
+                                        if (element.length > 1 && element[0].value != card.value) {
+                                            for (let l = 0; l < 2; l++) {
+                                                select_card_list.push(element[l]);
+                                            }
+                                            is_find = true;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                             // 4带2
@@ -596,7 +680,13 @@ cc.Class({
             // }else{
             //     avatorUrl = 'http://42.51.37.98:8001/avator/'+playerData.uid+'.jpg'
             // }
-            cc.loader.load(playerData.avatarUrl, function(err,img){
+
+            const exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg'];
+            const ext = playerData.avatarUrl.slice(playerData.avatarUrl.lastIndexOf('.'));
+            const is_image = exts.includes(ext.toLowerCase());
+            var url = is_image ? playerData.avatarUrl : playerData.avatarUrl + '?aa=aa.jpg';
+            
+            cc.loader.load(url, function(err,img){
                 if(!err){
                     that._avatarUrl = playerData.avatarUrl;
                     that.img_avatar.spriteFrame = new cc.SpriteFrame(img);
@@ -613,9 +703,10 @@ cc.Class({
     },
 
     renderClock(roomState){
+        var now = Date.parse(new Date()) / 1000;
         if(this.flag == roomState.ctxPos && this.flag != 'self'){
             this.clock_node.active = true;
-            this.lab_timer.string = roomState.timeout;
+            this.lab_timer.string = Math.max(0,roomState.server_time + roomState.timeout - now);
         }else {
             this.clock_node.active = false;
         }

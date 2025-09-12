@@ -19,32 +19,7 @@ const socketMgr = function(){
     that.setUtil = function(util){
         _util = util;
     }
-    that.initSocket = function(){
-        var opts = {
-            'reconnection': true,
-            'reconnectionDelay': 1000,
-            'maxReconnectionAttempts': 100,
-            'force new connection': true,
-            'transports': ['websocket', 'polling'],
-        }
-        var protocol = ''
-        if(defines.isDebug){
-            protocol = 'ws://';
-        }else{
-            opts['path'] = '/hlddz_socket.io';
-            protocol = 'wss://';
-        }
-        console.log(protocol+defines.serverUrl)
-        _socket = window.io.connect(protocol+defines.serverUrl, opts);
-        _socket.on('ping',function(data){
-            //心跳
-            _socket.emit('pong', {beat: 1});
-
-            _gameMgr.lossBeatNums--;
-        });
-        _socket.on('connect', () => {
-            console.log('Connected to the server!');
-            
+    that.reloadGameScene = function(){
             _eventMgr.removeAllLister()
             cc.director.preloadScene("gameScene",function(){},function(){
                 if(defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce){
@@ -73,6 +48,34 @@ const socketMgr = function(){
                     });
                 }
             });
+    }
+    that.initSocket = function(){
+        var opts = {
+            'reconnection': true,
+            'reconnectionDelay': 1000,
+            'maxReconnectionAttempts': 100,
+            'force new connection': true,
+            'transports': ['websocket', 'polling'],
+        }
+        var protocol = ''
+        if(defines.isDebug){
+            protocol = 'ws://';
+        }else{
+            opts['path'] = '/hlddz_socket.io';
+            protocol = 'wss://';
+        }
+        console.log(protocol+defines.serverUrl)
+        _socket = window.io.connect(protocol+defines.serverUrl, opts);
+        _socket.on('ping',function(data){
+            //心跳
+            _socket.emit('pong', {beat: 1});
+
+            _gameMgr.lossBeatNums--;
+        });
+        _socket.on('connect', () => {
+            console.log('Connected to the server!');
+            
+           that.reloadGameScene();
         });
         _socket.on('connect_error', (error) => {
             console.error('Connection error:', error);
@@ -81,6 +84,7 @@ const socketMgr = function(){
             console.error('Connection timeout:', timeout);
         });
         _socket.on("MESSAGE",function(data){
+            if(_gameMgr.isRecover) return;
             _eventMgr.fire('MESSAGE',data.msg);
             console.log("MESSAGE:"+data.msg);
         });
@@ -92,7 +96,10 @@ const socketMgr = function(){
             _gameMgr.isLaizi = data.islaizi;
             _gameMgr.base_score = data.base_score;
             _gameMgr.play_count = data.play_count;
-            _gameMgr.play_index = data.play_index;
+            _gameMgr.play_index = 0;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
 
             for (const posId in data.posInfos) {
                 var pos = data.posInfos[posId];
@@ -100,8 +107,7 @@ const socketMgr = function(){
             }
             _gameMgr.posState.self.isDizhu = false;
             _eventMgr.fire("POS_STATUS_CHANGE");
-
-            // _gameMgr.checkBeat();
+            _eventMgr.fire("LOGIN_SUCCESS")
 
             if(_cbLogin) {
                 _cbLogin();
@@ -122,44 +128,10 @@ const socketMgr = function(){
             });
         });
 
-        _socket.on('ROOM_STATUS_CHANGE', function (data) {
-            _gameMgr.roomState.state = data.state;
-        });
+        // _socket.on('ROOM_STATUS_CHANGE', function (data) {
+        //     _gameMgr.roomState.state = data.state;
+        // });
 
-        _socket.on('FORCE_EXIT_EV', function (data) {
-
-            _gameMgr.roomState.timeout = 0;
-            _gameMgr.startTimer(false);//停止计时器
-            _gameMgr.roomState.state = 3;
-
-            if(_gameMgr.posState.left.state == 2){
-                _gameMgr.posState.left.state = 1;
-            }
-            _gameMgr.posState.left.callScore = -1;
-            _gameMgr.posState.left.isPass = false;
-
-            if(_gameMgr.posState.right.state == 2){
-                _gameMgr.posState.right.state = 1;
-            }
-            _gameMgr.posState.right.callScore = -1;
-            _gameMgr.posState.right.isPass = false;
-
-            if(_gameMgr.posState.self.state == 2){
-                _gameMgr.posState.self.state = 1;
-            }
-            _gameMgr.posState.self.callScore = -1;
-            _gameMgr.posState.self.isPass = false;
-
-            var direct = _gameMgr.getDirectionByPosId(data.posId);
-            if(direct) {
-                _gameMgr.posState[direct].ctxCards = [];
-                _gameMgr.posState[direct].cards = [];
-            }
-
-            _eventMgr.fire('FORCE_EXIT_EV',data.msg);
-            _eventMgr.fire('FORCE_EXIT_EV1',data.msg);
-            _eventMgr.fire('FORCE_EXIT_EV2',data.msg);
-        });
 
         _socket.on('PREPARE_SUCCESS', function (posId) {
 
@@ -172,6 +144,7 @@ const socketMgr = function(){
 
         _socket.on('GAME_START', function (data) {
             _gameMgr.roomState.state = 1;
+            _gameMgr.play_index = data.play_index;
             _gameMgr.initCards(data.cards);
             _gameMgr.posState.left.callScore = -1;
             _gameMgr.posState.right.callScore = -1;
@@ -188,7 +161,8 @@ const socketMgr = function(){
             _gameMgr.posState.left.ctxCards = [];
             _gameMgr.posState.right.ctxCards = [];
             _gameMgr.posState.self.ctxCards = [];
-
+            _gameMgr.posState.laizi.cards = [];
+            console.log("刷新一局")
             _eventMgr.fire("GAME_START");
         });
 
@@ -212,6 +186,7 @@ const socketMgr = function(){
             _gameMgr.roomState.ctxPos = direct;
             _gameMgr.posState[direct].isDizhu = true;
             _gameMgr.roomState.timeout = data.timeout;
+            _gameMgr.roomState.server_time = data.server_time;
 
             _gameMgr.posState.laizi.cards = data.laiziCards;
 
@@ -282,6 +257,7 @@ const socketMgr = function(){
             }
             _gameMgr.posState[_gameMgr.roomState.ctxPos].isPass = false;
             _gameMgr.roomState.timeout = data.timeout;
+            _gameMgr.roomState.server_time = data.server_time;
             _gameMgr.startTimer();
 
             _eventMgr.fire('CTX_PLAY_CHANGE');
@@ -322,8 +298,10 @@ const socketMgr = function(){
         });
 
         _socket.on('GAME_OVER', function (data) {
-
+            console.log("gameover",data)
             _gameMgr.startTimer(false);//停止计时器
+            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = 0;
             _gameMgr.roomState.state = 3;
 
             if(_gameMgr.posState.left.state != 0) {
@@ -347,15 +325,13 @@ const socketMgr = function(){
             _eventMgr.fire('GAME_OVER1',data);
             _eventMgr.fire('GAME_OVER2',data);
 
-            _gameMgr.play_index++;
+            // _gameMgr.play_index++;
             _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
             console.log("game_over",_gameMgr.is_quit);
             if(_gameMgr.play_count < _gameMgr.play_index){ //剩余局数为0
-                _gameMgr.play_index = 1;
+                _gameMgr.play_index = 0;
                 _gameMgr.score_list = [];
             }
-
-            
         });
 
         _socket.on('CALL_SCORE_SUCCESS',function(ratio){
@@ -370,16 +346,23 @@ const socketMgr = function(){
                 _eventMgr.fire('CONNECT_STATE',data);
             }
         });
+        _socket.on("SET_RECOVER_STATUS",function(data){
+            
+            _gameMgr.isRecover = data.isRecover;
+            console.log("收到SET_RECOVER_STATUS",_gameMgr.isRecover);
+            _eventMgr.fire("SET_RECOVER_STATUS")
+        });
 
-        // 监听游戏回到前台事件
-        cc.game.off(cc.game.EVENT_SHOW);
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            console.log("进入后台")
+            _eventMgr.removeAllLister();
+            _socket.close();
+        },that);
         cc.game.on(cc.game.EVENT_SHOW, function(){
-            setTimeout(() => {
-                _eventMgr.removeAllLister();
-                cc.assetManager.releaseAll();
-                cc.game.restart();
-            }, 0);
-        }, that);
+            console.log("回来前台")
+            that.initSocket();
+        },that);
     }
 
     that.login = function(uid,name,avatorUrl,score,ob_uid,room,base_score,play_count,play_mode,cbFunc){
@@ -394,17 +377,23 @@ const socketMgr = function(){
 
     that.call_score = function(score){
         if(that.checkIsObserve()) return;
+        if(_gameMgr.isRecover) return;
         _socket.emit('CALL_SCORE', { score: score });
     }
     that.pass_card = function(){
         if(that.checkIsObserve()) return;
+        if(_gameMgr.isRecover) return;
         _socket.emit('PLAY_CARD', []);
     }
     that.prepare = function(){
         if(that.checkIsObserve()) return;
         _socket.emit('PREPARE');
     }
-
+    that.playCards = function(cards){
+        if(that.checkIsObserve()) return;
+        if(_gameMgr.isRecover) return;
+        _socket.emit('PLAY_CARD', cards);
+    }
     that.getSocket = function(){
         return _socket;
     }

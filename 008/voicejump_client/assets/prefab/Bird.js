@@ -35,11 +35,12 @@ cc.Class({
             type: State,
         },
     },
+
     onResize(){
         var that = this;
         console.log("onResize")
             var isDeadCameraFlow = false;
-            if(globalData.gameMgr.playerData[globalData.gameMgr.posId].game_type == 'fall') {
+            if(globalData.gameMgr.playerData[globalData.gameMgr.posId].game_type == 'fall' || globalData.gameMgr.is_ob) {
                 var sortItems = [];
                 for (let i = 0; i < cc.args['ready_count']; i++) {
                     var playerData = globalData.gameMgr.playerData[i];
@@ -58,7 +59,7 @@ cc.Class({
 
             //镜头跟随
             console.log("镜头跟随",that.posId , globalData.gameMgr.posId,isDeadCameraFlow)
-            if (that.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
+            if ((that.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob) || isDeadCameraFlow) {
                 that.main_camera.x = that.node.parent.x - that._initPosX;
             }
     },
@@ -216,7 +217,7 @@ cc.Class({
 
         //自身是否挂了
         var isDeadCameraFlow = false;
-        if(globalData.gameMgr.playerData[globalData.gameMgr.posId].game_type == 'fall') {
+        if(globalData.gameMgr.playerData[globalData.gameMgr.posId].game_type == 'fall' || globalData.gameMgr.is_ob) {
             var sortItems = [];
             for (let i = 0; i < cc.args['ready_count']; i++) {
                 var playerData = globalData.gameMgr.playerData[i];
@@ -237,7 +238,7 @@ cc.Class({
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 50 ,data.cur_y);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
+                if ((this.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob) || isDeadCameraFlow) {
                     this.main_camera.x = this.node.parent.x - this._initPosX;
                 }
             }else{
@@ -251,7 +252,7 @@ cc.Class({
                 this.node.parent.stopAllActions();
                 this.node.parent.runAction(seq);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
+                if ((this.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob) || isDeadCameraFlow) {
                     this.main_camera.stopAllActions();
                     this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 50 - this._initPosX, this.main_camera.y)));
                 }
@@ -266,7 +267,7 @@ cc.Class({
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 200 ,data.cur_y);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
+                if ((this.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob) || isDeadCameraFlow) {
                     this.main_camera.x = this.node.parent.x - this._initPosX;
                 }
             }else{
@@ -280,7 +281,7 @@ cc.Class({
                 this.node.parent.stopAllActions();
                 this.node.parent.runAction(seq);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
+                if ((this.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob) || isDeadCameraFlow) {
                     this.main_camera.stopAllActions();
                     this.main_camera.runAction(cc.moveTo(1, cc.v2(data.cur_x + 200 - this._initPosX, this.main_camera.y)));
                 }
@@ -295,7 +296,7 @@ cc.Class({
             if(globalData.gameMgr.isRecover){
                 this.node.parent.position = cc.v2(data.cur_x + 350 ,data.cur_y);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
+                if ((this.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob) || isDeadCameraFlow) {
                     this.main_camera.x = this.node.parent.x - this._initPosX;
                 }
             }else{
@@ -309,7 +310,7 @@ cc.Class({
                 this.node.parent.stopAllActions();
                 this.node.parent.runAction(seq);
                 //镜头跟随
-                if (this.posId == globalData.gameMgr.posId || isDeadCameraFlow) {
+                if ((this.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob) || isDeadCameraFlow) {
                     this.main_camera.stopAllActions();
                     this.main_camera.runAction(cc.moveTo(1.5, cc.v2(data.cur_x + 350 - this._initPosX, this.main_camera.y)));
                 }
@@ -324,7 +325,7 @@ cc.Class({
             this.node.parent.stopAllActions();
             this.node.parent.position = cc.v2(data.x ,data.y);
             //镜头跟随
-            if (this.posId == globalData.gameMgr.posId) {
+            if ((this.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob)) {
                 this.main_camera.x = this.node.parent.x - this._initPosX;
             }
 

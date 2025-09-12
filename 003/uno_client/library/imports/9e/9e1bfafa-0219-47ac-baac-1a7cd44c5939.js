@@ -29,10 +29,6 @@ cc.Class({
       this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
       this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
       this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color' + _globalData["default"].gameMgr.cur_out_color];
-
-      if (timer_value == 0) {
-        this._data.target_timer_value = 0;
-      }
     }
   },
   render: function render(data, flag) {
@@ -117,19 +113,35 @@ cc.Class({
           }
         }
 
+        if (!this._hadPlayAnim) this._hadPlayAnim = {};
+
         if (_globalData["default"].gameMgr.cur_out_posId == data.posId) {
           if (_globalData["default"].gameMgr.cur_out_value == "turn") {
-            this.anim_pos.play("anim_small_turn");
+            if (!this._hadPlayAnim['anim_small_turn'] && !_globalData["default"].gameMgr.isRecover) {
+              this.anim_pos.play("anim_small_turn");
+              this._hadPlayAnim['anim_small_turn'] = true;
+            }
           } else if (_globalData["default"].gameMgr.cur_out_value == "stop") {
-            this.anim_pos.play("anim_small_stop");
+            if (!this._hadPlayAnim['anim_small_stop'] && !_globalData["default"].gameMgr.isRecover) {
+              this.anim_pos.play("anim_small_stop");
+              this._hadPlayAnim['anim_small_stop'] = true;
+            }
           }
+        } else {
+          this._hadPlayAnim['anim_small_turn'] = false;
+          this._hadPlayAnim['anim_small_stop'] = false;
         }
 
         var isShowUno = data.cards.length == 1;
 
         if (isShowUno && data.posId == _globalData["default"].gameMgr.playerData.turn) {
-          this.anim_pos.play("anim_uno");
-          cc.playEffect("sound/uno", false, 1);
+          if (!this._hadPlayAnim['anim_uno'] && !_globalData["default"].gameMgr.isRecover) {
+            this.anim_pos.play("anim_uno");
+            cc.playEffect("sound/uno", false, 1);
+            this._hadPlayAnim['anim_uno'] = true;
+          }
+        } else {
+          this._hadPlayAnim['anim_uno'] = false;
         }
       }
 

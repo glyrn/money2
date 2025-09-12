@@ -79,6 +79,7 @@ const socketMgr = function(){
             _gameMgr.lossBeatNums--;
         });
         _socket.on("MESSAGE", function (msg) {
+            if(_gameMgr.isRecover) return;
             _eventMgr.fire('MESSAGE', msg);
             console.log("MESSAGE:" + msg);
         });
@@ -106,6 +107,9 @@ const socketMgr = function(){
             _gameMgr.play_mode = data.play_mode;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
             // _gameMgr.checkBeat();
             _eventMgr.fire("LOGIN_SUCCESS");
             if (_cbLogin) {
@@ -126,9 +130,14 @@ const socketMgr = function(){
             _eventMgr.fire("SIT_CHANGE",data);
             //对手逃跑 游戏结束
             if(data.target == null){
+                
                 _eventMgr.fire('GAME_OVER',{invalid:1,score:0,winer:globalData.gameMgr.playerData.self.posId});
             }
-        })
+        });
+        //弃局专用
+        _socket.on("GAME_OVER_DEPRECATE",function(){
+            _eventMgr.fire('GAME_OVER',{invalid:1,score:0,winer:globalData.gameMgr.playerData.self.posId});
+        });
 
         _socket.on('GAME_START',function(data){
             _gameMgr.roomState.state = 1;//进行中
@@ -169,7 +178,23 @@ const socketMgr = function(){
             }
             _eventMgr.fire('CONNECT_STATE',data);
         });
+        _socket.on("SET_RECOVER_STATUS",function(data){
+            
+            _gameMgr.isRecover = data.isRecover;
+            console.log("收到SET_RECOVER_STATUS",_gameMgr.isRecover);
+            _eventMgr.fire("SET_RECOVER_STATUS")
+        });
 
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            console.log("进入后台")
+            _eventMgr.removeAllLister();
+            _socket.close();
+        },that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            console.log("回来前台")
+            that.initSocket();
+        },that);
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
@@ -198,13 +223,19 @@ const socketMgr = function(){
     }
     that.reqGameOver = function(data){
         if(that.checkIsObserve()) return;
-        _socket.emit("REQ_GAME_OVER", data);
-
+        //客户端行为
+        var now = Math.floor(new Date().getTime() / 1000);
+        _gameMgr.server_time = now;
+        _gameMgr.diff_time = 0;
         _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
+
+        if(_gameMgr.isRecover) return;
+        _socket.emit("REQ_GAME_OVER", data);
+        
     }
     that.checkIsObserve = function(){
         if(_gameMgr.is_ob){
-            _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
+            // _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
         }
         return _gameMgr.is_ob;
     }

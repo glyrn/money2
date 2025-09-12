@@ -95,6 +95,50 @@ const gameMgr = function(){
     that.setPlayerData = function(posId,data){
         this.playerData[this.getPlayerDataKey(posId)] = data;
     }
+    that.reset = function(){
+        that.playerData = {
+        left: {
+            uid:0,
+            state: 0,//0没人，1未准备 2准备
+            cards: [],
+            name: '',
+            avatarUrl:'',
+            score:500,
+            score_offset:0,
+            target_timer_value:0,
+        },
+        top: {
+            uid:0,
+            state: 0,//0没人，1未准备 2准备
+            cards: [],
+            name: '',
+            avatarUrl:'',
+            score:500,
+            score_offset:0,
+            target_timer_value:0,
+        },
+        right: {
+            uid:0,
+            state: 0,//0没人，1未准备 2准备
+            cards: [],
+            name: '',
+            avatarUrl:'',
+            score:500,
+            score_offset:0,
+            target_timer_value:0,
+        },
+        self: {
+            uid:0,
+            state: 0,//0没人，1未准备 2准备
+            cards: [],
+            name: '',
+            avatarUrl:'',
+            score:500,
+            score_offset:0,
+            target_timer_value:0,
+        }
+    }
+    }
     that.getPlayerDataKey = function(targetPosId,selfPosId=null){
         if(selfPosId == null){
             selfPosId = this.playerData.self.posId ?? 0;
@@ -164,25 +208,25 @@ const gameMgr = function(){
         });
     }
 
-    that.updateCtxInfo = function (socket,data) {
-        var ctx = data;
-        ctx.ctxPos = that.getDirectionByPosId(ctx.ctxPos);
-        that.roomState.ctxPos = ctx.ctxPos;
-        that.roomState.ctxScore = ctx.ctxScore;
-        that.roomState.timeout = ctx.timeout;
+    // that.updateCtxInfo = function (socket,data) {
+    //     var ctx = data;
+    //     ctx.ctxPos = that.getDirectionByPosId(ctx.ctxPos);
+    //     that.roomState.ctxPos = ctx.ctxPos;
+    //     that.roomState.ctxScore = ctx.ctxScore;
+    //     that.roomState.timeout = ctx.timeout;
 
-        if (ctx.calledScores) {
-            for (var key in ctx.calledScores) {
-                if (ctx.calledScores.hasOwnProperty(key)) {
-                    var posId = Number(key);
-                    var direct = that.getDirectionByPosId(posId);
-                    that.posState[direct].callScore = ctx.calledScores[key];
+    //     if (ctx.calledScores) {
+    //         for (var key in ctx.calledScores) {
+    //             if (ctx.calledScores.hasOwnProperty(key)) {
+    //                 var posId = Number(key);
+    //                 var direct = that.getDirectionByPosId(posId);
+    //                 that.posState[direct].callScore = ctx.calledScores[key];
 
-                }
-            }
-        }
-        that.startTimer();
-    }
+    //             }
+    //         }
+    //     }
+    //     that.startTimer();
+    // }
 
     // that.autoPlayCards = function () {
     //     if (that.roomState.ctxPos === 'self') {

@@ -27,14 +27,14 @@ cc.Class({
         btn_score:cc.Node,
         tips:cc.Node,
         prog_bar:ProgBar,
-        _lastVoiceTime:0,
-        _lastJump1Time:0,
-        _lastJump2Time:0,
-        _voiceCDTime:100,
-        _jump1CDTime:700,
-        _jump2CDTime:1000,
+        // _lastVoiceTime:0,
+        // _lastJump1Time:0,
+        // _lastJump2Time:0,
+        // _voiceCDTime:100,
+        // _jump1CDTime:700,
+        // _jump2CDTime:1000,
         prog_voice:cc.Node,
-        
+        panel_loading:cc.Node,
     },
     onLoad() {
 
@@ -116,7 +116,7 @@ cc.Class({
             that.prog_bar.init();
         });
         globalData.eventlister.on("FALL_OVER_SUCCESS",function(data){
-            if(data.posId == globalData.gameMgr.posId) {
+            if(data.posId == globalData.gameMgr.posId && !globalData.gameMgr.is_ob) {
                 that.panel_drop.active = true;
             }
             that['player' + data.posId].move(data);
@@ -130,14 +130,13 @@ cc.Class({
             that.enableInput(false);
             // 显示游戏结束面板
             that.panel_drop.active = false;
-            that.panel_score.node.active = true;
+            that.panel_score.node.active = !globalData.gameMgr.isRecover;
             that.panel_score.onBtnCur();
             // that.btn_score.active = true;
-            that.panel_avators.active = true;
             that.prog_bar.node.active = false;
             that.render()
 
-            window.parent.postMessage({'quitGame':1}, "*");
+            // window.parent.postMessage({'quitGame':1}, "*");
             console.log("发送退出事件")
         });
         globalData.eventlister.on("MESSAGE",function(msg){
@@ -151,8 +150,8 @@ cc.Class({
 
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
             that.render();
-
-            console.log("check:"+globalData.gameMgr.is_ob);
+            that.panel_loading.active = false;
+            // console.log("check:"+globalData.gameMgr.is_ob);
             //观众不用麦克风
             if(!globalData.gameMgr.is_ob){
                 //初始化麦克风
@@ -164,7 +163,12 @@ cc.Class({
                     });
             }
         });
-        
+
+         globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
+        })
     },
     onBtnReady(){
         globalData.socketMgr.prepare()
@@ -188,7 +192,10 @@ cc.Class({
         this.renderRoomTitle();
         if(globalData.gameMgr.playerData[globalData.gameMgr.posId]){
             this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
-                globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 && !globalData.gameMgr.is_ob;
+                globalData.gameMgr.playerData[globalData.gameMgr.posId].state < 2 ;
+            
+            var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count ;
+            this.panel_avators.active = this.btn_ready.active && !isQuit;
         }
 
         this.lab_score.node.active = globalData.gameMgr.roomState.state == 1;//游戏进行中

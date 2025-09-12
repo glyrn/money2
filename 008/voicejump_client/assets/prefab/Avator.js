@@ -24,7 +24,13 @@ cc.Class({
 
         if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
             var that = this;
-            cc.loader.load(data.avatorUrl, function (err, img) {
+
+            const exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg'];
+            const ext = data.avatorUrl.slice(data.avatorUrl.lastIndexOf('.'));
+            const is_image = exts.includes(ext.toLowerCase());
+            var url = is_image ? data.avatorUrl : data.avatorUrl + '?aa=aa.jpg';
+            console.log("头像：",url)
+            cc.loader.load(url, function (err, img) {
                 if (!err) {
                     that._avatorUrl = data.avatorUrl;
                     that.img_avatar.spriteFrame = new cc.SpriteFrame(img);

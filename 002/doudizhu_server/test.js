@@ -869,8 +869,95 @@ function validate_laizi(cards,laizis){
         }
     });
 
+    let set_normal_check = {};
+    //是否有相同超过2张的牌
+    let hasMoreThan2 = false;
+    normal_cards.forEach(function(_card){
+        if(!set_normal_check[_card]){
+            set_normal_check[_card] = 1;
+        }else{
+            set_normal_check[_card]++;
+        }
+        if(set_normal_check[_card] > 2){
+            hasMoreThan2 = true;
+        }
+    });
+
     var is_same_normal = normal_cards.every((element) => element === normal_cards[0]);
-    
+
+    //纯3
+    if(cards.length == 3){
+        for (const _card in set_normal_check) {
+            if (set_normal_check[_card] + laizi_cards.length == 3) {
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:parseInt(_card),type:"AAA"}] 
+                };
+            }
+        }
+        
+        if(laizi_cards.length == 3 && ((new Set(laizi_cards).size) === 1)){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:parseInt(laizi_cards[0]),type:"AAA"}] 
+            };
+        }
+    }
+    //3带1
+    if(cards.length == 4){
+        var key_max = 0;
+        for (const _card in set_normal_check) {
+            if (set_normal_check[_card] + laizi_cards.length == 3) {
+                if(parseInt(_card) > parseInt(key_max)){
+                    key_max = _card;
+                }
+            }
+        }
+        if(key_max > 0){
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:parseInt(key_max),type:"AAAB"}] 
+            };
+        }
+    }
+    //3带2
+    if(cards.length == 5){
+        var mark_cards = null;
+        for (const _card in set_normal_check) {
+            console.log(_card)
+            if(set_normal_check[_card] == 2 && mark_cards == null){
+                mark_cards = _card;
+            }
+            if ((_card != mark_cards) && set_normal_check[_card] + laizi_cards.length == 3) {
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:parseInt(_card),type:"AAABB"}] 
+                };
+            }
+        }
+    }
+    //四带二
+    if(cards.length == 6){
+        console.log("检测4带2")
+        var mark_cards = null;
+        for (const _card in set_normal_check) {
+            if(set_normal_check[_card] == 2 && mark_cards == null){
+                mark_cards = _card;
+            }
+            if ((_card != mark_cards) && set_normal_check[_card] + laizi_cards.length == 4) {
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:parseInt(_card),type:"AAAABC"}] 
+                };
+            }
+        }
+    }
+
     //纯软炸弹
     if(normal_cards.length == 0 && laizi_cards.length >= 4){
         //4张癞子
@@ -922,21 +1009,6 @@ function validate_laizi(cards,laizis){
 
     //检测顺子
     if(!is_same_normal && cards.length >= 5){
-
-        let set_normal_check = {};
-        //是否有相同超过2张的牌
-        let hasMoreThan2 = false;
-        normal_cards.forEach(function(_card){
-            if(!set_normal_check[_card]){
-                set_normal_check[_card] = 1;
-            }else{
-                set_normal_check[_card]++;
-            }
-            if(set_normal_check[_card] > 2){
-                hasMoreThan2 = true;
-            }
-        });
-
         
         //尝试检测单顺子
         let min_value = Math.min.apply(Math,normal_cards);
@@ -1212,7 +1284,7 @@ function validate_laizi(cards,laizis){
     };
 }
 
-var laizis = [2,5];
+var laizis = [8,5];
 var cards1 = [2,2,2,2,5,5,5,5];
 var cards2 = [8,8,8,2,5,5,5,5];
 var cards3 = [2,2,2,2,5,5,5];
@@ -1222,7 +1294,7 @@ var cards6 = [8,8,8,2,5,5];
 var cards7 = [2,2,2,2];
 var cards8 = [2,2,2,5];
 var cards9 = [10,10,10,2];
-var cards10 = [13,5,2,2];
+var cards10 = [10,10,2,9,9];
 var cards11 = [2,2,2,8,8,8];
 var cards12 = [5,4,6,7,2];
 var cards13 = [6,6,5,2,8,9,9,5];
@@ -1230,6 +1302,7 @@ var cards14 = [3,4,5,6,7];
 var cards15 = [10,10,10,5,5,8,8,8,2];
 var cards16 = [10,10,5,9,9,8,8,2,2];
 var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
+var cards18 = [10,10,10,8,3,3];
 // console.log(validate_laizi(cards1,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));
@@ -1244,7 +1317,7 @@ var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
 // console.log(validate_laizi(cards11,laizis));
 // console.log(validate_laizi(cards12,laizis));
 // console.log(validate_laizi(cards15,laizis));
-console.log(validate_laizi(cards17,laizis));
+console.log(validate_laizi(cards18,laizis));
 
 function test(cards,laizis){
 

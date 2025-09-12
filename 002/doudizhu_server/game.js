@@ -94,7 +94,7 @@ Object.assign(
       });
       is_all_laizi = int_cards.length === has_laizi_num;
       var ret ;
-      if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 4 && is_all_laizi)) {
+      if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 3 && is_all_laizi)) {
         ret = validator.validate_laizi(int_cards,laizi_values);
       }else{
         ret = validator.validate(int_cards);
@@ -410,7 +410,7 @@ Object.assign(
         if (this.status === 1) {
           this.userScore[posId] = data;
           const maxScoreInfo = this.getMaxScoreInfo();
-          console.log(data)
+          // console.log(data)
            // 是否有人叫了3分或者都叫完
           if(this.checkAllUserCalledScore()){
             //全部pass

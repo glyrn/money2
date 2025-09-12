@@ -1,4 +1,5 @@
 import globalData from "../globalData";
+import PanelAvators from "../../Prefab/PanelAvators";
 
 cc.Class({
     extends: cc.Component,
@@ -22,6 +23,9 @@ cc.Class({
         },
         labTopCardScore:cc.Label,
         globalSelfAnim:cc.Animation,
+        audioTpl:cc.Prefab,
+        panel_loading:cc.Node,
+        panel_avators:PanelAvators,
     },
     onLoad () {
 
@@ -34,18 +38,20 @@ cc.Class({
             this._player_node_list[i] = player_node;
         }
         
-        cc.playMusic("sound/bg",true,1);
+        // cc.playMusic("sound/bg",true,1);
 
         globalData.eventlister.on('PREPARE_SUCCESS',function(){
             //准备成功
             that.renderPlayerNode();
             that.renderBeforeUI();
+            that.panel_avators.render();
         });
 
         //有其他玩家坐下
         globalData.eventlister.on("POS_STATUS_CHANGE",function(){
             that.renderPlayerNode();
             that.renderRoom();
+            that.panel_avators.render();
         });
 
         globalData.eventlister.on("GAME_START",function(){
@@ -55,6 +61,7 @@ cc.Class({
             that.renderRoom();
             cc.playEffect("sound/wash_card",false,1);
             that.globalSelfAnim.node.active = false;
+            that.panel_avators.node.active = false;
 
         });
         globalData.eventlister.on("SHOW_TOP_CARD",function(data){
@@ -123,14 +130,71 @@ cc.Class({
         globalData.eventlister.on("CONNECT_STATE",function(data){
             that.renderPlayerNode();
         });
+        globalData.eventlister.on("LOGIN_SUCCESS",function(){
+            that.panel_loading.active = false;
+            that.panel_avators.render();
+        })
+        globalData.eventlister.on("SET_RECOVER_STATUS",function(){
+            if(globalData.gameMgr.isRecover == false){
+                that.panel_loading.active = false;
+            }
+        })
 
         this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
         this.node.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
 
+        var audioObj = cc.instantiate(this.audioTpl);
+        audioObj.parent = that.node;
+        cc.audioObj = audioObj;
+        
+        // 监听游戏回到前台事件
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            if(!cc.audioObj){
+                var audioObj = cc.instantiate(that.audioTpl);
+                audioObj.parent = that.node;
+                cc.audioObj = audioObj;
+            }
+            if(cc.isPlayingGlobalBg === 0){
+                cc.audioObj.getComponent(cc.AudioSource).stop();
+            }
+        }, that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            if(cc.audioObj){
+                cc.audioObj.destroy();
+                cc.audioObj = null;
+            }
+        }, that);
     },
 
+    update:function(){
+
+        var that = this;
+        var now = Math.floor(Date.parse(new Date()) / 1000);
+        var timer_value = globalData.gameMgr.roomState.server_time + globalData.gameMgr.roomState.timeout - now;
+        
+        if(timer_value >= 0 && (globalData.gameMgr.roomState.state == 1 || globalData.gameMgr.roomState.state == 2)) {
+            
+
+            // globalData.eventlister.fire("UPDATE_TIMER");
+            that.renderPlayerClock();
+            
+            // if (timer_value == 0) {
+            //     globalData.gameMgr.roomState.server_time =0;
+            //     globalData.gameMgr.roomState.timeout = 0;
+   
+            //     if (globalData.gameMgr.roomState.state == 2 && globalData.gameMgr.roomState.ctxPos === 'self') {
+            //         globalData.eventlister.fire('auto_play_card')
+            //     }else if(globalData.gameMgr.roomState.state == 1 && globalData.gameMgr.roomState.ctxPos === 'self'){
+            //         //不抢
+            //         globalData.socketMgr.call_score(0);
+            //     }
+              
+            // }
+        }
+    },
     onTouchStart(event){
         let pos = event.getLocation();
         let beginPos = this._beginPos = this._player_node_list[0].getComponent('PlayerNode').node.parent.convertToNodeSpaceAR(pos);
@@ -163,7 +227,7 @@ cc.Class({
     },
     renderRoom(){
         this.lab_roomid.string = 
-            "底分:"+globalData.gameMgr.base_score +
+            "版本: 1.0.2 底分:"+globalData.gameMgr.base_score +
             "  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         this.labTopCardScore.string = '';
     },

@@ -80,6 +80,7 @@ const socketMgr = function(){
             _gameMgr.lossBeatNums--;
         });
         _socket.on("MESSAGE", function (msg) {
+            if(_gameMgr.isRecover) return;
             _eventMgr.fire('MESSAGE', msg);
             console.log("MESSAGE:" + msg);
         });
@@ -106,6 +107,9 @@ const socketMgr = function(){
             _gameMgr.play_mode = data.play_mode;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
             // _gameMgr.checkBeat();
             
             console.log(data)
@@ -131,11 +135,9 @@ const socketMgr = function(){
 
         _socket.on('GAME_START',function(data){
             _gameMgr.roomState.state = 1;//进行中
-            _gameMgr.playerData.turn = data;
-            _gameMgr.play_index++;
-            if(_gameMgr.play_index > _gameMgr.play_count){
-                _gameMgr.play_index = 1;
-            }
+            _gameMgr.playerData.turn = data.posId;
+            _gameMgr.play_index = data.play_index;
+            console.log("_gameMgr.play_index",data.play_index)
             //重置 悔棋次数
             _gameMgr.playerData.self.retrack_num = 5;
             _gameMgr.playerData.target.retrack_num = 5;
@@ -146,6 +148,8 @@ const socketMgr = function(){
 
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 0;
+            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = 0;
             _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
             _eventMgr.fire("GAME_OVER",data);
         });
@@ -164,6 +168,23 @@ const socketMgr = function(){
             }
             _eventMgr.fire('CONNECT_STATE',data);
         });
+        _socket.on("SET_RECOVER_STATUS",function(data){
+            
+            _gameMgr.isRecover = data.isRecover;
+            console.log("收到SET_RECOVER_STATUS",_gameMgr.isRecover);
+            _eventMgr.fire("SET_RECOVER_STATUS")
+        });
+
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            console.log("进入后台")
+            _eventMgr.removeAllLister();
+            _socket.close();
+        },that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            console.log("回来前台")
+            that.initSocket();
+        },that);
     }
 
     that.login = function(uid,name,avatorUrl,score,room,play_mode,play_count,ob_uid,cbFunc){
