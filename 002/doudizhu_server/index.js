@@ -743,7 +743,7 @@ const proto = {
     this.updatePosStatus(deskId, 2, 1);
     game.init();
     desk.state = 0;
-    desk.deprecate_time = 0;
+    desk.deprecate_time = 30;
     desk.hadDeprecateGame = false;
     console.log("游戏结果：",gameResult);
     this.broadCastRoom('GAME_OVER', deskId, gameResult);

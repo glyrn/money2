@@ -149,6 +149,7 @@ const socketMgr = function(){
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 0;
             _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = 0;
             _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
             _eventMgr.fire("GAME_OVER",data);
         });

@@ -313,7 +313,7 @@ const proto = {
 
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
-          // console.log(desk.deprecate_time)
+          console.log(desk.deprecate_time)
         }else{ //时间到
 
           if(!desk.hadDeprecateGame){
@@ -760,7 +760,7 @@ const proto = {
 
           if(self.checkOver(desk.deskId,posId) && desk.state == 1){
             desk.state = 0; //游戏结束
-            desk.deprecate_time = 0;
+            desk.deprecate_time = 30;
             desk.hadDeprecateGame = false;
             
             var score_list = {};

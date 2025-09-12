@@ -282,7 +282,7 @@ const proto = {
     // console.log('胜利',roomId,tag,posId);
     const desk = this.getDeskById(roomId);
     desk.state = 0;
-    desk.deprecate_time = 0;
+    desk.deprecate_time = 30;
     desk.hadDeprecateGame = false;
 
     if(desk.play_mode == 1) { // 人人对战
@@ -445,7 +445,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           var name = userObj.name;
           userObj.uid = 0;
