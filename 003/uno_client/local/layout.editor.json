@@ -99,7 +99,9 @@
         "timeline",
         "inspector"
       ]
-    }
+    },
+    "worker": {},
+    "window-1757591820011": {}
   },
   "panels": {
     "sprite-editor": {

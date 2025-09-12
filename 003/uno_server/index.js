@@ -585,12 +585,22 @@ const proto = {
   },
   clearRoomByUid:function(uid){
     var deskId = 0;
+    var isFind = false;
     for (let i = 0; i < this.desks.length; i++) {
       var roomObj = this.desks[i];
       for (const socket_id in roomObj.ob_socket_map) {
-        //观众找到自己
+        //观众找到自己 观众要离开
         if(roomObj.ob_socket_map[socket_id].ouid == uid){
-          uid = roomObj.ob_socket_map[socket_id].uid; //重置一下uid 清一下玩家残留数据
+          let userObjNum = 0;
+          for (let j = 0; j < roomObj.positions.length; j++) {
+            var userObj = roomObj.positions[j];
+            if(userObj.uid > 0) userObjNum++;
+          }
+          //空房间 要顺便清一下房间内的玩家信息
+          if(userObjNum == 0 && isFind == false){
+            isFind = true;
+            deskId = roomObj.deskId;
+          }
         }
       }
       for (let j = 0; j < roomObj.positions.length; j++) {
