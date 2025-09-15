@@ -907,7 +907,7 @@ module.exports.validate_laizi = function(cards,laizis) {
         }
         //单顺子满足
         if(cards.length - find_shunzi == laizi_cards.length){
-            if (min_value + cards.length <= 14){
+            if (min_value + cards.length <= 15){
                 return {
                     status: true,
                     len: cards.length,
