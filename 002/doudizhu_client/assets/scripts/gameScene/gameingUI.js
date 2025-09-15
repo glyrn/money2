@@ -159,7 +159,6 @@ cc.Class({
             this.lab_warning.active = true;
 
             this.panel_loading.active = false;
-            console.log("this.panel_loading.active false")
         }else{
             this.lab_contents.active = true;
             this.lab_warning.active = false;

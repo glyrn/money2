@@ -373,6 +373,7 @@ cc.Class({
 
         var is_quit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count;
         this.panel_avators.node.active = this.btn_ready.active && !is_quit;
+        this.panel_avators.render();
         
         // this.btn_quit.active = false;
         this.avator_my.active = true;

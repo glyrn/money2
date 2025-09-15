@@ -17750,6 +17750,12 @@
       "__id__": 393
     },
     "_enabled": true,
+    "toggleBg": {
+      "__id__": 418
+    },
+    "toggleEffect": {
+      "__id__": 428
+    },
     "_id": "47fN2pn/ZHLIKJJDozE6uu"
   },
   {

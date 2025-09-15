@@ -635,7 +635,7 @@ const proto = {
 
             var room = self.desks[i];
             room.state = 1;//开始游戏
-            room.turn = 0;
+            room.turn = room.play_index %2 == 0 ? 1:0;
             self.broadCastRoom("GAME_START",self.desks[i].deskId,room.turn);
 
             room.play_index++;

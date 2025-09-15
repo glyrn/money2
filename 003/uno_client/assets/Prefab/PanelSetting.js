@@ -3,39 +3,24 @@ cc.Class({
     extends: cc.Component,
     name:"PanelSetting",
     properties: {
-        // bgMucic:cc.AudioSource,
-        // progressbar_bg:cc.ProgressBar,
-        // progressbar_effect:cc.ProgressBar,
+        toggleBg:cc.Toggle,
+        toggleEffect:cc.Toggle,
     },
-    // start:function(){
-    //     if (cc.sys.isBrowser && cc.sys.os === cc.sys.OS_IOS && cc.sys.isMobile) {
-
-    //         cc.game.on(cc.game.EVENT_SHOW, () => {
-    //             setTimeout(() => {
-    //                 cc.audioEngine.stopMusic();
-    //             }, 50);
-    //             setTimeout(() => {
-    //                 cc.playMusic("sound/bg",true,1);
-    //             }, 100);
-    //         });
-    //     }
-    // },
-    // onBtnReset:function(){
-    //     setTimeout(() => {
-    //         cc.audioEngine.stopAll();
-    //         cc.audioEngine.stopMusic();
-
-    //         // cc.audioEngine.stopAllEffects();
-    //     }, 50);
-    //     setTimeout(() => {
-    //         cc.playMusic("sound/bg",true,1);
-    //     }, 100);
-    // },
+    onLoad:function(){
+        if(cc.isPlayingGlobalBg == undefined){
+            cc.isPlayingGlobalBg = 1;
+        }
+        if(cc.isPlayingGlobalEffect == undefined){
+            cc.isPlayingGlobalEffect = 1;
+        }
+    },
     onBtnClose:function(){
         this.node.active = false;
     },
     onShowPanel:function(){
         this.node.active = true;
+        this.toggleBg.isChecked = cc.isPlayingGlobalBg == 1;
+        this.toggleEffect.isChecked = cc.isPlayingGlobalEffect == 1;
     },
     onToggleBg:function(toggle, customEventData){
 
@@ -59,12 +44,4 @@ cc.Class({
             cc.audioEngine.setEffectsVolume(0.01);
         }
     },
-    // onProgressBg:function(slider) {
-    //     this.progressbar_bg.progress = slider.progress;
-    //     cc.audioEngine.setMusicVolume(slider.progress);
-    // },
-    // onProgressEffect:function(slider) {
-    //     this.progressbar_effect.progress = slider.progress;
-    //     cc.audioEngine.setEffectsVolume(slider.progress);
-    // }
 });

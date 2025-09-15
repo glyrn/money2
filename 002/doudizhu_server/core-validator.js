@@ -895,25 +895,23 @@ module.exports.validate_laizi = function(cards,laizis) {
     if(!is_same_normal && cards.length >= 5){
 
         //尝试检测单顺子
-        let min_value = Math.min.apply(Math,normal_cards);
+        let max_value = Math.max.apply(Math,normal_cards);
         //单顺子
         let find_shunzi = 0;
         for (let i = 0; i < cards.length; i++) {
             for (const value in set_normal_check) {
-                if(value == min_value + i){
+                if(value == max_value - i && value < 15){
                     find_shunzi++;
                 }
             }
         }
         //单顺子满足
         if(cards.length - find_shunzi == laizi_cards.length){
-            if (min_value + cards.length <= 15){
-                return {
-                    status: true,
-                    len: cards.length,
-                    types: [{key:min_value,type:"ABCDE"}] 
-                };
-            }
+            return {
+                status: true,
+                len: cards.length,
+                types: [{key:max_value - cards.length+1,type:"ABCDE"}] 
+            };
         }
         //尝试检测双顺子
         if(hasMoreThan2 == false){

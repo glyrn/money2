@@ -1011,12 +1011,12 @@ function validate_laizi(cards,laizis){
     if(!is_same_normal && cards.length >= 5){
         
         //尝试检测单顺子
-        let min_value = Math.min.apply(Math,normal_cards);
+        let max_value = Math.max.apply(Math,normal_cards);
         //单顺子
         let find_shunzi = 0;
         for (let i = 0; i < cards.length; i++) {
             for (const value in set_normal_check) {
-                if(value == min_value + i){
+                if(value == max_value - i && value < 15){
                     find_shunzi++;
                 }
             }
@@ -1026,7 +1026,7 @@ function validate_laizi(cards,laizis){
             return {
                 status: true,
                 len: cards.length,
-                types: [{key:min_value,type:"ABCDE"}] 
+                types: [{key:max_value - cards.length+1,type:"ABCDE"}] 
             };
         }
         //尝试检测双顺子
@@ -1302,7 +1302,7 @@ var cards14 = [3,4,5,6,7];
 var cards15 = [10,10,10,5,5,8,8,8,2];
 var cards16 = [10,10,5,9,9,8,8,2,2];
 var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
-var cards18 = [10,10,10,8,3,3];
+var cards18 = [8,5,14,10,11,12,13];
 // console.log(validate_laizi(cards1,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));
