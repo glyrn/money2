@@ -32,7 +32,6 @@ app.all('*', function(req, res, next) {
 });
 
 const Game = require('./game.js');
-const { del } = require('request');
 function GameServer() {
 
   this.desks = this.createDeskList(150);
