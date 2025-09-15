@@ -32,6 +32,7 @@ app.all('*', function(req, res, next) {
 });
 
 const Game = require('./game.js');
+const { del } = require('request');
 function GameServer() {
 
   this.desks = this.createDeskList(150);
@@ -579,7 +580,7 @@ const proto = {
       desk.play_index = 0;
       desk.ready_count = -1;
       desk.ob_socket_map = {};
-      this.gameDatas[deskId] = null;
+      delete this.gameDatas[deskId];
     }
     return deskId;
   },
