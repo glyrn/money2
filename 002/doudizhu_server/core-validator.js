@@ -907,11 +907,13 @@ module.exports.validate_laizi = function(cards,laizis) {
         }
         //单顺子满足
         if(cards.length - find_shunzi == laizi_cards.length){
-            return {
-                status: true,
-                len: cards.length,
-                types: [{key:min_value,type:"ABCDE"}] 
-            };
+            if (min_value + cards.length <= 14){
+                return {
+                    status: true,
+                    len: cards.length,
+                    types: [{key:min_value,type:"ABCDE"}] 
+                };
+            }
         }
         //尝试检测双顺子
         if(hasMoreThan2 == false){
