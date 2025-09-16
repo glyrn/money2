@@ -20,17 +20,17 @@ cc.Class({
         this.img_net.active = data.connect_state === 0;
         this.img_ready.active = data.state === 2 && (globalData.gameMgr.roomState.state === 0 || globalData.gameMgr.roomState.state === 3);
 
-        if (this._avatarUrl != data.avatarUrl && data.avatarUrl != null && data.avatarUrl != '') {
+        if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
             var that = this;
 
             const exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg'];
-            const ext = data.avatarUrl.slice(data.avatarUrl.lastIndexOf('.'));
+            const ext = data.avatorUrl.slice(data.avatorUrl.lastIndexOf('.'));
             const is_image = exts.includes(ext.toLowerCase());
-            var url = is_image ? data.avatarUrl : data.avatarUrl + '?aa=aa.jpg';
+            var url = is_image ? data.avatorUrl : data.avatorUrl + '?aa=aa.jpg';
 
             cc.loader.load(url, function (err, img) {
                 if (!err) {
-                    that._avatarUrl = data.avatarUrl;
+                    that._avatorUrl = data.avatorUrl;
                     that.img_avatar.spriteFrame = new cc.SpriteFrame(img);
                 }
             });

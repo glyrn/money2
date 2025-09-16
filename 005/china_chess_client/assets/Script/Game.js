@@ -245,9 +245,10 @@ cc.Class({
 
         this.btn_ready.active = (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2) &&
             globalData.gameMgr.playerData.self.state < 2;
-        console.log("this.btn_ready.active ",this.btn_ready.active)
+
         var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count ;
         this.panel_avators.node.active = this.btn_ready.active && !isQuit;
+        this.panel_avators.render();
 
         this.btn_quit.active = false;
         this.avator_my.active = true;

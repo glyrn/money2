@@ -3,14 +3,24 @@ cc.Class({
     extends: cc.Component,
     name:"PanelSetting",
     properties: {
-
+        toggleBg:cc.Toggle,
+        toggleEffect:cc.Toggle,
     },
-
+    onLoad:function(){
+        if(cc.isPlayingGlobalBg == undefined){
+            cc.isPlayingGlobalBg = 1;
+        }
+        if(cc.isPlayingGlobalEffect == undefined){
+            cc.isPlayingGlobalEffect = 1;
+        }
+    },
     onBtnClose:function(){
         this.node.active = false;
     },
     onShowPanel:function(){
         this.node.active = true;
+        this.toggleBg.isChecked = cc.isPlayingGlobalBg == 1;
+        this.toggleEffect.isChecked = cc.isPlayingGlobalEffect == 1;
     },
     onToggleBg:function(toggle, customEventData){
 
@@ -34,5 +44,4 @@ cc.Class({
             cc.audioEngine.setEffectsVolume(0.01);
         }
     },
-
 });

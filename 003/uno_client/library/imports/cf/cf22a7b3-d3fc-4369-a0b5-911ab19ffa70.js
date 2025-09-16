@@ -170,6 +170,8 @@ cc.Class({
         cc.audioObj = audioObj;
       }
 
+      console.log("cc.isPlayingGlobalBg ", cc.isPlayingGlobalBg);
+
       if (cc.isPlayingGlobalBg === 0) {
         cc.audioObj.getComponent(cc.AudioSource).stop();
       }
@@ -288,6 +290,7 @@ cc.Class({
     this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2;
     var isQuit = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2;
     this.panel_avators.node.active = this.btn_ready.active && !isQuit;
+    this.panel_avators.render();
     this.btn_quit.active = false; // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 
     this.btn_score.active = false; //发送退出游戏事件
