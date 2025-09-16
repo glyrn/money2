@@ -82,12 +82,17 @@ cc.Class({
 
             //获取当前癞子
             var curLaiziCards = [];
+            //获取当前最大值牌
+            var curNormalMaxCard = 0;
             let laiziCards = globalData.gameMgr.posState.laizi.cards;
             playerData.cards.forEach(_card=>{
                 for(var laizi_card_key in laiziCards){
                     if(laiziCards[laizi_card_key].value == _card.value){
                         curLaiziCards.push(_card);
                     }
+                }
+                if(_card.value > curNormalMaxCard){
+                    curNormalMaxCard = _card.value;
                 }
             });
 
@@ -346,14 +351,20 @@ cc.Class({
                                 }
                             })
 
+                            //最多找补量
+                            var head_gap_len = 14 - curNormalMaxCard;
+                            console.log("head_gap_len:",head_gap_len)
                             //尝试找癞子补
                             if(select_card_list.length + remainLaiziCards.length >= globalData.gameMgr.roomState.ctxCard.len)
                             {
-                                is_find = true;
                                 let len = globalData.gameMgr.roomState.ctxCard.len - select_card_list.length;
-                                for (var _i = 0; _i < len; _i++) {
-                                    select_card_list.push(remainLaiziCards[_i]);
+                                if(len <= head_gap_len && len > 0){
+                                    is_find = true;
+                                    for (var _i = 0; _i < len; _i++) {
+                                        select_card_list.push(remainLaiziCards[_i]);
+                                    }
                                 }
+                                
                             }else{
                                 select_card_list = [];
                             }
