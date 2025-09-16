@@ -72,6 +72,50 @@ const gameMgr = function(){
             target_timer_value:0,
         }
     };
+    that.reset = function(){
+        that.playerData = {
+            left: {
+                uid:0,
+                state: 0,//0没人，1未准备 2准备
+                cards: [],
+                name: '',
+                avatarUrl:'',
+                score:500,
+                score_offset:0,
+                target_timer_value:0,
+            },
+            top: {
+                uid:0,
+                state: 0,//0没人，1未准备 2准备
+                cards: [],
+                name: '',
+                avatarUrl:'',
+                score:500,
+                score_offset:0,
+                target_timer_value:0,
+            },
+            right: {
+                uid:0,
+                state: 0,//0没人，1未准备 2准备
+                cards: [],
+                name: '',
+                avatarUrl:'',
+                score:500,
+                score_offset:0,
+                target_timer_value:0,
+            },
+            self: {
+                uid:0,
+                state: 0,//0没人，1未准备 2准备
+                cards: [],
+                name: '',
+                avatarUrl:'',
+                score:500,
+                score_offset:0,
+                target_timer_value:0,
+            }
+        };
+    }
     that.checkBeat = function(){
         if(that._checkBeatId) clearInterval(that._checkBeatId);
         that._checkBeatId = setInterval(() => {

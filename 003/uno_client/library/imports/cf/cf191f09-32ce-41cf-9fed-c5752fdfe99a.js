@@ -31,6 +31,7 @@ globalData.socketMgr.setEventlister(globalData.eventlister);
 globalData.socketMgr.setUtils(globalData.utils);
 globalData.gameMgr.setSocketMgr(globalData.socketMgr);
 globalData.gameMgr.setEventlister(globalData.eventlister);
+cc.globalData = globalData;
 var _default = globalData;
 exports["default"] = _default;
 module.exports = exports["default"];

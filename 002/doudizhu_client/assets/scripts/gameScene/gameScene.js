@@ -91,6 +91,7 @@ cc.Class({
         globalData.eventlister.on('GAME_OVER',function(){
             that.renderPlayerNode();
             that.renderCard();
+            that.panel_avators.render()
             that.globalSelfAnim.node.active = false;
         });
         globalData.eventlister.on('FORCE_EXIT_EV1',function(){
@@ -157,6 +158,7 @@ cc.Class({
                 audioObj.parent = that.node;
                 cc.audioObj = audioObj;
             }
+            console.log("cc.isPlayingGlobalBg ",cc.isPlayingGlobalBg)
             if(cc.isPlayingGlobalBg === 0){
                 cc.audioObj.getComponent(cc.AudioSource).stop();
             }

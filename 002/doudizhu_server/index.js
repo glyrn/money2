@@ -579,6 +579,7 @@ const proto = {
       desk.play_index = 0;
       desk.ready_count = -1;
       desk.ob_socket_map = {};
+      delete this.gameDatas[deskId];
     }
     return deskId;
   },

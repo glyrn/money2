@@ -154,6 +154,7 @@ cc.Class({
                 audioObj.parent = that.node;
                 cc.audioObj = audioObj;
             }
+            console.log("cc.isPlayingGlobalBg ",cc.isPlayingGlobalBg)
             if(cc.isPlayingGlobalBg === 0){
                 cc.audioObj.getComponent(cc.AudioSource).stop();
             }
@@ -274,7 +275,7 @@ cc.Class({
         var isQuit = globalData.gameMgr.is_quit
             && globalData.gameMgr.roomState.state == 2 ;
         this.panel_avators.node.active = this.btn_ready.active && !isQuit;
-        
+        this.panel_avators.render();
         this.btn_quit.active = false;
 
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;

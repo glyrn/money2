@@ -128,10 +128,13 @@ var socketMgr = function socketMgr() {
       _gameMgr.server_time = data.server_time;
       var playerData = data.playerData;
 
+      _gameMgr.reset();
+
       for (var i = 0; i < playerData.length; i++) {
         if (playerData[i]) {
           var key = _gameMgr.getPlayerDataKey(playerData[i].posId, data.posId);
 
+          console.log("key:", key, data.posId);
           _gameMgr.playerData[key] = playerData[i];
         }
       }

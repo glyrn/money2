@@ -156,7 +156,8 @@ cc.Class({
         
         var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count;
         this.panel_avators.node.active = this.btn_ready.active && !isQuit;
-
+        this.panel_avators.render();
+        
         this.btn_quit.active = false;
         for (let i = 0; i < this.playerNodes.length; i++) {
             if(globalData.gameMgr.playerData[i]){
