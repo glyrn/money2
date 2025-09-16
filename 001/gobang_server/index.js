@@ -782,8 +782,8 @@ const proto = {
               roomObj.score_list = [];
             }
             //从玩家1开始
-            roomObj.cur_posId = 1;
-            self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:1,play_index:roomObj.play_index});
+            roomObj.cur_posId = roomObj.play_index %2 == 0 ? 0:1;
+            self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:roomObj.cur_posId,play_index:roomObj.play_index});
           }
         }
       });
