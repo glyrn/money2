@@ -957,10 +957,10 @@ const proto = {
                     }
                   }
                   cards_list[i] = desk.positions[i].cards;
-                  score_list[i] = score;
+                  score_list[i] = -score;
                   score_total += score;
 
-                  ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
+                  ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:-score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
                 }
               }
               score_list[winer] = score_total;
@@ -974,12 +974,12 @@ const proto = {
               //找出是否有人累计超过特定分数
               var is_over_specific_score = false;
               var score_map = {};
+              for (let i = 0; i < desk.positions.length ; i++) {
+                score_map[desk.positions[i].uid] = parseInt(desk.positions[i].score);
+              }
               for (let i = 0; i < desk.score_list.length; i++) {
-                const ycscore_list = desk.score_list[i];
+                var ycscore_list = desk.score_list[i];
                 for (let j = 0; j < ycscore_list.length; j++) {
-                  if(!score_map[ycscore_list[j].uid]){
-                    score_map[ycscore_list[j].uid] = 0;
-                  }
                   score_map[ycscore_list[j].uid] += parseInt(ycscore_list[j].score);
                 }
               }
