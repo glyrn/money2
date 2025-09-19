@@ -970,9 +970,7 @@ const proto = {
               });
 
               console.log("游戏结束GAME_OVER")
-              self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list});
-              if(!desk.score_list) desk.score_list = [];
-              desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list})
+              
               //找出是否有人累计超过特定分数
               var is_over_specific_score = false;
               var score_map = {};
@@ -992,6 +990,11 @@ const proto = {
                 }
               }
 
+              self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list,is_quit:is_over_specific_score});
+              if(!desk.score_list) desk.score_list = [];
+              desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list})
+              
+              console.log("是否超过指定分数？",is_over_specific_score,desk.specific_score);
               if(is_over_specific_score >= desk.specific_score){
                 self.sendYcGameOver({
                   room_id:desk.name,
