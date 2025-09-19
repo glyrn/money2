@@ -160,22 +160,25 @@ cc.Class({
 
     var audioObj = cc.instantiate(this.audioTpl);
     audioObj.parent = that.node;
-    cc.audioObj = audioObj; // 监听游戏回到前台事件
+    cc.audioObj = audioObj;
 
-    cc.game.targetOff(that);
-    cc.game.on(cc.game.EVENT_SHOW, function () {
-      if (!cc.audioObj) {
-        var audioObj = cc.instantiate(that.audioTpl);
-        audioObj.parent = that.node;
-        cc.audioObj = audioObj;
-      }
+    if (cc.isPlayingGlobalBg === 0) {
+      cc.audioObj.getComponent(cc.AudioSource).stop();
+    } // 监听游戏回到前台事件
 
-      console.log("cc.isPlayingGlobalBg ", cc.isPlayingGlobalBg);
 
-      if (cc.isPlayingGlobalBg === 0) {
-        cc.audioObj.getComponent(cc.AudioSource).stop();
-      }
-    }, that);
+    cc.game.targetOff(that); // cc.game.on(cc.game.EVENT_SHOW, function(){
+    //     if(!cc.audioObj){
+    //         var audioObj = cc.instantiate(that.audioTpl);
+    //         audioObj.parent = that.node;
+    //         cc.audioObj = audioObj;
+    //     }
+    //     console.log("cc.isPlayingGlobalBg ",cc.isPlayingGlobalBg)
+    //     if(cc.isPlayingGlobalBg === 0){
+    //         cc.audioObj.getComponent(cc.AudioSource).stop();
+    //     }
+    // }, that);
+
     cc.game.on(cc.game.EVENT_HIDE, function () {
       if (cc.audioObj) {
         cc.audioObj.destroy();

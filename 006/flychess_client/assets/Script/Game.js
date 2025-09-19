@@ -166,7 +166,7 @@ cc.Class({
         }
 
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
-        this.lab_room.string = "版本:1.0.3 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "版本:1.0 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
 
         //发送退出游戏事件
         // if(isQuit){
@@ -280,19 +280,21 @@ cc.Class({
         var audioObj = cc.instantiate(this.audioTpl);
         audioObj.parent = that.node;
         cc.audioObj = audioObj;
-        
+        if(cc.isPlayingGlobalBg === 0){
+            cc.audioObj.getComponent(cc.AudioSource).stop();
+        }
         // 监听游戏回到前台事件
         cc.game.targetOff(that);
-        cc.game.on(cc.game.EVENT_SHOW, function(){
-            if(!cc.audioObj){
-                var audioObj = cc.instantiate(that.audioTpl);
-                audioObj.parent = that.node;
-                cc.audioObj = audioObj;
-            }
-            if(cc.isPlayingGlobalBg === 0){
-                cc.audioObj.getComponent(cc.AudioSource).stop();
-            }
-        }, that);
+        // cc.game.on(cc.game.EVENT_SHOW, function(){
+        //     if(!cc.audioObj){
+        //         var audioObj = cc.instantiate(that.audioTpl);
+        //         audioObj.parent = that.node;
+        //         cc.audioObj = audioObj;
+        //     }
+        //     if(cc.isPlayingGlobalBg === 0){
+        //         cc.audioObj.getComponent(cc.AudioSource).stop();
+        //     }
+        // }, that);
         cc.game.on(cc.game.EVENT_HIDE, function(){
             if(cc.audioObj){
                 cc.audioObj.destroy();

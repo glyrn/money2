@@ -145,20 +145,23 @@ cc.Class({
         var audioObj = cc.instantiate(this.audioTpl);
         audioObj.parent = that.node;
         cc.audioObj = audioObj;
+         if(cc.isPlayingGlobalBg === 0){
+            cc.audioObj.getComponent(cc.AudioSource).stop();
+        }
         
         // 监听游戏回到前台事件
         cc.game.targetOff(that);
-        cc.game.on(cc.game.EVENT_SHOW, function(){
-            if(!cc.audioObj){
-                var audioObj = cc.instantiate(that.audioTpl);
-                audioObj.parent = that.node;
-                cc.audioObj = audioObj;
-            }
-            console.log("cc.isPlayingGlobalBg ",cc.isPlayingGlobalBg)
-            if(cc.isPlayingGlobalBg === 0){
-                cc.audioObj.getComponent(cc.AudioSource).stop();
-            }
-        }, that);
+        // cc.game.on(cc.game.EVENT_SHOW, function(){
+        //     if(!cc.audioObj){
+        //         var audioObj = cc.instantiate(that.audioTpl);
+        //         audioObj.parent = that.node;
+        //         cc.audioObj = audioObj;
+        //     }
+        //     console.log("cc.isPlayingGlobalBg ",cc.isPlayingGlobalBg)
+        //     if(cc.isPlayingGlobalBg === 0){
+        //         cc.audioObj.getComponent(cc.AudioSource).stop();
+        //     }
+        // }, that);
         cc.game.on(cc.game.EVENT_HIDE, function(){
             if(cc.audioObj){
                 cc.audioObj.destroy();
@@ -259,7 +262,7 @@ cc.Class({
     renderRoomTitle(){
         var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
         this.lab_roomid.string = 
-            "版本1.1 局数:"+globalData.gameMgr.play_index +
+            "版本1.0 局数:"+globalData.gameMgr.play_index +
             "  特定分数:"+cc.args['specific_score'];
         if(distance > 0){
             const minutes = Math.floor((distance % ( 60 * 60)) /  60);

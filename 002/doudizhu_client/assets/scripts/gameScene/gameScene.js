@@ -149,20 +149,23 @@ cc.Class({
         var audioObj = cc.instantiate(this.audioTpl);
         audioObj.parent = that.node;
         cc.audioObj = audioObj;
-        
+        if(cc.isPlayingGlobalBg === 0){
+            cc.audioObj.getComponent(cc.AudioSource).stop();
+        }
+
         // 监听游戏回到前台事件
         cc.game.targetOff(that);
-        cc.game.on(cc.game.EVENT_SHOW, function(){
-            if(!cc.audioObj){
-                var audioObj = cc.instantiate(that.audioTpl);
-                audioObj.parent = that.node;
-                cc.audioObj = audioObj;
-            }
-            console.log("cc.isPlayingGlobalBg ",cc.isPlayingGlobalBg)
-            if(cc.isPlayingGlobalBg === 0){
-                cc.audioObj.getComponent(cc.AudioSource).stop();
-            }
-        }, that);
+        // cc.game.on(cc.game.EVENT_SHOW, function(){
+        //     if(!cc.audioObj){
+        //         var audioObj = cc.instantiate(that.audioTpl);
+        //         audioObj.parent = that.node;
+        //         cc.audioObj = audioObj;
+        //     }
+        //     console.log("cc.isPlayingGlobalBg ",cc.isPlayingGlobalBg)
+        //     if(cc.isPlayingGlobalBg === 0){
+        //         cc.audioObj.getComponent(cc.AudioSource).stop();
+        //     }
+        // }, that);
         cc.game.on(cc.game.EVENT_HIDE, function(){
             if(cc.audioObj){
                 cc.audioObj.destroy();
@@ -229,7 +232,7 @@ cc.Class({
     },
     renderRoom(){
         this.lab_roomid.string = 
-            "版本: 1.0.2 底分:"+globalData.gameMgr.base_score +
+            "版本: 1.0 底分:"+globalData.gameMgr.base_score +
             "  局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
         this.labTopCardScore.string = '';
     },

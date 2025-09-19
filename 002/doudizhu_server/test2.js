@@ -6,12 +6,17 @@ function selectTips(playerData){
 
         //获取当前癞子
         var curLaiziCards = [];
+        //获取当前最大值牌
+        var curNormalMaxCard = 0;
         let laiziCards = globalData.gameMgr.posState.laizi.cards;
         playerData.cards.forEach(_card=>{
             for(var laizi_card_key in laiziCards){
                 if(laiziCards[laizi_card_key].value == _card.value){
                     curLaiziCards.push(_card);
                 }
+            }
+            if(_card.value > curNormalMaxCard){
+                curNormalMaxCard = _card.value;
             }
         });
 
@@ -199,7 +204,7 @@ function selectTips(playerData){
                     }else if(globalData.gameMgr.roomState.ctxCard.type == "ABCDE" ||
                              globalData.gameMgr.roomState.ctxCard.type == 'AABBCC'
                     ){
-                        console.log("检查顺子")
+                        // console.log("检查顺子")
                         function findCardByValue(value){
                             var ret = null;
                             playerData.cards.forEach(_card => {
@@ -260,15 +265,19 @@ function selectTips(playerData){
                                     remainLaiziCards.push(__card);
                                 }
                             })
-
+                            //最多找补量
+                            var head_gap_len = 14 - curNormalMaxCard;
                             //尝试找癞子补
                             if(select_card_list.length + remainLaiziCards.length >= globalData.gameMgr.roomState.ctxCard.len)
                             {
-                                is_find = true;
                                 let len = globalData.gameMgr.roomState.ctxCard.len - select_card_list.length;
-                                for (var _i = 0; _i < len; _i++) {
-                                    select_card_list.push(remainLaiziCards[_i]);
+                                if(len <= head_gap_len && len > 0){
+                                    is_find = true;
+                                    for (var _i = 0; _i < len; _i++) {
+                                        select_card_list.push(remainLaiziCards[_i]);
+                                    }
                                 }
+                                
                             }else{
                                 select_card_list = [];
                             }
@@ -471,7 +480,7 @@ let globalData = {
             //     len:5,
             // },
             ctxCard:{
-                type:"AAABB",
+                type:"ABCDE",
                 key:9, //4455667788
                 len:5,
                 ctxPos:'left'
@@ -486,16 +495,17 @@ let globalData = {
         posState:{
             laizi:{
                 cards:[
-                    {value:5},
-                    {value:3}
+                    {value:10},
+                    {value:8}
                 ]
             },
             left:{
                 ctxCards:[
-                    {value:9},
-                    {value:9},
-                    {value:9},
-                    {value:8},
+                    // {value:14},
+                    {value:13},
+                    {value:12},
+                    {value:11},
+                    {value:10},
                     {value:8},
                 ]
             }
@@ -504,7 +514,7 @@ let globalData = {
 };
 
 let playerData = {
-    cards:[ {value:5}, {value:10},{value:10},{value:6},{value:6}]
+    cards:[ {value:8}, {value:13},{value:12},{value:11},{value:10},{value:8}]
     // cards:[{value:3},{value:3},{value:5},{value:6},{value:4},{value:6},{value:7}]
     // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }
