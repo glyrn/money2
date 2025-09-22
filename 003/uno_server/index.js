@@ -395,11 +395,11 @@ const proto = {
 
         if(desk.time_out > 0){
           desk.time_out--;
+          console.log("自动pass",desk.time_out)
         }else{ //时间到
 
           if(!desk.hadExecutePlayCard){
               desk.hadExecutePlayCard = true;
-
               this.makePass(desk,desk.cur_posId);
           }
         }
@@ -1058,6 +1058,8 @@ const proto = {
             desk.cards = self.createCards();
             desk.cur_posId = self.getRandomNumForRange(ready_count-1);
             desk.out_cards = [];
+            desk.time_out = 30;
+            desk.hadExecutePlayCard = false;
             desk.start_time = getTimeStamp();
             const top = self.getNumberCard(desk.cards);
             desk.out_cards.push(top);
