@@ -179,20 +179,6 @@ const proto = {
   },
   socketEmit:function(userObj,event,data){
     var saveData = _.cloneDeep(data);
-   
-    // if(userObj.socket){
-    //   var roomObj = this.getDesk(userObj.socket);
-    //   //下发观众数据
-    //   for (const socket_id in roomObj.ob_socket_map) {
-    //     //观众比玩家提前进游戏 随机观看一个玩家即可
-    //     if(roomObj.ob_socket_map[socket_id].uid == null){
-    //       roomObj.ob_socket_map[socket_id].uid = userObj.uid;
-    //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-    //     }else if(roomObj.ob_socket_map[socket_id].uid == userObj.uid){
-    //       roomObj.ob_socket_map[socket_id].socket.emit(event,saveData);
-    //     }
-    //   }
-    // }
 
     var roomObj = this.getDeskByUid(userObj.uid);
       //下发观众数据
@@ -217,73 +203,75 @@ const proto = {
     var x0 = tag % 15;
     var y0 = parseInt(tag / 15);
     //判断横向
-    var fiveCount = 0;
+    var fiveCountList = [];
     for(var x = 0;x < 15;x++){
 
       if((chequer[y0*15+x].state == checkState)){
-        fiveCount++;
-        if(fiveCount==5){
-          this.gameOver(roomId,tag,posId)
+        fiveCountList.push(y0*15+x);
+        if(fiveCountList.length==5){
+          this.gameOver(roomId,fiveCountList,posId)
           return true;
         }
       }else{
-        fiveCount=0;
+        fiveCountList = [];
       }
     }
     //判断纵向
-    fiveCount = 0;
+    fiveCountList = [];
     for(var y = 0;y < 15;y++){
       if(chequer[y*15+x0].state == checkState){
-        fiveCount++;
-        if(fiveCount==5){
-          this.gameOver(roomId,tag,posId)
+        fiveCountList.push(y*15+x0);
+        if(fiveCountList.length==5){
+          this.gameOver(roomId,fiveCountList,posId)
           return true;
         }
       }else{
-        fiveCount=0;
+        fiveCountList = [];
       }
     }
     //判断右上斜向
     var f = y0 - x0;
-    fiveCount = 0;
+    fiveCountList = [];
     for(var x = 0;x < 15;x++){
       if(f+x < 0 || f+x > 14){
         continue;
       }
       if(chequer[(f+x)*15+x].state == checkState){
-        fiveCount++;
-        if(fiveCount==5){
-          this.gameOver(roomId,tag,posId)
+        fiveCountList.push((f+x)*15+x);
+        if(fiveCountList.length==5){
+          this.gameOver(roomId,fiveCountList,posId)
           return true;
         }
       }else{
-        fiveCount=0;
+        fiveCountList = [];
       }
     }
     //判断右下斜向
     f = y0 + x0;
-    fiveCount = 0;
+    fiveCountList = [];
     for(var x = 0;x < 15;x++){
       if(f-x < 0 || f-x > 14){
         continue;
       }
       if(chequer[(f-x)*15+x].state == checkState){
-        fiveCount++;
-        if(fiveCount==5){
-          this.gameOver(roomId,tag,posId)
+        fiveCountList.push((f-x)*15+x);
+        if(fiveCountList.length==5){
+          this.gameOver(roomId,fiveCountList,posId)
           return true;
         }
       }else{
-        fiveCount=0;
+        fiveCountList = [];
       }
     }
   },
-  gameOver:function(roomId,tag,posId){
-    // console.log('胜利',roomId,tag,posId);
+  gameOver:function(roomId,fiveCountList,posId){
+    // console.log('胜利',roomId,fiveCountList,posId);
     const desk = this.getDeskById(roomId);
     desk.state = 0;
     desk.deprecate_time = 30;
     desk.hadDeprecateGame = false;
+    desk.time_out = 0;
+    desk.hadPlayChess = false;
 
     if(desk.play_mode == 1) { // 人人对战
       for (let i = 0; i < desk.positions.length; i++) {
@@ -319,7 +307,7 @@ const proto = {
     for (let i = 0; i < desk.chequer.length; i++) {
       desk.chequer[i].state = -1;
     }
-    this.broadCastRoom('GAME_OVER',desk.deskId,{winer:posId,score:10});
+    this.broadCastRoom('GAME_OVER',desk.deskId,{winer:posId,score:10,fiveCountList:fiveCountList});
     if(desk.play_index == desk.play_count){
       //发送给云村数据
       this.sendYcGameOver({
@@ -395,6 +383,8 @@ const proto = {
     desk.state = 0;
     desk.deprecate_time = 0;
     desk.hadDeprecateGame = false;
+    desk.time_out = 0;
+    desk.hadPlayChess = false;
     
     var ycscore_list = [];
     for (let i = 0; i < desk.positions.length; i++) {
@@ -419,7 +409,6 @@ const proto = {
   },
   // 定时任务
   gameSchedule:function(){
-    let self = this;
     for (let i = 0; i < this.desks.length; i++) {
       var desk = this.desks[i];
       //检测弃局
@@ -427,11 +416,23 @@ const proto = {
 
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
-          console.log(desk.deprecate_time)
+          console.log("弃局倒计时:",desk.deprecate_time)
         }else{ //时间到
 
           if(!desk.hadDeprecateGame){
               desk.hadDeprecateGame = true;
+
+            this.deprecateGame(desk);
+          }
+        }
+      //轮流
+      }else if(desk.state == 1 && desk.time_out > 0){
+        desk.time_out--;
+        if(desk.time_out > 0){
+          console.log("下棋倒计时:",desk.time_out)
+        }else{
+          if(!desk.hadPlayChess){
+              desk.hadPlayChess = true;
 
             this.deprecateGame(desk);
           }
@@ -463,6 +464,7 @@ const proto = {
           var isClean = true;
           // var winerPosId = 0;
           // var winerUserObj = null;
+          
           var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
              if(this.desks[i].positions[k].uid > 0 ){
@@ -581,6 +583,7 @@ const proto = {
       desk.name = '';
       desk.state = 0;
       desk.deprecate_time = 0;
+      desk.time_out = 0;
       desk.play_index = 0;
       desk.ready_count = -1;
       desk.ob_socket_map = {};
@@ -604,11 +607,15 @@ const proto = {
             
             //保存观众socket + uid
             roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
-
+            //重连恢复
+            socket.emit("SET_RECOVER_STATUS",{isRecover:true});
+            console.log(obj.name+" 观众恢复数据")
             for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
               var emitObj = userObj.recover_disconnect_data[k];
               socket.emit(emitObj.event,emitObj.data);
             }
+            socket.emit("SET_RECOVER_STATUS",{isRecover:false});
+
             break;
           }
         }
@@ -773,6 +780,9 @@ const proto = {
           if(isStartGame && roomObj.state == 0)
           {
             roomObj.state = 1;//开始游戏
+            roomObj.time_out = 90;
+            roomObj.hadPlayChess = false;
+
             roomObj.play_index++;
             if(roomObj.play_index > roomObj.play_count){
               roomObj.play_index -= roomObj.play_count;
@@ -783,7 +793,7 @@ const proto = {
             }
             //从玩家1开始
             roomObj.cur_posId = roomObj.play_index %2 == 0 ? 0:1;
-            self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:roomObj.cur_posId,play_index:roomObj.play_index});
+            self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:roomObj.cur_posId,play_index:roomObj.play_index,time_out:getTimeStamp()+roomObj.time_out});
           }
         }
       });
@@ -839,7 +849,11 @@ const proto = {
           if(!isOk){
             self.socketEmit(desk.positions[posId],'MESSAGE','该位置已有棋！');
           }else{
-            self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{posId:posId,tag:tag});
+
+            desk.time_out = 90;
+            desk.hadPlayChess = false;
+
+            self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{posId:posId,tag:tag,time_out:getTimeStamp()+desk.time_out});
             self.checkOver(desk.deskId,tag,posId);
           }
         }
