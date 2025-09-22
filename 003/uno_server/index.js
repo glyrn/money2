@@ -924,6 +924,7 @@ const proto = {
             // console.log("玩家["+desk.positions[self.getPosId(socket)].name+"] 手牌：",desk.positions[curPosId].cards);
             //判断游戏结束
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
+            //debug 
             if(desk.positions[curPosId].cards.length <= 0)
             {
               //重置状态
@@ -957,10 +958,10 @@ const proto = {
                     }
                   }
                   cards_list[i] = desk.positions[i].cards;
-                  score_list[i] = score;
+                  score_list[i] = -score;
                   score_total += score;
 
-                  ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
+                  ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:-score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
                 }
               }
               score_list[winer] = score_total;
@@ -971,19 +972,22 @@ const proto = {
 
               console.log("游戏结束GAME_OVER")
               
+              if(!desk.score_list) desk.score_list = [];
+              desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list})
               //找出是否有人累计超过特定分数
               var is_over_specific_score = false;
               var score_map = {};
+              for (let i = 0; i < desk.positions.length ; i++) {
+                score_map[desk.positions[i].uid] = parseInt(desk.positions[i].score);
+              }
+
               for (let i = 0; i < desk.score_list.length; i++) {
-                const ycscore_list = desk.score_list[i];
+                var ycscore_list = desk.score_list[i].score_list;
                 for (let j = 0; j < ycscore_list.length; j++) {
-                  if(!score_map[ycscore_list[j].uid]){
-                    score_map[ycscore_list[j].uid] = 0;
-                  }
+                  
                   score_map[ycscore_list[j].uid] += parseInt(ycscore_list[j].score);
                 }
               }
-
               for (const key in score_map) {
                 if(score_map[key] >= desk.specific_score){
                   is_over_specific_score = true;
@@ -991,8 +995,7 @@ const proto = {
               }
 
               self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list,is_quit:is_over_specific_score});
-              if(!desk.score_list) desk.score_list = [];
-              desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list})
+              
               
               console.log("是否超过指定分数？",is_over_specific_score,desk.specific_score);
               if(is_over_specific_score >= desk.specific_score){
