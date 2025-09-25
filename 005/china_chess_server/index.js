@@ -36,7 +36,7 @@ function GameServer() {
   this.desks = this.createDeskList(150);
   this.clients = {};
 
-  this.onlineUser = {}
+  // this.onlineUser = {}
 }
 function getCurrentIP() {
   const interfaces = os.networkInterfaces();
@@ -225,6 +225,8 @@ const proto = {
     desk.state = 0;
     desk.deprecate_time = 0;
     desk.hadDeprecateGame = false;
+    desk.time_out = 0;
+    desk.hadPlayChess = false;
 
     var ycscore_list = [];
     for (let i = 0; i < desk.positions.length; i++) {
@@ -267,6 +269,18 @@ const proto = {
             this.deprecateGame(desk);
           }
         }
+      //轮流
+      }else if(desk.state == 1 && desk.time_out > 0){
+        desk.time_out--;
+        if(desk.time_out > 0){
+          console.log("下棋倒计时:",desk.time_out)
+        }else{
+          if(!desk.hadPlayChess){
+              desk.hadPlayChess = true;
+
+            this.deprecateGame(desk);
+          }
+        }
       }
     }
   },
@@ -276,7 +290,7 @@ const proto = {
 
         var userObj = this.desks[i].positions[j];
 
-        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 10:180)){
+        if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           userObj.uid = 0;
@@ -607,44 +621,45 @@ const proto = {
 
       socket.on("PREPARE",function(){
 
-        var isStartGame = false;
-        for (let i = 0; i < self.desks.length; i++) {
+        var roomObj = self.getDesk(socket);
+        if(roomObj){
+          var isStartGame = false;
           var ready_count = 0;
 
-          for (let j = 0; j < self.desks[i].positions.length; j++) {
-            var userObj = self.desks[i].positions[j];
+          for (let j = 0; j < roomObj.positions.length; j++) {
+            var userObj = roomObj.positions[j];
             if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
-              self.desks[i].positions[j].state = 2;
+              roomObj.positions[j].state = 2;
             }
-            if(self.desks[i].positions[j].state == 2){
+            if(roomObj.positions[j].state == 2){
               ready_count++;
             }
           }
 
-          if(self.desks[i].play_mode == 0 && ready_count == 1){ //人机
+          if(roomObj.play_mode == 0 && ready_count == 1){ //人机
             isStartGame = true;
-          }else if(self.desks[i].play_mode == 1 && ready_count == 2){ //人人
+          }else if(roomObj.play_mode == 1 && ready_count == 2){ //人人
             isStartGame = true;
           }
       
-          self.broadCastRoom("PREPARE_SUCCESS",self.desks[i].deskId,self.getUid(socket));
+          self.broadCastRoom("PREPARE_SUCCESS",roomObj.deskId,self.getUid(socket));
 
-          if(isStartGame && self.desks[i].state == 0)
+          if(isStartGame && roomObj.state == 0)
           {
-            self.desks[i].state = 1;
+            roomObj.state = 1;//开始游戏
+            roomObj.time_out = 90;
+            roomObj.hadPlayChess = false;
 
-            var room = self.desks[i];
-            room.state = 1;//开始游戏
-            room.turn = room.play_index %2 == 0 ? 0:1;
-            self.broadCastRoom("GAME_START",self.desks[i].deskId,room.turn);
+            roomObj.turn = roomObj.play_index %2 == 0 ? 0:1;
+            self.broadCastRoom("GAME_START",roomObj.deskId,{posId:roomObj.turn,time_out:getTimeStamp()+roomObj.time_out});
 
-            room.play_index++;
-            if(room.play_index > room.play_count){
-              room.play_index -= room.play_count;
+            roomObj.play_index++;
+            if(roomObj.play_index > roomObj.play_count){
+              roomObj.play_index -= roomObj.play_count;
             }
             //重置成绩
-            if(room.play_index == 1){
-              room.score_list = [];
+            if(roomObj.play_index == 1){
+              roomObj.score_list = [];
             }
           }
         }
@@ -678,6 +693,9 @@ const proto = {
       socket.on('PLAY_CHESS', function(data){
         var desk = self.getDesk(socket);
         if(desk){
+          desk.time_out = 90;
+          desk.hadPlayChess = false;
+          data.time_out = getTimeStamp()+desk.time_out;
           self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,data);
         }
       });
@@ -713,7 +731,7 @@ const proto = {
               if (room.positions[i].state > 0 && room.positions[i].uid != uid) {
                 var room_target = room.positions[i];
                 if(room_target.socket){
-                  self.socketEmit(room_target,'RETRACK_CHESS_REQ');
+                  self.socketEmit(room_target,'RETRACK_CHESS_REQ',{posId:room_target.posId});
                 }
               }
             }
@@ -727,6 +745,8 @@ const proto = {
           room.state = 0;
           room.deprecate_time = 30;
           room.hadDeprecateGame = false;
+          room.time_out = 0;
+          room.hadPlayChess = false;
           
           var score_list = [];
           for (let i = 0; i < room.positions.length; i++) {
