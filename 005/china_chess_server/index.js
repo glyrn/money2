@@ -693,9 +693,11 @@ const proto = {
       socket.on('PLAY_CHESS', function(data){
         var desk = self.getDesk(socket);
         if(desk){
-          desk.time_out = 90;
-          desk.hadPlayChess = false;
-          data.time_out = getTimeStamp()+desk.time_out;
+          if(data.move == 1){
+            desk.time_out = 90;
+            desk.hadPlayChess = false;
+            data.time_out = getTimeStamp()+desk.time_out;
+          }
           self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,data);
         }
       });
