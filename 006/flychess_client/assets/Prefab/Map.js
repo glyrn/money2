@@ -60,7 +60,7 @@ cc.Class({
             this.pos1_places.push(this.all_places[idx]);
 
             // 绿色
-            var offset = 39;
+            var offset = 26;
             var idx = offset + i;
             if(idx > this.all_places.length -1){
                 idx -= this.all_places.length;
@@ -68,7 +68,7 @@ cc.Class({
             this.pos2_places.push(this.all_places[idx]);
 
             // 红色
-            var offset = 26;
+            var offset = 39;
             var idx = offset + i;
             if(idx > this.all_places.length -1){
                 idx -= this.all_places.length;
@@ -152,13 +152,13 @@ cc.Class({
         console.log("checkFlyHit",posId);
         var playerNode;
         if(posId == 0){ //黄色
-            playerNode = cc.find("Canvas/player4").getComponent("PlayerNode");
-        }else if(posId == 1){ //蓝色
             playerNode = cc.find("Canvas/player3").getComponent("PlayerNode");
-        }else if(posId == 2){ //红色
-            playerNode = cc.find("Canvas/player2").getComponent("PlayerNode");
-        }else if(posId == 3){ //绿色
+        }else if(posId == 1){ //蓝色
+            playerNode = cc.find("Canvas/player4").getComponent("PlayerNode");
+        }else if(posId == 2){ //绿色
             playerNode = cc.find("Canvas/player1").getComponent("PlayerNode");
+        }else if(posId == 3){ //红色
+            playerNode = cc.find("Canvas/player2").getComponent("PlayerNode");
         }
         var chress_idxs = playerNode.getMidStraightChress();
         for (const k in chress_idxs) {

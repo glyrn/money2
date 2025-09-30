@@ -2,6 +2,7 @@ import globalData from "./data/globalData.js"
 import PlayerNode from '../Prefab/PlayerNode.js'
 import Map from '../Prefab/Map.js'
 import PanelAvators from "../Prefab/PanelAvators"
+import Dice from "../Prefab/Dice.js"
 cc.Class({
     extends: cc.Component,
 
@@ -24,7 +25,8 @@ cc.Class({
             type:PlayerNode,
             default:null,
         },
-        dice:cc.Node,
+        button_dice:cc.Node,
+        dice:Dice,
         btn_ready:cc.Node,
         btn_quit:cc.Node,
         btn_score:cc.Node,
@@ -91,22 +93,24 @@ cc.Class({
         }
     },
     onGameStart(data){
-        console.log("游戏开始 开始骰：",data.posId)
+        console.log("游戏开始 开始骰：",data.posId,globalData.gameMgr.posId)
         this.reset()
         this.map.makeBomb(data.bomb_idxs)
         this.onShowTips("游戏开始 第"+globalData.gameMgr.play_index+"局");
         // this._cur_dice_idx = data.posId;
-        this.dice.active = globalData.gameMgr.posId == data.posId;
-        if(this.dice.active){
-            this.dice.getComponent(cc.Button).interactable = true;
-        }
-        this.dice.getComponent('Dice').isShow = true;
+        this.button_dice.active = globalData.gameMgr.posId == data.posId && !globalData.gameMgr.is_ob;
 
-        for (const i in globalData.gameMgr.playerData) {
-            if (globalData.gameMgr.playerData[i]){
-                this.playerNodes[globalData.gameMgr.playerData[i].posId].setTurnFlag(data.posId == i);
-            }
-        }
+        // if(this.dice.active){
+        //     this.dice.getChildByName("img_bg").getComponent(cc.Button).interactable = true;
+        // }
+        this.dice.isShow = true;
+
+        // for (const i in globalData.gameMgr.playerData) {
+        //     if (globalData.gameMgr.playerData[i]){
+        //         this.playerNodes[globalData.gameMgr.playerData[i].posId].setTurnFlag(data.posId == i);
+        //     }
+        // }
+        // this.dice.resetPosition(data.posId);
 
         this.render()
         this.btn_quit.active = false;
@@ -118,8 +122,11 @@ cc.Class({
 
         this.panel_game_over.active = !globalData.gameMgr.isRecover;
         // this.btn_score.active = true;
-        this.dice.active = false;
-        this.dice.getComponent('Dice').isShow = false;
+        this.button_dice.active = false;
+        for (let i = 0; i < this.playerNodes.length; i++) {
+            this.playerNodes[i].cleanDice();
+        }
+        this.dice.isShow = false;
 
         this._cur_score_idx = globalData.gameMgr.score_list.length -1;
         this.renderScorePanel()
@@ -129,9 +136,10 @@ cc.Class({
         var that = this;
         console.log("MakeDiceNumSuccess 骰子： ",data.num)
         if(!cc.gameInBackgroud){
-            this.showDiceNum(data.num,function(){
+            this.showDiceNum(data.num,data.posId,function(){
                 that.playerNodes[data.posId].render()
                 that.playerNodes[data.posId].showCtrlCircle(data.num);
+                // that.playerNodes[data.posId].
             });
         }
     },
@@ -166,7 +174,7 @@ cc.Class({
         }
 
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
-        this.lab_room.string = "版本:1.0 局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
+        this.lab_room.string = "局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
 
         //发送退出游戏事件
         // if(isQuit){
@@ -176,30 +184,25 @@ cc.Class({
     },
     renderScorePanel(){
         var data = globalData.gameMgr.score_list[this._cur_score_idx];
-        var lab_title = this.panel_game_over.getChildByName('lab_title').getComponent(cc.Label);
+        // var lab_title = this.panel_game_over.getChildByName('lab_title').getComponent(cc.Label);
         if(data.invalid == 1){
             // lab_title.string = "有玩家逃跑，本局无效";
             this.lab_warning.active = true;
             this.lab_contents.active = false;
 
             this.panel_loading.active = false;
-            console.log("this.panel_loading.active false")
         }else{
             this.lab_warning.active = false;
             this.lab_contents.active = true;
-
-            if(data.winer == globalData.gameMgr.posId){
-                lab_title.string = "恭喜，你赢了！";
-            }else{
-                lab_title.string = "你输了，加油~";
-            }
 
             for (let i = 0; i < 4; i++) {
                 var item = this.panel_game_over.getChildByName('container').getChildByName('player'+(i+1))
                 var playerData = globalData.gameMgr.playerData[i];
                 if(playerData && data.invalid != 1){
                     item.active = true;
-                    item.getComponent(cc.Label).string = playerData.name + " " + "+"+data.score_list[playerData.posId]+"分";
+                    playerData.score = data.score_list[playerData.posId];
+                    item.getComponent("AvatorMini").render(playerData);
+                    
                 }else{
                     item.active = false;
                 }
@@ -213,8 +216,8 @@ cc.Class({
 
         this.playerNodes = [this.player_node1,this.player_node2,this.player_node3,this.player_node4];
         // this.btn_ready.active = true;
-        this.dice.active = false;
-        this.dice.getComponent('Dice').isShow = false;
+        this.button_dice.active = false;
+        this.dice.isShow = false;
 
         globalData.eventlister.on('BACK_HOME',function(data){
             that.onBackHome(data)
@@ -304,7 +307,7 @@ cc.Class({
     },
 
 
-    showDiceNum(num,cbFunc) {
+    showDiceNum(num,posId,cbFunc) {
         console.log("showDiceNum")
         for (let i = 0; i < this.playerNodes.length; i++) {
             this.playerNodes[i].cleanDice();
@@ -313,10 +316,13 @@ cc.Class({
             this.playerNodes[i].resetChessSelectIcon();
         }
 
+        this.dice.resetPosition(posId);
+        this.playerNodes[posId].setTurnFlag(globalData.gameMgr.turn == posId);
+
         if(globalData.gameMgr.isRecover){
-            this.dice.getComponent("Dice").showNum(num,cbFunc)
+            this.dice.showNum(num,posId,cbFunc)
         }else{
-            this.dice.getComponent("Dice").playNum(num,cbFunc)
+            this.dice.playNum(num,posId,cbFunc)
         }
     },
 
@@ -325,17 +331,21 @@ cc.Class({
         this._isCanMakeDiceLock = false;
         // console.log(data.posId)
         this.onShowTips("请【"+globalData.gameMgr.playerData[data.posId].name+"】骰筛子");
-        for (const i in globalData.gameMgr.playerData) {
-            this.playerNodes[globalData.gameMgr.playerData[i].posId].setTurnFlag(data.posId == i);
+        // for (const i in globalData.gameMgr.playerData) {
+        //     this.playerNodes[globalData.gameMgr.playerData[i].posId].setTurnFlag(data.posId == i);
+        // }
+        for (let i = 0; i < this.playerNodes.length; i++) {
+            this.playerNodes[i].cleanDice();
         }
+        this.dice.node.getChildByName("dice").active = false;
 
         console.log("轮到",data.posId,"  我是：",globalData.gameMgr.posId)
 
-        this.dice.active = globalData.gameMgr.posId == data.posId && !globalData.gameMgr.is_ob;
-        if(this.dice.active){
-            this.dice.getComponent(cc.Button).interactable = true;
-        }
-        this.dice.getComponent('Dice').isShow = true;
+        this.button_dice.active = globalData.gameMgr.posId == data.posId && !globalData.gameMgr.is_ob;
+        // if(this.dice.active){
+        //     this.dice.getChildByName("img_bg").getComponent(cc.Button).interactable = true;
+        // }
+        this.dice.isShow = true;
 
         for (let i = 0; i < this.playerNodes.length; i++) {
             this.playerNodes[i].resetChessSelectIcon();

@@ -125,10 +125,11 @@ const socketMgr = function(){
             if( _gameMgr.playerData[data.posId]){
                 _gameMgr.playerData[data.posId].dice = data.num;
             }
+            _gameMgr.time_out = data.time_out;
+            _gameMgr.time_out_limit = 30;
             _eventMgr.fire('MAKE_DICE_NUM_SUCCESS', data);
         })
         _socket.on('PLAY_MOVE_STEP_SUCCESS',function(data){
-            console.log("PLAY_MOVE_STEP_SUCCESS:!!",data)
             _eventMgr.fire('PLAY_MOVE_STEP_SUCCESS', data);
         })
 
@@ -148,6 +149,9 @@ const socketMgr = function(){
         })
 
         _socket.on('NEXT_PLAYER_DICE_SUCCESS',function(data){
+            _gameMgr.time_out = data.time_out;
+            _gameMgr.time_out_limit = 10;
+            _gameMgr.turn = data.posId;
             _eventMgr.fire("NEXT_PLAYER_DICE_SUCCESS",data);
         });
         _socket.on("FINISH_CHESS_SUCCESS",function(data){
@@ -160,10 +164,12 @@ const socketMgr = function(){
             if(_gameMgr.play_index > _gameMgr.play_count){
                 _gameMgr.play_index = 1;
             }
-
+            _gameMgr.turn = data.posId;
+            _gameMgr.time_out = data.time_out;
+            _gameMgr.time_out_limit = 10;
             _eventMgr.fire("GAME_START",data);
 
-            // //debug
+            //debug
             // that.finish_chess(0,0);
             // that.finish_chess(0,1);
             // that.finish_chess(0,2);

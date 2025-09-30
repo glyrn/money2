@@ -7,8 +7,8 @@ cc.Class({
             type: cc.Enum({
                 yellow: 0,
                 blue: 1,
-                red: 2,
-                green: 3,
+                green: 2,
+                red: 3,
             }),
             default:0,
         },
@@ -17,19 +17,21 @@ cc.Class({
         lab_score:cc.Label,
         img_ready:cc.Node,
         chess_list:[cc.Node],
-        dice:cc.Sprite,
+        dice_bg:cc.Node,
         finish_tags:[cc.Node],
         standup_pos:cc.Node,
         map:cc.Node,
         posId:0,
-        flag:cc.Node,
         img_net_lost:cc.Node,
+        img_avator_light:cc.Sprite,
+        lab_timer:cc.Label,
+        node_timer:cc.Node,
     },
     name:"PlayerNode",
 
     onLoad(){
+        this.dice_bg.active = false;
         this.img_ready.active = false;
-        this.flag.active = false;
         this.chess_steps = {0:-1,1:-1,2:-1,3:-1};
         this.chess_status = {0:0,1:0,2:0,3:0}; //3完成 2进行中 1起机 0未起机
     },
@@ -492,10 +494,10 @@ cc.Class({
         return ret;
     },
     cleanDice(){
-        this.dice.node.active = false;
+        this.dice_bg.active = false;
     },
     setTurnFlag(isShow){
-        this.flag.active = isShow;
+         this.dice_bg.active = isShow;
     },
     reset(){
         this.chess_steps = {0:-1,1:-1,2:-1,3:-1};
@@ -517,17 +519,18 @@ cc.Class({
         if(data) {
             this.img_ready.active = data.state == 2 && globalData.gameMgr.roomState.state != 1;
             this.lab_name.string = globalData.utils.subStringResult(data.name,7);
-            this.lab_score.string = data.score + "分";
+            this.lab_score.string = data.score;
             this.img_net_lost.active = data.connect_state == 0;
 
-            if (data.dice && data.dice > 0) {
-                this.dice.node.active = true;
-                cc.loader.loadRes(data.dice.toString(), cc.SpriteFrame, function (error, spriteFrame) {
-                    that.dice.spriteFrame = spriteFrame;
-                });
-            } else {
-                this.dice.node.active = false;
-            }
+            // if (data.dice && data.dice > 0 && globalData.gameMgr.turn == this.posId) {
+            //     this.dice_bg.active = true;
+
+            //     // cc.loader.loadRes(data.dice.toString(), cc.SpriteFrame, function (error, spriteFrame) {
+            //     //     that.dice.spriteFrame = spriteFrame;
+            //     // });
+            // } else {
+            //     this.dice_bg.active = false;
+            // }
 
             if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
 
@@ -548,6 +551,25 @@ cc.Class({
                 });
             }
         }
-    }
+    },
+
+    update(){
+
+        if(this.posId == globalData.gameMgr.turn){
+            this.node_timer.active = true;
+            var now = Math.floor(new Date().getTime() / 1000);
+            var time_value = globalData.gameMgr.time_out - now;
+            // console.log("time_value ",time_value)
+            if(time_value >=0 ){
+                this.img_avator_light.fillRange = - (time_value/globalData.gameMgr.time_out_limit);
+                this.lab_timer.string = time_value;
+            }else{
+                this.node_timer.active = false;
+            }
+        }else{
+            this.node_timer.active = false;
+        }
+
+    },
 
 });

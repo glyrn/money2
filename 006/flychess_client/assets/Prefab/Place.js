@@ -8,8 +8,8 @@ cc.Class({
                 type: cc.Enum({
                     yellow: 0,
                     blue: 1,
-                    red: 2,
-                    green: 3,
+                    green: 2,
+                    red: 3,
                 }),
                 default:0,
             },

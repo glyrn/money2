@@ -8,47 +8,60 @@ cc.Class({
         spriteNum4:cc.SpriteFrame,
         spriteNum5:cc.SpriteFrame,
         spriteNum6:cc.SpriteFrame,
-        tips:cc.Node,
+        p0:cc.Node,
+        p1:cc.Node,
+        p2:cc.Node,
+        p3:cc.Node,
+        // tips:cc.Node,
+        button:cc.Button,
+        animation:cc.Animation,
+        sprite:cc.Sprite,
     },
     start(){
-        this.getComponent(cc.Animation).on('finished',  this.onFinished, this);
+        this.animation.on('finished',  this.onFinished, this);
     },
     onFinished(){
-        this.getComponent(cc.Sprite).spriteFrame = this['spriteNum'+this.show_num];
+        this.sprite.spriteFrame = this['spriteNum'+this.show_num];
 
         var that = this;
         this.scheduleOnce(function(){
             if(!that.isShow) {
-                that.tips.active = true;
-                that.node.active = false;
+                that.sprite.node.active = false;
+                that.animation.node.active = false;
             }
             if(that.cbFunc){
                 that.cbFunc()
             }
         },0.4)
     },
-    playNum(num,cbFunc){
-        this.getComponent(cc.Button).interactable = false;
-        this.node.active = true;
-        this.tips.active = false;
+    playNum(num,posId,cbFunc){
+        this.button.node.active = false;
+        this.animation.node.active = true;
+        // this.tips.active = false;
         this.show_num = num
         this.cbFunc = cbFunc;
-        this.getComponent(cc.Animation).play()
+        this.sprite.node.position = this['p'+posId].position;
+        this.animation.play()
     },
-    showNum(num,cbFunc){
-        this.getComponent(cc.Button).interactable = false;
-        this.node.active = true;
-        this.tips.active = false;
+    showNum(num,posId,cbFunc){
+        this.button.node.active = false;
+        this.animation.node.active = true;
+        // this.tips.active = false;
         this.show_num = num
         this.cbFunc = cbFunc;
+        this.sprite.node.position = this['p'+posId].position;
 
-        this.getComponent(cc.Sprite).spriteFrame = this['spriteNum'+this.show_num];
+        this.sprite.spriteFrame = this['spriteNum'+this.show_num];
         if(!this.isShow) {
-            this.tips.active = true;
-            this.node.active = false;
+            // this.tips.active = true;
+            this.animation.node.active = false;
         }
         if(this.cbFunc){
             this.cbFunc()
         }
+    },
+    resetPosition(posId){
+        this.sprite.node.active = true;
+        this.sprite.node.position = this['p'+posId].position;
     }
 })
