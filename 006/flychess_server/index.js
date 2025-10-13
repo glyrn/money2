@@ -500,10 +500,12 @@ const proto = {
             //保存观众socket + uid
             roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
 
+            socket.emit("SET_RECOVER_STATUS",{isRecover:true});
             for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
               var emitObj = userObj.recover_disconnect_data[k];
               socket.emit(emitObj.event,emitObj.data);
             }
+            socket.emit("SET_RECOVER_STATUS",{isRecover:false});
             break;
           }
         }
@@ -763,7 +765,10 @@ const proto = {
       socket.on('MAKE_DICE_NUM', function(){
         var posId = self.getPosId(socket);
         var num = self.getRandomNumForRange(5)+1;
+        //debug 
+        // num = 2;
         var desk = self.getDesk(socket);
+
         if(desk && desk.state == 1){
           desk.cur_dice_num = num;
           desk.time_out = 30;
