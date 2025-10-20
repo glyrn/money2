@@ -4,19 +4,26 @@ cc.Class({
     extends: cc.Component,
     name:"PlayerNode",
     properties: {
-        player_ready:cc.Node,
+        // player_ready:cc.Node,
         nickname_label:cc.Label,
         card_prefab:cc.Prefab,
         masterIcon:cc.Node,
         lab_pass:cc.Node,
-        clock_node:cc.Node,
-
-        lab_timer:cc.Label,
+        // clock_node:cc.Node,
         img_avatar:cc.Sprite,
         lab_score:cc.Label,
         lab_ratio:cc.Label,
-        plane_ratio:cc.Node,
+        // plane_ratio:cc.Node,
         img_net_lost:cc.Node,
+        node_timer:cc.Node,
+        img_avator_light:cc.Sprite,
+        lab_timer:cc.Label,
+        sp_flag_number0:cc.SpriteFrame,
+        sp_flag_number1:cc.SpriteFrame,
+        sp_flag_number2:cc.SpriteFrame,
+        sp_flag_number3:cc.SpriteFrame,
+        flag_number:cc.Sprite,
+        lab_card_len:cc.Label,
     },
 
     onLoad () {
@@ -674,17 +681,17 @@ cc.Class({
         return list;
     },
     render(playerData,roomState){
-        this.node.position = cc.v2(0,0)
         this.node.active = playerData.state > 0;
         // 准备状态
-        this.player_ready.active = playerData.state === 2 && (roomState.state === 0 || roomState.state === 3);
+        // this.player_ready.active = playerData.state === 2 && (roomState.state === 0 || roomState.state === 3);
 
-        this.nickname_label.string = globalData.utils.subStringResult(playerData.name,7);;
-        this.lab_score.string = playerData.score + '分';
-        this.lab_ratio.string = playerData.ratio + '倍';
+        var that = this;
+
+        this.nickname_label.string = playerData.name;
+        this.lab_score.string = playerData.score;
+        this.lab_ratio.string = this.flag == 'self' ? playerData.ratio + '倍' : "";
         if(this._avatarUrl != playerData.avatarUrl && playerData.avatarUrl != null && playerData.avatarUrl != '')
         {
-            var that = this;
             // var avatorUrl;
             // if(window.defines.serverUrl == 'localhost:8001'){
             //     avatorUrl = this._avatarUrl;
@@ -706,20 +713,30 @@ cc.Class({
         }
 
         this.masterIcon.active = playerData.isDizhu;
+        if(playerData.callScore >= 0 && roomState.state == 1){
+            this.flag_number.node.active = true;
+            this.flag_number.spriteFrame = this['sp_flag_number'+playerData.callScore];
+        }else{
+            this.flag_number.node.active = false;
+        }
+        
         this.lab_pass.active = playerData.isPass;
-        this.plane_ratio.active = this.flag == 'self';
+        // this.plane_ratio.active = this.flag == 'self';
         this.img_net_lost.active = playerData.connect_state == 0;
 
         this.renderClock(roomState);
     },
 
     renderClock(roomState){
-        var now = Date.parse(new Date()) / 1000;
-        if(this.flag == roomState.ctxPos && this.flag != 'self'){
-            this.clock_node.active = true;
-            this.lab_timer.string = Math.max(0,roomState.server_time + roomState.timeout - now);
+        var now_ts = (new Date().getTime() / 1000);
+        if(this.flag == roomState.ctxPos){
+            this.node_timer.active = true;
+            var time_value = Math.max(0,roomState.server_time + roomState.timeout - Math.floor(now_ts));
+            var time_value_ts = roomState.server_time + roomState.timeout - now_ts;
+            this.lab_timer.string = time_value;
+            this.img_avator_light.fillRange = - (time_value_ts/roomState.timeout);
         }else {
-            this.clock_node.active = false;
+            this.node_timer.active = false;
         }
     },
     renderCard(flag,playerData,roomState) {
@@ -732,17 +749,27 @@ cc.Class({
         for(var i=0;i<this._cardNodeList.length;i++){
             this._cardNodeList[i].active = false;
         }
-
-        let total_width = playerData.cards.length * 48;
-        let total_height = playerData.cards.length * 20;
+        if(flag != 'self'){
+            this.lab_card_len.string = playerData.cards.length > 0 ? playerData.cards.length : "";
+        }
+        let total_width = playerData.cards.length * 56;
+        // let total_height = playerData.cards.length * 16;
         for (let i = 0; i < playerData.cards.length; i++) {
 
             let card = playerData.cards[i];
 
             if(flag == 'self'){
-                this._cardNodeList[i].position = cc.v2(i * 48+base_pos.x - total_width/2,base_pos.y)
-            }else{
-                this._cardNodeList[i].position = cc.v2(base_pos.x,base_pos.y + total_height/2 - i*20)
+                this._cardNodeList[i].setContentSize(148,200);
+                this._cardNodeList[i].setRotation(0);
+                this._cardNodeList[i].position = cc.v2( 28 + i * 56+base_pos.x - total_width/2,base_pos.y)
+            }else if(flag == 'left'){
+                this._cardNodeList[i].setContentSize(148*0.5,200*0.5);
+                // this._cardNodeList[i].setRotation(90);
+                this._cardNodeList[i].position = cc.v2(base_pos.x,base_pos.y /*- total_height/2 + i*16*/)
+            }else if(flag == 'right'){
+                this._cardNodeList[i].setContentSize(148*0.5,200*0.5);
+                // this._cardNodeList[i].setRotation(90);
+                this._cardNodeList[i].position = cc.v2(base_pos.x,base_pos.y /*+ total_height/2 - i*16*/)
             }
 
             if(flag == "self")
@@ -763,17 +790,26 @@ cc.Class({
         //-------------------------------------------------------------
 
         //出牌
+        let gap = 42;
+        let total_out_width = playerData.ctxCards.length * gap;
         for(var i=0;i<this._cardOutList.length;i++){
             this._cardOutList[i].active = false;
         }
-
+        
         for (let i = 0; i < playerData.ctxCards.length; i++) {
             let card = playerData.ctxCards[i];
 
-            let gap = 30;
-            this._cardOutList[i].position = cc.v2(i * gap+base_out_pos.x,0+base_out_pos.y)
             this._cardOutList[i].active = !playerData.isPass;
             this._cardOutList[i].getComponent('Card').render('none',card);
+
+            if(flag == "self")
+            {
+                this._cardOutList[i].position = cc.v2(21 + i * gap+base_out_pos.x - total_out_width /2,base_out_pos.y)
+            }else if(flag == "left"){
+                this._cardOutList[i].position = cc.v2(21 + i * gap+base_out_pos.x,base_out_pos.y)
+            }else if(flag == "right"){
+                this._cardOutList[i].position = cc.v2(21 + i * gap+base_out_pos.x - total_out_width,base_out_pos.y)
+            }
         }
     },
     //检测是否有特效牌型

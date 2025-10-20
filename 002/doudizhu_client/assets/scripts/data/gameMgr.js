@@ -25,6 +25,7 @@ const gameMgr = function(){
     that.cards = [];
     that.isLaizi = 0;//是否癞子玩法
     that.base_score = 1;//底分
+    that.play_index = 0;
     that.play_count = 0; //局数
     that.score_list = [];
     that.lossBeatNums = 0; //丢失心跳次数
@@ -151,6 +152,9 @@ const gameMgr = function(){
                 1: 'left',
                 3: 'top',
             }
+        }
+        if(!that.posId){
+            that.posId = 0;
         }
         return mapping[that.posId][posId];
     }

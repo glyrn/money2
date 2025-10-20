@@ -15,7 +15,7 @@ cc.Class({
         globalData.eventlister.on('GAME_OVER2',function(){
             that.render();
         })
-        globalData.eventlister.on('FORCE_EXIT_EV2',function(){
+        globalData.eventlister.on('LOGIN_SUCCESS1',function(){
             that.render();
         });
     },
@@ -27,18 +27,17 @@ cc.Class({
 
         this.btn_ready.active = globalData.gameMgr.posState.self.state < 2;
        
-        var isQuit = globalData.gameMgr.roomState.state == 3 &&
-            globalData.gameMgr.play_index >= globalData.gameMgr.play_count &&
-            globalData.gameMgr.posState.self.state < 2 &&
-            !globalData.gameMgr.is_ob;
+        var is_visible = (globalData.gameMgr.roomState.state == 3 || globalData.gameMgr.roomState.state == 0) &&
+                         globalData.gameMgr.play_index < globalData.gameMgr.play_count;
         this.btn_quit.active = false;
         //发送退出游戏事件
-        console.log("isQuit ",isQuit)
-         this.panel_avators.active = this.btn_ready.active && !isQuit;
-        if(isQuit){
-            // window.parent.postMessage({'quitGame':1}, "*");
-            // console.log("发送退出事件")
-        }
+        // console.log("::::",globalData.gameMgr.roomState.state,globalData.gameMgr.play_index , globalData.gameMgr.play_count)
+        // console.log("isQuit ",isQuit)
+         this.panel_avators.active = is_visible;
+        // if(isQuit){
+        //     // window.parent.postMessage({'quitGame':1}, "*");
+        //     // console.log("发送退出事件")
+        // }
     },
     onBtnPrepare(){
         globalData.socketMgr.prepare();

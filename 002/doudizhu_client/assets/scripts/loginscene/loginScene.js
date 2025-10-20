@@ -1,18 +1,14 @@
 import globalData from "../globalData.js"
+import PanelLoading from "../../Prefab/PanelLoading"
 cc.Class({
     extends: cc.Component,
 
     properties: {
-        // lab_tips:cc.Label,
-        // img_loading:cc.Node,
-        // lab_debug:cc.Label,
-        // prog_bar:cc.ProgressBar,
+        panel_loading:PanelLoading,
     },
 
     onLoad () {
         cc.debug.setDisplayStats(false);
-
-        globalData.socketMgr.initSocket()
 
     },
     
@@ -35,6 +31,10 @@ cc.Class({
 
             cc.args = field;
             cc.args['lanuch_url'] = window.location.href;
+
+            that.panel_loading.showLoading(function(){
+                globalData.socketMgr.initSocket();
+            })
         }
     },
 

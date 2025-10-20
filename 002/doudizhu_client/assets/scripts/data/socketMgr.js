@@ -100,7 +100,7 @@ const socketMgr = function(){
             _gameMgr.server_time = data.server_time;
             var now = Math.floor(new Date().getTime() / 1000);
             _gameMgr.diff_time = now - data.server_time;
-
+            console.log("data.posInfos :",data.posInfos)
             for (const posId in data.posInfos) {
                 var pos = data.posInfos[posId];
                 _gameMgr.updatePosStatus(pos.posId, pos.state, pos.name,pos.avatorUrl,pos.score,pos.uid);
@@ -108,6 +108,7 @@ const socketMgr = function(){
             _gameMgr.posState.self.isDizhu = false;
             _eventMgr.fire("POS_STATUS_CHANGE");
             _eventMgr.fire("LOGIN_SUCCESS")
+            _eventMgr.fire("LOGIN_SUCCESS1")
 
             if(_cbLogin) {
                 _cbLogin();
@@ -169,6 +170,7 @@ const socketMgr = function(){
         _socket.on('CTX_USER_CHANGE', function (data) {
             _gameMgr.updateCtxInfo(_socket,data);
             _eventMgr.fire('CTX_USER_CHANGE');
+            _eventMgr.fire('CTX_USER_CHANGE1');
         });
 
         _socket.on('SHOW_TOP_CARD', function (data) {
@@ -300,8 +302,7 @@ const socketMgr = function(){
         _socket.on('GAME_OVER', function (data) {
             console.log("gameover",data)
             _gameMgr.startTimer(false);//停止计时器
-            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
-            _gameMgr.diff_time = 0;
+            
             _gameMgr.roomState.state = 3;
 
             if(_gameMgr.posState.left.state != 0) {
@@ -321,10 +322,21 @@ const socketMgr = function(){
             _gameMgr.posState.self.isPass = false;
             _gameMgr.posState.self.ratio = 0;
 
-            _eventMgr.fire('GAME_OVER',data);
-            _eventMgr.fire('GAME_OVER1',data);
-            _eventMgr.fire('GAME_OVER2',data);
-
+            if(_gameMgr.isShowingGlobalEffect){
+                setTimeout(() => {
+                    _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+                    _gameMgr.diff_time = 0;
+                    _eventMgr.fire('GAME_OVER',data);
+                    _eventMgr.fire('GAME_OVER1',data);
+                    _eventMgr.fire('GAME_OVER2',data);
+                }, 2000);
+            }else{
+                _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+                _gameMgr.diff_time = 0;
+                _eventMgr.fire('GAME_OVER',data);
+                _eventMgr.fire('GAME_OVER1',data);
+                _eventMgr.fire('GAME_OVER2',data);
+            }
             // _gameMgr.play_index++;
             _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
             console.log("game_over",_gameMgr.is_quit);

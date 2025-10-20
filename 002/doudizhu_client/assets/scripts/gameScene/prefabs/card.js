@@ -63,7 +63,7 @@ cc.Class({
     name:'Card',
     properties: {
         cards_sprite_atlas: cc.SpriteAtlas,
-        laizi_flag:cc.Node,
+        // laizi_flag:cc.Node,
 
         spSelected: cc.Node,
         touched: {
@@ -104,13 +104,13 @@ cc.Class({
         this.base_pos = this.node.position;
 
         this.node.getComponent(cc.Sprite).spriteFrame = this.cards_sprite_atlas.getSpriteFrame('card_'+card_map[card.value+'-'+card.type])
-        this.laizi_flag.active = false;
 
         let laiziCards = globalData.gameMgr.posState.laizi.cards;
         for(var laizi_card_key in laiziCards){
             var laizi_card = laiziCards[laizi_card_key];
             if(laizi_card.value == card.value){
-                this.laizi_flag.active = true;
+
+                this.node.getComponent(cc.Sprite).spriteFrame = this.cards_sprite_atlas.getSpriteFrame('laizi_'+card.value)
             }
         }
 

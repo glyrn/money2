@@ -1,4 +1,5 @@
 import globalData from "../globalData";
+import AvatorMini from "../prefabs/AvatorMini";
 
 cc.Class({
     extends: cc.Component,
@@ -10,14 +11,15 @@ cc.Class({
         playingUI_node:cc.Node,
         panel_tip:cc.Node,
         tipsLabel:cc.Label, //玩家出牌不合法的tips
-        playing_clock_label:cc.Label,
+        // playing_clock_label:cc.Label,
         panel_score:cc.Node,
         panel_ctrl:cc.Node,
         panel_gameover:cc.Node,
         btn_buchu:cc.Node,
-        lab_player1:cc.Label,
-        lab_player2:cc.Label,
-        lab_player3:cc.Label,
+        avator_mini_list : {
+            default:[],
+            type:[AvatorMini]
+        },
         lab_score1:cc.Label,
         lab_score2:cc.Label,
         lab_score3:cc.Label,
@@ -27,16 +29,17 @@ cc.Class({
         btn_score3:cc.Button,
         // btn_last_score:cc.Button,
         // btn_curr_score:cc.Button,
-        btn_score:cc.Node,
+        // btn_score:cc.Node,
         lab_contents:cc.Node,
         lab_warning:cc.Node,
-        btn_score_close:cc.Node, 
+        btn_continues:cc.Node, 
         panel_loading:cc.Node,
+
     },
 
     onLoad (){
         let that = this;
-        globalData.eventlister.on("CTX_USER_CHANGE",function(){
+        globalData.eventlister.on("CTX_USER_CHANGE1",function(){
             that.render();
         });
         globalData.eventlister.on('SHOW_TOP_CARD',function(){
@@ -63,14 +66,14 @@ cc.Class({
             that.render()
             that.pushGameOverData(param);
         })
-        globalData.eventlister.on("UPDATE_TIMER",function(){
-            that.renderClock()
-        });
+        // globalData.eventlister.on("UPDATE_TIMER",function(){
+        //     that.renderClock()
+        // });
         this.btn_scores = [this.btn_score1,this.btn_score2,this.btn_score3];
 
     },
     update(){
-        this.renderClock();
+        // this.renderClock();
     },
     start () {
         // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
@@ -107,10 +110,10 @@ cc.Class({
         this.renderGameOverPlane(this.current_play_index);
     },
 
-    renderClock(){
-        var now = Math.floor(Date.parse(new Date()) / 1000);
-        this.playing_clock_label.string = Math.max(0,globalData.gameMgr.roomState.server_time + globalData.gameMgr.roomState.timeout - now);
-    },
+    // renderClock(){
+    //     var now = Math.floor(Date.parse(new Date()) / 1000);
+    //     this.playing_clock_label.string = Math.max(0,globalData.gameMgr.roomState.server_time + globalData.gameMgr.roomState.timeout - now);
+    // },
     render(){
 
         let roomState = globalData.gameMgr.roomState;
@@ -131,10 +134,12 @@ cc.Class({
         //叫分按钮
         for (let i = 0; i < this.btn_scores.length; i++) {
             this.btn_scores[i].interactable = false;
+            this.btn_scores[i].node.opacity = 255*0.5;
 
             for (let j = 0; j < roomState.ctxScore.length; j++) {
                 if(roomState.ctxScore[j]-1 == i){
                     this.btn_scores[i].interactable = true;
+                    this.btn_scores[i].node.opacity = 255;
                 }
             }
         }
@@ -142,11 +147,12 @@ cc.Class({
         // this.renderClock();
     },
     renderTips(msg) {
-        this.panel_tip.active = true;
+        this.panel_tip.active = !globalData.gameMgr.isRecover;
         this.tipsLabel.string = msg;
         this.scheduleOnce(function () {
             this.panel_tip.active = false;
         }, 2);
+    
     },
     renderGameOverPlane(index){
 
@@ -157,31 +163,33 @@ cc.Class({
         if(data && data.invalid == 1){
             this.lab_contents.active = false;
             this.lab_warning.active = true;
-
+            this.btn_continues.active = false;
             this.panel_loading.active = false;
         }else{
             this.lab_contents.active = true;
             this.lab_warning.active = false;
+            var is_quit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count;
+            this.btn_continues.active = !is_quit;
             var isWin = data.winner.indexOf(globalData.gameMgr.posId) > -1;
-            this.lab_title.string = '第'+index+'局：'+ (isWin ? '恭喜你，你赢了' : '很遗憾，你输了');
+            this.lab_title.string =  isWin ? '恭喜你，你赢了' : '很遗憾，你输了';
         }
         var score = data.score * data.ratio * globalData.gameMgr.base_score;
 
-        var lab_names = [this.lab_player1,this.lab_player2,this.lab_player3];
+        var avator_mini_list = [this.avator_mini_list[0],this.avator_mini_list[1],this.avator_mini_list[2]];
         var lab_scores = [this.lab_score1,this.lab_score2,this.lab_score3];
 
         data.winner.forEach(function (id) {
             var direct = globalData.gameMgr.getDirectionByPosId(id);
-            lab_names.shift().string = globalData.gameMgr.posState[direct].name;
+            avator_mini_list.shift().render(globalData.gameMgr.posState[direct]);
             lab_scores.shift().string = '+'+(score / data.winner.length);
         });
         data.loser.forEach(function (id) {
             var direct = globalData.gameMgr.getDirectionByPosId(id);
-            lab_names.shift().string = globalData.gameMgr.posState[direct].name;
+            avator_mini_list.shift().render(globalData.gameMgr.posState[direct]);
             lab_scores.shift().string = '-'+(score / data.loser.length);
         });
 
-        this.btn_score_close.active = globalData.gameMgr.play_index < globalData.gameMgr.play_count;
+        // this.btn_score_close.active = globalData.gameMgr.play_index < globalData.gameMgr.play_count;
     },
     pushGameOverData(data) {
 
