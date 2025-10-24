@@ -32,6 +32,7 @@ var gameMgr = function gameMgr() {
   that.cards = [];
   that.play_count = 0; //局数
 
+  that.play_index = 0;
   that.score_list = [];
   that.lossBeatNums = 0; //丢失心跳次数
   //房间状态

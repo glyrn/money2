@@ -76,6 +76,10 @@ cc.Class({
       that.renderPlayer();
     });
 
+    _globalData["default"].eventlister.on("HIDE_CTRL_PLANE", function () {
+      that.panel_ctrl.active = false;
+    });
+
     _globalData["default"].eventlister.on("GAME_START", function (data) {
       that.reset();
       that.pushCardToDesk(data.top, -1);
@@ -149,6 +153,7 @@ cc.Class({
     _globalData["default"].eventlister.on("LOGIN_SUCCESS", function () {
       that.panel_loading.active = false;
       that.panel_avators.render();
+      that.renderRoom();
       that.renderPlayer();
     });
 
@@ -192,9 +197,9 @@ cc.Class({
 
     if (timer_value >= 0) {
       if (_globalData["default"].gameMgr.roomState.state == 1) {
-        this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
-        this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
-        this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color' + _globalData["default"].gameMgr.cur_out_color];
+        // this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
+        // this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
+        // this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color'+globalData.gameMgr.cur_out_color];
         this.isExecuteAutoPlay = false;
 
         if (timer_value == 0) {
@@ -238,6 +243,7 @@ cc.Class({
 
     var card = this._out_cards[this._out_cards.length - 1].getComponent('Card')._data;
 
+    console.log("card :", card);
     return this._player_list['self'].getComponent('Player').selectTips(card, only_check);
   },
   onBtnReady: function onBtnReady() {
@@ -279,28 +285,26 @@ cc.Class({
     this.panel_ctrl.active = _globalData["default"].gameMgr.roomState.state == 1 && !_globalData["default"].gameMgr.is_ob && _globalData["default"].gameMgr.playerData.self.posId == _globalData["default"].gameMgr.playerData.turn; //更新倒计时闹钟颜色
   },
   renderRoomTitle: function renderRoomTitle() {
-    var distance = _globalData["default"].gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
-    this.lab_roomid.string = "版本1.1 局数:" + _globalData["default"].gameMgr.play_index + "  特定分数:" + cc.args['specific_score'];
-
-    if (distance > 0) {
-      var minutes = Math.floor(distance % (60 * 60) / 60);
-      var seconds = Math.floor(distance % 60);
-      this.lab_roomid.string += " 倒计时:" + minutes + "分 " + seconds + "秒 ";
-    }
+    // var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
+    this.lab_roomid.string = "局数:" + _globalData["default"].gameMgr.play_index + "  特定分数:" + cc.args['specific_score']; // if(distance > 0){
+    //     const minutes = Math.floor((distance % ( 60 * 60)) /  60);
+    //     const seconds = Math.floor(distance % 60);
+    //     this.lab_roomid.string += " 倒计时:"+minutes + "分 " + seconds + "秒 ";
+    // }
   },
   renderRoom: function renderRoom() {
     this.renderRoomTitle();
-    this.btn_ready.active = (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2) && _globalData["default"].gameMgr.playerData.self.state < 2;
-    var isQuit = _globalData["default"].gameMgr.is_quit && _globalData["default"].gameMgr.roomState.state == 2;
-    this.panel_avators.node.active = this.btn_ready.active && !isQuit;
+    this.btn_ready.active = _globalData["default"].gameMgr.playerData.self.state < 2;
+    var is_visible = !_globalData["default"].gameMgr.is_quit && (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2);
+    this.panel_avators.node.active = is_visible;
     this.panel_avators.render();
     this.btn_quit.active = false; // this.btn_score.active = globalData.gameMgr.score_list.length > 0;
 
-    this.btn_score.active = false; //发送退出游戏事件
-
-    if (isQuit) {// window.parent.postMessage({'quitGame':1}, "*");
-      // console.log("发送退出事件")
-    }
+    this.btn_score.active = false; // //发送退出游戏事件
+    // if(isQuit){
+    //     // window.parent.postMessage({'quitGame':1}, "*");
+    //     // console.log("发送退出事件")
+    // }
   },
   renderPlayer: function renderPlayer() {
     // 刷新玩家头像
@@ -324,6 +328,7 @@ cc.Class({
     var deck_pos = this.img_deck.position;
     var node = cc.instantiate(this.card);
     node.parent = this.node.getChildByName('players_seat').getChildByName("card_container");
+    node.setScale(1.2, 1.2);
 
     function getRandomArbitrary(min, max) {
       return Math.random() * (max - min) + min;
@@ -424,7 +429,8 @@ cc.Class({
     var plus_nodes = [];
 
     var _loop = function _loop(i) {
-      //无动画
+      _globalData["default"].gameMgr.card_remain--; //无动画
+
       if (_globalData["default"].gameMgr.isRecover) {
         if (i == data.plus_num - 1) {
           that.renderPlayer(); // 轮到自己
@@ -548,21 +554,41 @@ cc.Class({
     if (data.invalid == 1) {
       this.lab_warninig.active = true;
       this.lab_items.active = false;
-      this.panel_loading.active = false;
-      console.log("this.panel_loading.active false");
+      this.panel_loading.active = false; // console.log("this.panel_loading.active false")
     } else {
       this.lab_warninig.active = false;
       this.lab_items.active = true;
+      var tmp_list = [];
+
+      for (var _posId in data.score_list) {
+        tmp_list.push({
+          posId: _posId,
+          score: data.score_list[_posId]
+        });
+      }
+
+      tmp_list.sort(function (a, b) {
+        return a.score < b.score ? 1 : -1;
+      });
 
       for (var i = 0; i < 4; i++) {
-        var label = this.panel_score.getChildByName('items').getChildByName('label' + i);
+        var item = this.panel_score.getChildByName('items').getChildByName('player' + i);
 
-        if (data.score_list[i] && _globalData["default"].gameMgr.getPlayerData(i)) {
-          label.active = true;
-          var option = i == data.winer ? "+" : "-";
-          label.getComponent(cc.Label).string = _globalData["default"].gameMgr.getPlayerData(i).name + " " + option + data.score_list[i] + "分";
+        if (tmp_list[i]) {
+          var posId = tmp_list[i].posId;
+          var score = tmp_list[i].score;
+
+          var playerData = _globalData["default"].gameMgr.getPlayerData(posId);
+
+          if (playerData) {
+            item.active = true;
+            playerData.score = score;
+            item.getComponent("AvatorMini").render(playerData);
+          } else {
+            item.active = false;
+          }
         } else {
-          label.active = false;
+          item.active = false;
         }
       }
     }

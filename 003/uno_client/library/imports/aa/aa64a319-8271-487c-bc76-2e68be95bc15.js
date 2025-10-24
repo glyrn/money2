@@ -15,19 +15,44 @@ cc.Class({
     lab_name: cc.Label,
     img_ready: cc.Node,
     lab_score: cc.Label,
-    img_net_lost: cc.Node
+    img_net_lost: cc.Node,
+    img_avator_light: cc.Sprite,
+    lab_timer: cc.Label,
+    node_timer: cc.Node
   },
   name: "Avator",
+  update: function update() {
+    if (this._posId == _globalData["default"].gameMgr.playerData.turn) {
+      this.node_timer.active = true;
+      var now_ts = new Date().getTime() / 1000;
+      var time_value = this._data.target_timer_value - Math.floor(now_ts);
+      ;
+      var time_value_ts = _globalData["default"].gameMgr.time_out - now_ts;
+
+      if (time_value >= 0) {
+        this.img_avator_light.fillRange = -(time_value_ts / 30);
+        this.lab_timer.string = time_value;
+      } else {
+        this.node_timer.active = false;
+
+        _globalData["default"].eventlister.fire("HIDE_CTRL_PLANE");
+      }
+    } else {
+      this.node_timer.active = false;
+    }
+  },
   render: function render(data) {
     if (data === null || data && data.uid === 0) {
       this.node.active = false;
       return;
     }
 
+    this._posId = data.posId;
+    this._data = data;
     this.node.active = true;
     this.img_ready.active = data.state == 2 && _globalData["default"].gameMgr.roomState.state != 1;
     this.img_net_lost.active = data.connect_state == 0;
-    this.lab_name.string = _globalData["default"].utils.subStringResult(data.name, 7);
+    this.lab_name.string = data.name;
     var offset_txt = '';
 
     if (data.score_offset > 0) {
@@ -36,7 +61,7 @@ cc.Class({
       offset_txt = "(" + data.score_offset + ")";
     }
 
-    this.lab_score.string = data.score + offset_txt + "分";
+    this.lab_score.string = data.score + offset_txt;
 
     if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
       var that = this; // var avatorUrl;

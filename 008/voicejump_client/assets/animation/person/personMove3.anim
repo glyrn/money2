@@ -1,6 +1,6 @@
 {
   "__type__": "cc.AnimationClip",
-  "_name": "personMove3",
+  "_name": "personMove2",
   "_objFlags": 0,
   "_native": "",
   "_duration": 0.26666666666666666,
@@ -14,25 +14,25 @@
           {
             "frame": 0,
             "value": {
-              "__uuid__": "f5cd88b4-90dc-4912-a1e6-fb1842491d16"
+              "__uuid__": "0368b4fc-d6ab-43ab-8c8d-d5a27a7ae5da"
             }
           },
           {
             "frame": 0.08333333333333333,
             "value": {
-              "__uuid__": "42480d26-7ee1-4251-94e8-8f7cf0e40ffb"
+              "__uuid__": "36d4cf0f-b66f-4098-8b12-7d5f61d2fb89"
             }
           },
           {
             "frame": 0.16666666666666666,
             "value": {
-              "__uuid__": "340ec69c-a82e-443a-96e7-5343f5f91978"
+              "__uuid__": "25a2ce07-033c-4304-b9b7-c40c54d3bcf5"
             }
           },
           {
             "frame": 0.25,
             "value": {
-              "__uuid__": "13c80a01-2e75-4b20-8b93-2392c5c452f2"
+              "__uuid__": "36d4cf0f-b66f-4098-8b12-7d5f61d2fb89"
             }
           }
         ]

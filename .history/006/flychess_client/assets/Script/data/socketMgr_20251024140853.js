@@ -1,0 +1,256 @@
+import globalData from "./globalData";
+
+const socketMgr = function(){
+    var that = {}
+
+    var _socket = null
+    var _gameMgr = null;
+    var _eventMgr = null;
+    var _utils = null;
+    var _cbLogin;
+
+    that.setGameMgr = function(gameMgr){
+        _gameMgr = gameMgr
+    },
+    that.setEventlister = function(eventMgr){
+        _eventMgr = eventMgr
+    },
+    that.setUtils = function(utils){
+        _utils = utils
+    },
+    that.reloadGameScene = function(){
+         _eventMgr.removeAllLister()
+            cc.director.preloadScene("Game",function(){},function() {
+                if (defines.isDebug || defines.serverUrl == 'www.g-xinyi1313.cn' || defines.isForce) {
+                    cc.director.loadScene("Game",function(){
+                        that.login(cc.args['uid'], cc.args['name'], cc.args['avatorUrl'], cc.args['score'], cc.args['room'],
+                        cc.args['play_mode'],cc.args['ready_count'], cc.args['play_count'],  cc.args['ob_uid'], function () {
+                            // clearTimeout(that._handler);
+                           
+                        });
+                    });
+                        
+                }else{
+                    console.log("用户信息")
+                    _utils.post(defines.yc_domain+"/client/alchemy/callback/checkSign",{sign:cc.args['sign']},function(isOk,data) {
+                        if (isOk) {
+                            console.log("用户信息",data)
+                            cc.director.loadScene("Game",function(){
+                                that.login(data.data.userId, data.data.nickname,data.data.avatar, cc.args['score'], cc.args['room'],
+                                cc.args['play_mode'],cc.args['ready_count'], cc.args['play_count'], cc.args['ob_uid'], function () {
+                                    // clearTimeout(that._handler);
+                                   
+                                });
+                            });
+                            
+                        
+                        }
+                    });
+                }
+            });
+    }
+    that.initSocket = function() {
+        var opts = {
+            'reconnection': true,
+            'reconnectionDelay': 1000,
+            'maxReconnectionAttempts': 100,
+            'force new connection': true,
+            'transports': ['websocket', 'polling'],
+        }
+        console.log(defines.serverUrl)
+        var protocol = ''
+        if(defines.isDebug){
+            protocol = 'ws://';
+        }else{
+            opts['path'] = '/fxq_socket.io';
+            protocol = 'wss://';
+        }
+        console.log(protocol+defines.serverUrl)
+        _socket = window.io.connect(protocol+defines.serverUrl, opts);
+        _socket.on('connect', () => {
+            console.log('Connected to the server!');
+
+            that.reloadGameScene();
+
+        });
+        _socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+        });
+        _socket.on('connect_timeout', (timeout) => {
+            console.error('Connection timeout:', timeout);
+        });
+        _socket.on('ping', function (data) {
+            //心跳
+            _socket.emit('pong', {beat: 1});
+
+            _gameMgr.lossBeatNums--;
+        });
+        _socket.on("MESSAGE", function (msg) {
+            _eventMgr.fire('MESSAGE', msg);
+            if(_gameMgr.isRecover) return;
+            console.log("MESSAGE:" + msg);
+        });
+
+        _socket.on('PREPARE_SUCCESS',function(posId){
+            if(_gameMgr.playerData[posId]){
+                _gameMgr.playerData[posId].state = 2;
+            }
+            _eventMgr.fire('PREPARE_SUCCESS',posId);
+        });
+        _socket.on("LOGIN_SUCCESS", function (data) {
+
+            _gameMgr.playerData = JSON.parse(JSON.stringify(data.playerData));
+            _gameMgr.roomState.roomId = data.roomId;
+            _gameMgr.play_mode = data.play_mode;
+            _gameMgr.posId = data.posId;
+            _gameMgr.play_index = 0;
+            _gameMgr.play_count = data.play_count;
+            _gameMgr.server_time = data.server_time;
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.diff_time = now - data.server_time;
+            
+            // console.log(_gameMgr.playerData)
+            // _gameMgr.checkBeat();
+            _eventMgr.fire("LOGIN_SUCCESS");
+            if (_cbLogin) {
+                _cbLogin();
+            }
+        });
+        _socket.on("SET_RECOVER_STATUS",function(data){
+            _gameMgr.isRecover = data.isRecover;
+            _eventMgr.fire("SET_RECOVER_STATUS");
+        });
+
+        _socket.on("MAKE_DICE_NUM_SUCCESS",function(data){
+            if( _gameMgr.playerData[data.posId]){
+                _gameMgr.playerData[data.posId].dice = data.num;
+            }
+            _gameMgr.time_out = data.time_out;
+            _gameMgr.time_out_limit = 30;
+            _eventMgr.fire('MAKE_DICE_NUM_SUCCESS', data);
+        })
+        _socket.on('PLAY_MOVE_STEP_SUCCESS',function(data){
+            _eventMgr.fire('PLAY_MOVE_STEP_SUCCESS', data);
+        })
+
+        _socket.on("SIT_CHANGE",function(data){
+
+            _gameMgr.playerData = JSON.parse(JSON.stringify(_gameMgr.playerData));
+            //对手逃跑 重置游戏
+            if(data.target == null){
+                // _gameMgr.playerData[data.posId] = null;
+
+                _gameMgr.roomState.state = 0;
+            }else{
+                _gameMgr.playerData[data.posId] = data.target;
+            }
+            console.log(data,_gameMgr.playerData)
+            _eventMgr.fire("SIT_CHANGE",data)
+        })
+
+        _socket.on('NEXT_PLAYER_DICE_SUCCESS',function(data){
+            _gameMgr.time_out = data.time_out;
+            _gameMgr.time_out_limit = 10;
+            _gameMgr.turn = data.posId;
+            _eventMgr.fire("NEXT_PLAYER_DICE_SUCCESS",data);
+        });
+        _socket.on("FINISH_CHESS_SUCCESS",function(data){
+            _eventMgr.fire("FINISH_CHESS_SUCCESS",data);
+        })
+        _socket.on('GAME_START',function(data){
+            _gameMgr.roomState.state = 1;//进行中
+
+            _gameMgr.play_index++;
+            if(_gameMgr.play_index > _gameMgr.play_count){
+                _gameMgr.play_index = 1;
+            }
+            _gameMgr.turn = data.posId;
+            _gameMgr.time_out = data.time_out;
+            _gameMgr.time_out_limit = 10;
+            _eventMgr.fire("GAME_START",data);
+
+            //debug
+            that.finish_chess(0,0);
+            that.finish_chess(0,1);
+            that.finish_chess(0,2);
+            that.finish_chess(0,3);
+        })
+
+        _socket.on('GAME_OVER',function(data){
+            _gameMgr.roomState.state = 2;
+            _gameMgr.diff_time = 0;
+            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+            for (const posId in _gameMgr.playerData) {
+                if(_gameMgr.playerData[posId]){
+                    _gameMgr.playerData[posId].score = data.invalid == 1 ? 0 : data.score_list[posId];
+                    _gameMgr.playerData[posId].state = 1;
+                }
+            }
+
+            _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
+            _eventMgr.fire("GAME_OVER",data);
+        });
+
+        _socket.on("CONNECT_STATE",function(data){
+            if(_gameMgr.playerData[data.posId]){
+                _gameMgr.playerData[data.posId].connect_state = data.state;
+            }
+            _eventMgr.fire('CONNECT_STATE',data);
+        });
+
+        cc.game.targetOff(that);
+        cc.game.on(cc.game.EVENT_HIDE, function(){
+            console.log("进入后台")
+            _eventMgr.removeAllLister();
+            _socket.close();
+        },that);
+        cc.game.on(cc.game.EVENT_SHOW, function(){
+            console.log("回来前台")
+            that.initSocket();
+        },that);
+    }
+
+    that.login = function(uid,name,avatorUrl,score,room,play_mode,ready_count,play_count,ob_uid,cbFunc){
+        _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,play_mode:play_mode,ready_count:ready_count,play_count:play_count,ob_uid:ob_uid,lanuch_url:cc.args['lanuch_url']});
+        _cbLogin = cbFunc;
+        //是否旁观
+        _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;
+    }
+    that.checkIsObserve = function(){
+        if(_gameMgr.is_ob){
+            _eventMgr.fire('MESSAGE', "旁观中，不能操作游戏");
+        }
+        return _gameMgr.is_ob;
+    }
+    that.prepare = function(){
+        if(that.checkIsObserve()) return;
+        _socket.emit('PREPARE');
+    }
+    that.makeDiceNum = function(){
+        if(that.checkIsObserve()) return;
+        if(_gameMgr.isRecover) return;
+        _socket.emit('MAKE_DICE_NUM');
+    }
+    that.playMoveStep = function(chess_idx,num){
+        if(that.checkIsObserve()) return;
+        if(_gameMgr.isRecover) return;
+        _socket.emit('PLAY_MOVE_STEP', {idx:chess_idx,num:num});
+    }
+    that.nextPlayerDice = function(){
+        if(that.checkIsObserve()) return;
+        if(_gameMgr.isRecover) return;
+        _socket.emit('NEXT_PLAYER_DICE');
+    }
+    that.finish_chess = function(posId,chess_idx){
+        if(that.checkIsObserve()) return;
+        _socket.emit('FINISH_CHESS', {posId:posId,idx:chess_idx});
+    }
+
+    that.getSocket = function(){
+        return _socket;
+    }
+
+    return that
+}
+
+export default socketMgr

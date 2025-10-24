@@ -1,0 +1,1 @@
+D:/CocosCreater/editors/Creator/2.3.2/CocosCreator.exe --path D:/workspace/gamelist/yckj_lj_game/001/gobang_client --build "platform=web-mobile;debug=false"
