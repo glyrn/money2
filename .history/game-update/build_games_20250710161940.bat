@@ -1,0 +1,12 @@
+@REM D:/CocosCreater/editors/Creator/2.3.2/CocosCreator.exe --path D:/workspace/gamelist/yckj_lj_game/001/gobang_client --build "platform=web-mobile;debug=false;embedWebDebugger=true;md5Cache=true;"
+@REM "C:/Program Files/7-Zip/7z.exe" a D:/workspace/gamelist\yckj_lj_game/001/gobang_client/build/001.zip D:/workspace/gamelist/yckj_lj_game/001/gobang_client/build/web-mobile
+@REM D:/CocosCreater/editors/Creator/2.3.2/CocosCreator.exe --path D:/workspace/gamelist/yckj_lj_game/002/doudizhu_client --build "platform=web-mobile;debug=false;embedWebDebugger=true;"
+@REM "C:/Program Files/7-Zip/7z.exe" a D:/workspace/gamelist\yckj_lj_game/002/doudizhu_client/build/002.zip D:/workspace/gamelist/yckj_lj_game/002/doudizhu_client/build/web-mobile
+@REM D:/CocosCreater/editors/Creator/2.3.2/CocosCreator.exe --path D:/workspace/gamelist/yckj_lj_game/003/uno_client --build "platform=web-mobile;debug=false;embedWebDebugger=true;"
+@REM "C:/Program Files/7-Zip/7z.exe" a D:/workspace/gamelist\yckj_lj_game/003/uno_client/build/003.zip D:/workspace/gamelist/yckj_lj_game/003/uno_client/build/web-mobile
+@REM D:/CocosCreater/editors/Creator/2.3.2/CocosCreator.exe --path D:/workspace/gamelist/yckj_lj_game/005/china_chess_client --build "platform=web-mobile;debug=false;embedWebDebugger=true;"
+@REM "C:/Program Files/7-Zip/7z.exe" a D:/workspace/gamelist\yckj_lj_game/005/china_chess_client/build/005.zip D:/workspace/gamelist/yckj_lj_game/005/china_chess_client/build/web-mobile
+@REM D:/CocosCreater/editors/Creator/2.3.2/CocosCreator.exe --path D:/workspace/gamelist/yckj_lj_game/006/flychess_client --build "platform=web-mobile;debug=false;embedWebDebugger=true;"
+@REM "C:/Program Files/7-Zip/7z.exe" a D:/workspace/gamelist\yckj_lj_game/006/flychess_client/build/006.zip D:/workspace/gamelist/yckj_lj_game/006/flychess_client/build/web-mobile
+@REM D:/CocosCreater/editors/Creator/2.4.12/CocosCreator.exe --path D:/workspace/gamelist/yckj_lj_game/008/voicejump_client --build "platform=web-mobile;debug=false;embedWebDebugger=true;"
+@REM "C:/Program Files/7-Zip/7z.exe" a D:/workspace/gamelist\yckj_lj_game/008/voicejump_client/build/008.zip D:/workspace/gamelist/yckj_lj_game/008/voicejump_client/build/web-mobile

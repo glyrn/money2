@@ -451,8 +451,7 @@ const proto = {
       score_list:desk.score_list,
     });
   },
-  makePass:function(desk,curPosId){
-    console.log("makePass")
+  _getPlusNum:function(desk){
     var plusNum = 0;
     var last_card = desk.out_cards[desk.out_cards.length - 1];
     if(!last_card) return;
@@ -480,6 +479,30 @@ const proto = {
     }else{
       plusNum = 1;
     }
+    return plusNum;
+  },
+   _getPlusPrepareNum:function(desk){
+    var plusNum = 0;
+    var last_card = desk.out_cards[desk.out_cards.length - 1];
+    if(!last_card) return 0;
+
+    for (let i = desk.out_cards.length - 1; i >= 0; i--) {
+      var v = desk.out_cards[i];
+      if(v.value == 'plus2' ){
+        if(!v.mark){
+          plusNum += 2;
+        }
+      }else if (v.value == 'plus4'){
+        if(!v.mark){
+          plusNum += 4;
+        }
+      }
+    }
+    return plusNum;
+  },
+  makePass:function(desk,curPosId){
+    console.log("makePass")
+    var plusNum = this._getPlusNum(desk);
 
     var userObj = desk.positions[curPosId];
     var nextPosId = this.getNextPosId(desk,curPosId);
@@ -648,11 +671,13 @@ const proto = {
             
             //保存观众socket + uid
             roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
-
+            
+            socket.emit("SET_RECOVER_STATUS",{isRecover:true});
             for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
               var emitObj = userObj.recover_disconnect_data[k];
               socket.emit(emitObj.event,emitObj.data);
             }
+            socket.emit("SET_RECOVER_STATUS",{isRecover:false});
             break;
           }
         }
@@ -917,7 +942,8 @@ const proto = {
               new_cards.push(_card);
             }
             desk.positions[curPosId].cards = new_cards;
-            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp()})
+            
+            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp(),plus_num:self._getPlusPrepareNum(desk)})
             desk.hadExecutePlayCard = false;
             desk.time_out = 30;
             console.log("已经游玩了："+(getTimeStamp() - desk.start_time) +"秒");
@@ -925,7 +951,7 @@ const proto = {
             //判断游戏结束
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
             //debug 
-            if(desk.positions[curPosId].cards.length <= 0)
+            if(desk.positions[curPosId].cards.length <= 0 || obj.value == '8' )
             {
               //重置状态
               for (let i = 0; i < desk.positions.length ; i++) {

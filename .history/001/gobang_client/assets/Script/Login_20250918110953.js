@@ -1,0 +1,60 @@
+import globalData from "./data/globalData.js"
+
+cc.Class({
+    extends: cc.Component,
+
+    properties: {
+        prog_bar:cc.ProgressBar
+        // img_loading:cc.Node,
+        // lab_tips:cc.Label,
+        // lab_debug:cc.Label,
+    },
+
+    onLoad () {
+        // this.lab_tips.node.active = false;
+        cc.debug.setDisplayStats(false);
+
+        this._prog_value = 0;
+        // globalData.socketMgr.initSocket();
+    },
+    update(){
+        if(this._prog_value < 100){
+            this._prog_value += 0.2;
+        }
+        // this.img_loading.angle = this.img_loading.angle + 10;
+    },
+
+    // showTips(msg){
+    //     console.log(msg);
+    //     this.lab_tips.node.active = true;
+    //     this.lab_tips.string = msg;
+    //     this.scheduleOnce(function () {
+    //         this.lab_tips.node.active = false;
+    //     }, 2);
+
+    //     // this.lab_debug.string += msg;
+    // },
+    // onProgress(completedCount, totalCount, item){
+        // this.prog_bar.progress = completedCount/totalCount;
+    // },
+    start(){
+
+        console.log("启动参数："+window.location.href);
+        // this.lab_debug.string = "启动参数："+window.location.href;
+
+        var url = decodeURI(window.location.href);
+        if(url.split('?').length > 1){
+            var params = url.split('?')[1].split('&');
+            var field = {};
+            for (const paramsKey in params) {
+                var obj = params[paramsKey].split('=');
+                field[obj[0]] = obj[1];
+            }
+            var that = this;
+            cc.args = field;
+            cc.args['lanuch_url'] = window.location.href;
+
+        }
+    },
+
+});

@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "811ad92f-65f7-45c2-be67-3d55d2199c6b",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 800,
+  "height": 370,
+  "platformSettings": {},
+  "subMetas": {
+    "3-炸弹爆炸 新_00001": {
+      "ver": "1.0.4",
+      "uuid": "7ff24d9a-b3f0-43cf-982b-88c173b6fe65",
+      "rawTextureUuid": "811ad92f-65f7-45c2-be67-3d55d2199c6b",
+      "trimType": "custom",
+      "trimThreshold": 0,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 800,
+      "height": 370,
+      "rawWidth": 800,
+      "rawHeight": 370,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

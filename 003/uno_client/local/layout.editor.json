@@ -20,7 +20,7 @@
                 ],
                 "height": 396.66668701171875,
                 "type": "panel",
-                "width": 232
+                "width": 234
               },
               {
                 "active": 0,
@@ -29,12 +29,12 @@
                 ],
                 "height": 396.66668701171875,
                 "type": "panel",
-                "width": 232
+                "width": 234
               }
             ],
             "height": 796.3333740234375,
             "type": "dock-v",
-            "width": 232
+            "width": 234
           },
           {
             "children": [
@@ -47,7 +47,7 @@
                     ],
                     "height": 526.5521240234375,
                     "type": "panel",
-                    "width": 564.3646240234375
+                    "width": 562.9896240234375
                   },
                   {
                     "active": 0,
@@ -56,12 +56,12 @@
                     ],
                     "height": 526.5521240234375,
                     "type": "panel",
-                    "width": 316.63543701171875
+                    "width": 316
                   }
                 ],
                 "height": 526.5521240234375,
                 "type": "dock-h",
-                "width": 884
+                "width": 882
               },
               {
                 "active": 0,
@@ -71,12 +71,12 @@
                 ],
                 "height": 266.7708435058594,
                 "type": "panel",
-                "width": 884
+                "width": 882
               }
             ],
             "height": 796.3333740234375,
             "type": "dock-v",
-            "width": 884
+            "width": 882
           },
           {
             "active": 0,
@@ -101,12 +101,12 @@
       ]
     },
     "worker": {},
-    "window-1758009699657": {}
+    "window-1761214019988": {}
   },
   "panels": {
     "sprite-editor": {
-      "x": 1685,
-      "y": 330,
+      "x": 420,
+      "y": 338,
       "width": 518,
       "height": 540
     },

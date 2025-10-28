@@ -1,0 +1,1 @@
+D:/CocosCreater/editors/Creator/2.3.2.exe --path projectPath --build "platform=android;debug=true"
