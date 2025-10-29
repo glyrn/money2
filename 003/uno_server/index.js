@@ -496,8 +496,11 @@ const proto = {
         if(!v.mark){
           plusNum += 4;
         }
+      }else{
+        break;
       }
     }
+    console.log("计算plusNum",plusNum)
     return plusNum;
   },
   makePass:function(desk,curPosId){
@@ -909,9 +912,11 @@ const proto = {
           if(isOk){
 
             var nextPosId;
+            var skipPosId;
 
             if(obj.value == 'stop'){
-                nextPosId = self.getNextPosId(desk,self.getNextPosId(desk,curPosId));
+                skipPosId = self.getNextPosId(desk,curPosId);
+                nextPosId = self.getNextPosId(desk,skipPosId);
             }else if(obj.value == 'turn'){
                 desk.direct = desk.direct == 1 ? 0 : 1;
                 nextPosId = self.getNextPosId(desk,curPosId);
@@ -943,7 +948,7 @@ const proto = {
             }
             desk.positions[curPosId].cards = new_cards;
             
-            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp(),plus_num:self._getPlusPrepareNum(desk)})
+            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp(),plus_num:self._getPlusPrepareNum(desk),skipPosId:skipPosId})
             desk.hadExecutePlayCard = false;
             desk.time_out = 30;
             console.log("已经游玩了："+(getTimeStamp() - desk.start_time) +"秒");
