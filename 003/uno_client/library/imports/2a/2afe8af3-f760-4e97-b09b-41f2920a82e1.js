@@ -78,17 +78,18 @@ cc.Class({
     this._data.selected = false;
     this.updatePos();
   },
-  render: function render(data) {
+  render: function render(data, idx) {
     this.base_pos = this.node.position;
     this._data = data;
     this.num.node.active = true;
     this.num.getComponent(cc.Sprite).spriteFrame = this['sf_' + data.value];
     this.bg.getComponent(cc.Sprite).spriteFrame = this['sf_color' + data.color];
+    if (!idx) idx = 0;
 
     if (data.isNew) {
       data.isNew = false;
       this.mask.active = true;
-      this.mask.runAction(cc.sequence([cc.delayTime(0.4), cc.fadeOut(0.5), cc.fadeIn(0.5), cc.fadeOut(0.5)]));
+      this.mask.runAction(cc.sequence([cc.delayTime(0.4 + idx * 0.03), cc.fadeOut(0.5), cc.fadeIn(0.5), cc.fadeOut(0.5)]));
     }
   }
 });

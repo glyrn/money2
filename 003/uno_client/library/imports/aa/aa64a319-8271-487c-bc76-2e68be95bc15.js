@@ -27,7 +27,7 @@ cc.Class({
       var now_ts = new Date().getTime() / 1000;
       var time_value = this._data.target_timer_value - Math.floor(now_ts);
       ;
-      var time_value_ts = _globalData["default"].gameMgr.time_out - now_ts;
+      var time_value_ts = this._data.target_timer_value - now_ts;
 
       if (time_value >= 0) {
         this.img_avator_light.fillRange = -(time_value_ts / 30);

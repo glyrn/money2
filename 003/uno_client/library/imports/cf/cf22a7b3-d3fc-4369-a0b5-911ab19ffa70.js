@@ -82,7 +82,7 @@ cc.Class({
 
     _globalData["default"].eventlister.on("GAME_START", function (data) {
       that.reset();
-      that.pushCardToDesk(data.top, -1);
+      that.pushCardToDesk(data.top, -1, 0, 0);
       that.img_deck.active = true;
       that.btn_quit.active = false;
       that.panel_continue.active = false;
@@ -94,7 +94,7 @@ cc.Class({
     });
 
     _globalData["default"].eventlister.on("PLAY_CARD_SUCCESS", function (data) {
-      that.pushCardToDesk(data.card, data.posId);
+      that.pushCardToDesk(data.card, data.posId, data.plus_num, data.skipPosId);
       that.renderPlayer();
     });
 
@@ -319,7 +319,7 @@ cc.Class({
   renderRemainCard: function renderRemainCard() {
     this.img_deck.getChildByName("label").getComponent(cc.Label).string = _globalData["default"].gameMgr.card_remain;
   },
-  pushCardToDesk: function pushCardToDesk(card, posId) {
+  pushCardToDesk: function pushCardToDesk(card, posId, plusNum, skipPosId) {
     //记录当前出牌颜色、类型、位置
     _globalData["default"].gameMgr.cur_out_color = card.color;
     _globalData["default"].gameMgr.cur_out_value = card.value;
@@ -400,18 +400,20 @@ cc.Class({
         if (_globalData["default"].gameMgr.getPlayerDataKey(posId)) node.position = this._player_list[_globalData["default"].gameMgr.getPlayerDataKey(posId)].position;
         node.runAction(cc.sequence(actions));
       }
-    }
+    } // console.log("card.value：",card.value)
+    //播放全局动画
 
-    console.log("card.value：", card.value); //播放全局动画
 
-    if (card.value == 'plus4') {
-      this.showGlobalEffect("anim+4");
-    } else if (card.value == 'plus2') {
-      this.showGlobalEffect("anim+2");
+    var turnKey = _globalData["default"].gameMgr.getPlayerDataKey(_globalData["default"].gameMgr.playerData.turn);
+
+    if (plusNum > 0) {
+      this.showGlobalEffect('anim+' + plusNum + "_" + turnKey, plusNum, turnKey);
     } else if (card.value == 'turn') {
       this.showGlobalEffect("anim_turn");
     } else if (card.value == 'stop') {
-      this.showGlobalEffect("anim_stop");
+      var skipPosKey = _globalData["default"].gameMgr.getPlayerDataKey(skipPosId);
+
+      this.showGlobalEffect("anim_stop_" + skipPosKey);
     }
 
     if (!_globalData["default"].gameMgr.isRecover) {
@@ -536,15 +538,30 @@ cc.Class({
       this.panel_tip.active = false;
     }, 1);
   },
-  showGlobalEffect: function showGlobalEffect(data) {
-    //无动画
+  showGlobalEffect: function showGlobalEffect(name, plusNum, turnKey) {
+    console.log("播放全局动画：", name, plusNum, turnKey); //有动画
+
     if (!_globalData["default"].gameMgr.isRecover) {
       this.globalAnim.node.active = true;
-      this.globalAnim.play(data);
-      var that = this;
-      this.scheduleOnce(function () {
-        that.globalAnim.node.active = false;
-      }, 1);
+      this.globalAnim.stop();
+      this.globalAnim.setCurrentTime(0);
+
+      if (plusNum > 0) {
+        this.globalAnim.node.getChildByName("label").getComponent(cc.Label).string = "+" + plusNum;
+
+        if (plusNum > 8) {
+          this.globalAnim.play('anim+n_' + turnKey);
+        } else {
+          this.globalAnim.play(name);
+        }
+      } else {
+        this.globalAnim.play(name);
+      } // this.globalAnim.node.active = true;
+      // var that = this;
+      // this.scheduleOnce(function () {
+      //     that.globalAnim.node.active = false;
+      // },3);
+
     }
   },
   renderScorePanel: function renderScorePanel() {

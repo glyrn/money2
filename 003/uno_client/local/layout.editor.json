@@ -45,21 +45,21 @@
                     "children": [
                       "scene"
                     ],
-                    "height": 526.5521240234375,
+                    "height": 428.1770935058594,
                     "type": "panel",
-                    "width": 562.9896240234375
+                    "width": 563.6354370117188
                   },
                   {
                     "active": 0,
                     "children": [
                       "node-library"
                     ],
-                    "height": 526.5521240234375,
+                    "height": 428.1770935058594,
                     "type": "panel",
-                    "width": 316
+                    "width": 315.35418701171875
                   }
                 ],
-                "height": 526.5521240234375,
+                "height": 428.1770935058594,
                 "type": "dock-h",
                 "width": 882
               },
@@ -69,7 +69,7 @@
                   "console",
                   "timeline"
                 ],
-                "height": 266.7708435058594,
+                "height": 365.15625,
                 "type": "panel",
                 "width": 882
               }
@@ -100,8 +100,7 @@
         "inspector"
       ]
     },
-    "worker": {},
-    "window-1761214019988": {}
+    "worker": {}
   },
   "panels": {
     "sprite-editor": {
