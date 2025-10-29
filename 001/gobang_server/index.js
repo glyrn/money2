@@ -901,7 +901,8 @@ const proto = {
               now_tag = room.chequer[i].tag;
             }
           }
-          self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{del_list:del_list,posId:target_posId,now_tag:now_tag});
+          room.time_out = 90;
+          self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{del_list:del_list,posId:target_posId,now_tag:now_tag,time_out:getTimeStamp()+room.time_out});
         }else{
           self.broadCastRoom("MESSAGE",room.deskId,"对方不同意悔棋~",uid);
         }

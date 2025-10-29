@@ -718,7 +718,8 @@ const proto = {
                 turn = room_target.posId;
               }
             }
-            self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{turn:turn,agree:true});
+            room.time_out = 90;
+            self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{turn:turn,agree:true,time_out:getTimeStamp()+room.time_out});
           }else{
             self.broadCastRoom("RETRACK_CHESS_RSP_SUCCESS",room.deskId,{agree:false});
             self.broadCastRoom("MESSAGE",room.deskId,"对方不同意悔棋~",uid);
