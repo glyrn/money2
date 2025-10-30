@@ -1029,7 +1029,7 @@ const proto = {
               
               
               console.log("是否超过指定分数？",is_over_specific_score,desk.specific_score);
-              if(is_over_specific_score >= desk.specific_score){
+              if(is_over_specific_score){
                 self.sendYcGameOver({
                   room_id:desk.name,
                   game_id:3,
