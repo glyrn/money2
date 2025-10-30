@@ -144,13 +144,6 @@ cc.Class({
         globalData.eventlister.on("SET_RECOVER_STATUS",function(){
             if(globalData.gameMgr.isRecover == false){
                 that.panel_loading.active = false;
-
-                // 轮到自己 检测pass
-                if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
-                    if(!that._onBtnTips(true)){
-                        that.onBtnPass();
-                    }
-                }
             }
         })
 

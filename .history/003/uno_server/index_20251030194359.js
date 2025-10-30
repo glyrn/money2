@@ -1047,7 +1047,7 @@ const proto = {
       })
 
       socket.on("PLAY_PASS",function(){
-      
+        console.log("PLAY_PASS!!!!!!!!!!!!")
         const desk = self.getDesk(socket);
         if(desk){
           if(desk.state != 1){

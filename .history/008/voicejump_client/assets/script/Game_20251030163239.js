@@ -182,9 +182,6 @@ cc.Class({
                     }).catch(err => {
                         that.voiceFail(err);
                     });
-                that.slide_voice.active = true;
-            }else{
-                that.slide_voice.active = false;
             }
         });
 
@@ -276,6 +273,12 @@ cc.Class({
         if(cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1 && !globalData.gameMgr.is_ob) {
 
             if (!that['player' + globalData.gameMgr.posId].fallOver) {
+                // if(that._lastVoiceTime + that._voiceCDTime > Date.now()){
+                //     return
+                // }
+                // that._lastVoiceTime = Date.now();
+
+                // that.slide_voice.progress = that._rms / 100;
 
                 that.prog_voice.height = that._rms / 100 * 200;
                 var curPlayer = this['player'+globalData.gameMgr.posId];

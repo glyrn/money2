@@ -391,8 +391,8 @@ var socketMgr = function socketMgr() {
   };
 
   that.passCard = function () {
-    if (that.checkIsObserve()) return;
-    console.log("_gameMgr.isRecover", _gameMgr.isRecover);
+    if (that.checkIsObserve()) return; // console.log("_gameMgr.isRecover",_gameMgr.isRecover)
+
     if (_gameMgr.isRecover) return;
 
     _socket.emit('PLAY_PASS');

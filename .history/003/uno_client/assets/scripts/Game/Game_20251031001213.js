@@ -145,7 +145,7 @@ cc.Class({
             if(globalData.gameMgr.isRecover == false){
                 that.panel_loading.active = false;
 
-                // 轮到自己 检测pass
+                // 轮到自己
                 if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
                     if(!that._onBtnTips(true)){
                         that.onBtnPass();

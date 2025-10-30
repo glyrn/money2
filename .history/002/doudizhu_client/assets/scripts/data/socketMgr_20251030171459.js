@@ -108,6 +108,7 @@ const socketMgr = function(){
             _gameMgr.posState.self.isDizhu = false;
             _eventMgr.fire("POS_STATUS_CHANGE");
             _eventMgr.fire("LOGIN_SUCCESS")
+            _eventMgr.fire("LOGIN_SUCCESS1")
 
             if(_cbLogin) {
                 _cbLogin();
@@ -213,14 +214,18 @@ const socketMgr = function(){
  
                 //炸弹
                 if(card_type == 'AAAA' && card_len >= 4){
-                    cc.playEffect('sound/bomb',false,1);
+                    if(!_gameMgr.isRecover){
+                        cc.playEffect('sound/bomb',false,1);
+                    }
 
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 2;
                     }
                     _eventMgr.fire("show_global_effect",{anim:"animBoom"+_gameMgr.roomState.ctxPos,isAutoHide:true});
                 }else if(card_type == 'KING'){
-                    cc.playEffect('sound/king_bomb',false,1);
+                    if(!_gameMgr.isRecover){
+                        cc.playEffect('sound/king_bomb',false,1);
+                    }
 
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 4;
@@ -236,18 +241,26 @@ const socketMgr = function(){
                     card_type == 'AAABB' && card_len == 18 ||
                     card_type == 'AAABB' && card_len == 20
                 ){
-                    cc.playEffect('sound/airplane',false,1);
+                    if(!_gameMgr.isRecover){
+                        cc.playEffect('sound/airplane',false,1);
+                    }
 
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 2;
                     }
                     _eventMgr.fire("show_global_effect",{anim:"animAirplane"+_gameMgr.roomState.ctxPos,isAutoHide:true});
                 }else if(data.ctxData.key == 17){ //大王
-                    cc.playEffect("sound/king_big",false,1);
+                    if(!_gameMgr.isRecover){
+                        cc.playEffect("sound/king_big",false,1);
+                    }
                 }else if(data.ctxData.key == 16){ //小王
-                    cc.playEffect("sound/king_small",false,1);
+                    if(!_gameMgr.isRecover){
+                        cc.playEffect("sound/king_small",false,1);
+                    }
                 }else{
-                    cc.playEffect("sound/singer_send_card",false,1);
+                    if(!_gameMgr.isRecover){
+                        cc.playEffect("sound/singer_send_card",false,1);
+                    }
                 }
             }
             _gameMgr.removeCards(direct, data.ctxData.cards);
@@ -301,8 +314,7 @@ const socketMgr = function(){
         _socket.on('GAME_OVER', function (data) {
             console.log("gameover",data)
             _gameMgr.startTimer(false);//停止计时器
-            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
-            _gameMgr.diff_time = 0;
+            
             _gameMgr.roomState.state = 3;
 
             if(_gameMgr.posState.left.state != 0) {
@@ -324,11 +336,15 @@ const socketMgr = function(){
 
             if(_gameMgr.isShowingGlobalEffect){
                 setTimeout(() => {
+                    _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+                    _gameMgr.diff_time = 0;
                     _eventMgr.fire('GAME_OVER',data);
                     _eventMgr.fire('GAME_OVER1',data);
                     _eventMgr.fire('GAME_OVER2',data);
                 }, 2000);
             }else{
+                _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+                _gameMgr.diff_time = 0;
                 _eventMgr.fire('GAME_OVER',data);
                 _eventMgr.fire('GAME_OVER1',data);
                 _eventMgr.fire('GAME_OVER2',data);
