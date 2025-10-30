@@ -114,7 +114,7 @@ cc.Class({
               //围观不能看牌
               card.setTouchEnable(true);
               card.setPlayer(this);
-              card.render(data.cards[_i]);
+              card.render(data.cards[_i], _i);
             }
           }
         }

@@ -261,10 +261,10 @@ var socketMgr = function socketMgr() {
         _gameMgr.getPlayerData(data.posId).cards.shift();
       }
 
-      _eventMgr.fire('PLAY_CARD_SUCCESS', data);
-
       _gameMgr.getPlayerData(data.nextPosId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
       _gameMgr.playerData.turn = data.nextPosId;
+
+      _eventMgr.fire('PLAY_CARD_SUCCESS', data);
 
       _eventMgr.fire('CHANGE_TURN');
     });
