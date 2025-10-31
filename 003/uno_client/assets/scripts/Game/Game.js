@@ -588,7 +588,8 @@ cc.Class({
 
             var tmp_list = [];
             for (const posId in data.score_list) {
-                tmp_list.push({posId:posId,score:data.score_list[posId]});
+                var playerData = globalData.gameMgr.getPlayerData(posId)
+                tmp_list.push({posId:posId,score:parseInt(data.score_list[posId]) + parseInt(playerData.score)});
             }
             tmp_list.sort(function(a,b){
                 return a.score < b.score ? 1 : -1;

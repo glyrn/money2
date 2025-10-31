@@ -591,9 +591,11 @@ cc.Class({
       var tmp_list = [];
 
       for (var _posId in data.score_list) {
+        var playerData = _globalData["default"].gameMgr.getPlayerData(_posId);
+
         tmp_list.push({
           posId: _posId,
-          score: data.score_list[_posId]
+          score: parseInt(data.score_list[_posId]) + parseInt(playerData.score)
         });
       }
 

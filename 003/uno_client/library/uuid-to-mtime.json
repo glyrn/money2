@@ -2905,18 +2905,18 @@
     "relativePath": "resources\\materials\\builtin-unlit.mtl"
   },
   "aa64a319-8271-487c-bc76-2e68be95bc15": {
-    "asset": 1761820277607,
-    "meta": 1761824658450,
+    "asset": 1761893379220,
+    "meta": 1761893402431,
     "relativePath": "scripts\\Game\\prefabs\\Avator.js"
   },
   "af84c7f5-2aaa-46ac-92d0-0f3e443ba9ae": {
-    "asset": 1761840673877,
-    "meta": 1761840759689,
+    "asset": 1761903189134,
+    "meta": 1761903207946,
     "relativePath": "scripts\\data\\socketMgr.js"
   },
   "cf22a7b3-d3fc-4369-a0b5-911ab19ffa70": {
-    "asset": 1761840755621,
-    "meta": 1761840759852,
+    "asset": 1761906127986,
+    "meta": 1761906133081,
     "relativePath": "scripts\\Game\\Game.js"
   }
 }
