@@ -19,7 +19,6 @@ cc.Class({
             var now_ts = (new Date().getTime() / 1000);
             var time_value = this._data.target_timer_value - Math.floor(now_ts);;
             var time_value_ts = this._data.target_timer_value - now_ts;
-            time_value_ts = time_value_ts >= 0 ? time_value_ts:0;
             if(time_value >=0 ){
                 this.img_avator_light.fillRange = - (time_value_ts/30);
                 this.lab_timer.string = time_value;

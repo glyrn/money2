@@ -520,7 +520,7 @@ const proto = {
       // console.log(userObj.name,"手牌：",userObj.cards,userObj.cards.length);
     }
 
-    //console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
+    console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
     this.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
     desk.hadExecutePlayCard = false;
     desk.time_out = 30;
@@ -1020,8 +1020,7 @@ const proto = {
                 }
               }
               for (const key in score_map) {
-                console.log("分数:",parseInt(score_map[key]));
-                if(parseInt(score_map[key]) >= parseInt(desk.specific_score)){
+                if(score_map[key] >= desk.specific_score){
                   is_over_specific_score = true;
                 }
               }
@@ -1048,7 +1047,6 @@ const proto = {
       })
 
       socket.on("PLAY_PASS",function(){
-      
         const desk = self.getDesk(socket);
         if(desk){
           if(desk.state != 1){
