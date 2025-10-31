@@ -1020,7 +1020,8 @@ const proto = {
                 }
               }
               for (const key in score_map) {
-                if(score_map[key] >= desk.specific_score){
+                console.log("分数:",parseInt(score_map[key]));
+                if(parseInt(score_map[key]) >= parseInt(desk.specific_score)){
                   is_over_specific_score = true;
                 }
               }
