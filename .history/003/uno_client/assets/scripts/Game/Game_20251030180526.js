@@ -144,13 +144,6 @@ cc.Class({
         globalData.eventlister.on("SET_RECOVER_STATUS",function(){
             if(globalData.gameMgr.isRecover == false){
                 that.panel_loading.active = false;
-
-                // 轮到自己 检测pass
-                if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
-                    if(!that._onBtnTips(true)){
-                        that.onBtnPass();
-                    }
-                }
             }
         })
 
@@ -588,8 +581,7 @@ cc.Class({
 
             var tmp_list = [];
             for (const posId in data.score_list) {
-                var playerData = globalData.gameMgr.getPlayerData(posId)
-                tmp_list.push({posId:posId,score:parseInt(data.score_list[posId]) + parseInt(playerData.score)});
+                tmp_list.push({posId:posId,score:data.score_list[posId]});
             }
             tmp_list.sort(function(a,b){
                 return a.score < b.score ? 1 : -1;

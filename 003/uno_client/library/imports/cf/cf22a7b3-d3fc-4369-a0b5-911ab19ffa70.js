@@ -159,7 +159,13 @@ cc.Class({
 
     _globalData["default"].eventlister.on("SET_RECOVER_STATUS", function () {
       if (_globalData["default"].gameMgr.isRecover == false) {
-        that.panel_loading.active = false;
+        that.panel_loading.active = false; // 轮到自己 检测pass
+
+        if (_globalData["default"].gameMgr.playerData.turn == _globalData["default"].gameMgr.playerData.self.posId) {
+          if (!that._onBtnTips(true)) {
+            that.onBtnPass();
+          }
+        }
       }
     });
 
@@ -285,12 +291,14 @@ cc.Class({
     this.panel_ctrl.active = _globalData["default"].gameMgr.roomState.state == 1 && !_globalData["default"].gameMgr.is_ob && _globalData["default"].gameMgr.playerData.self.posId == _globalData["default"].gameMgr.playerData.turn; //更新倒计时闹钟颜色
   },
   renderRoomTitle: function renderRoomTitle() {
-    // var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
-    this.lab_roomid.string = "局数:" + _globalData["default"].gameMgr.play_index + "  特定分数:" + cc.args['specific_score']; // if(distance > 0){
-    //     const minutes = Math.floor((distance % ( 60 * 60)) /  60);
-    //     const seconds = Math.floor(distance % 60);
-    //     this.lab_roomid.string += " 倒计时:"+minutes + "分 " + seconds + "秒 ";
-    // }
+    var distance = _globalData["default"].gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
+    this.lab_roomid.string = "局数:" + _globalData["default"].gameMgr.play_index + "  特定分数:" + cc.args['specific_score'];
+
+    if (distance > 0) {
+      var minutes = Math.floor(distance % (60 * 60) / 60);
+      var seconds = Math.floor(distance % 60);
+      this.lab_roomid.string += " 倒计时:" + minutes + "分 " + seconds + "秒 ";
+    }
   },
   renderRoom: function renderRoom() {
     this.renderRoomTitle();
@@ -380,8 +388,13 @@ cc.Class({
         node.position = cc.v2(out_pos.x + offsetX, out_pos.y + offsetY); // 轮到自己
 
         if (_globalData["default"].gameMgr.playerData.turn == _globalData["default"].gameMgr.playerData.self.posId) {
+          console.log("xxxxxxxxx", !that._onBtnTips(true));
+
           if (!that._onBtnTips(true)) {
+            console.log("发送Pass");
             that.onBtnPass();
+          } else {
+            console.log("不发送pass");
           }
         }
       } else {
@@ -578,9 +591,11 @@ cc.Class({
       var tmp_list = [];
 
       for (var _posId in data.score_list) {
+        var playerData = _globalData["default"].gameMgr.getPlayerData(_posId);
+
         tmp_list.push({
           posId: _posId,
-          score: data.score_list[_posId]
+          score: parseInt(data.score_list[_posId]) + parseInt(playerData.score)
         });
       }
 

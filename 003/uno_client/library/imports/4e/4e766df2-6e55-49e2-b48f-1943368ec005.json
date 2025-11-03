@@ -310,7 +310,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 228,
+      "width": 380,
       "height": 43
     },
     "_anchorPoint": {
@@ -322,7 +322,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        692.294,
+        617.207,
         -349.445,
         0,
         0,
@@ -372,7 +372,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 204.5,
+      "width": 360.11,
       "height": 31.5
     },
     "_anchorPoint": {
@@ -423,8 +423,8 @@
       }
     ],
     "_useOriginalSize": true,
-    "_string": "局数:0-0  特定分数:300",
-    "_N$string": "局数:0-0  特定分数:300",
+    "_string": "局数:0-0  特定分数:300 倒计时:00分00秒",
+    "_N$string": "局数:0-0  特定分数:300 倒计时:00分00秒",
     "_fontSize": 20,
     "_lineHeight": 25,
     "_enableWrapText": true,
@@ -512,7 +512,7 @@
       "array": [
         0,
         0,
-        339.4819582835,
+        332.70712252814394,
         0,
         0,
         0,

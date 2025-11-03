@@ -1020,8 +1020,7 @@ const proto = {
                 }
               }
               for (const key in score_map) {
-                console.log("分数:",parseInt(score_map[key]));
-                if(parseInt(score_map[key]) >= parseInt(desk.specific_score)){
+                if(score_map[key] >= desk.specific_score){
                   is_over_specific_score = true;
                 }
               }
@@ -1029,7 +1028,7 @@ const proto = {
               self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list,is_quit:is_over_specific_score});
               
               
-              console.log("游戏结算：",is_over_specific_score,desk.specific_score);
+              console.log("是否超过指定分数？",is_over_specific_score,desk.specific_score);
               if(is_over_specific_score){
                 self.sendYcGameOver({
                   room_id:desk.name,
@@ -1111,7 +1110,7 @@ const proto = {
                 const userObj = desk.positions[i];
                 userObj.cards = [];
                 //debug
-                for (let k = 0; k < 3; k++) {
+                for (let k = 0; k < 7; k++) {
                   userObj.cards.push(desk.cards.shift());
                 }
               self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});

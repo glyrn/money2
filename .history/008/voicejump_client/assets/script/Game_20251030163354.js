@@ -182,9 +182,6 @@ cc.Class({
                     }).catch(err => {
                         that.voiceFail(err);
                     });
-                that.slide_voice.active = true;
-            }else{
-                that.slide_voice.active = false;
             }
         });
 

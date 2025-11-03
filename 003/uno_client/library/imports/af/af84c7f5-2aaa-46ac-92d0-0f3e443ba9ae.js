@@ -118,7 +118,6 @@ var socketMgr = function socketMgr() {
       var posId = data.posId;
       _gameMgr.getPlayerData(posId).state = 2;
       _gameMgr.getPlayerData(posId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
-      _gameMgr.playerData.turn = posId;
 
       _eventMgr.fire('PREPARE_SUCCESS', posId);
     });
@@ -175,30 +174,27 @@ var socketMgr = function socketMgr() {
       _gameMgr.getPlayerData(data.turn).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
       _gameMgr.playerData.turn = data.turn;
       _gameMgr.card_remain = 108;
-      _gameMgr.roomState.gametime_remain = parseInt(data.server_time) + parseInt((_cc$args$game_time = cc.args['game_time']) !== null && _cc$args$game_time !== void 0 ? _cc$args$game_time : 4) * 60;
+      _gameMgr.roomState.gametime_remain = parseInt(data.server_time) + parseInt((_cc$args$game_time = cc.args['game_time']) !== null && _cc$args$game_time !== void 0 ? _cc$args$game_time : 4) * 60; // if(_gameMgr.is_quit){
+      //     //初始化分数
+      //     for (const posId in data.score_list) {
+      //         _gameMgr.getPlayerData(posId).score = parseInt(data.score_list[posId]);
+      //         _gameMgr.getPlayerData(posId).score_offset = 0;
+      //     }
+      //     _gameMgr.is_quit = false;
+      //     _gameMgr.play_index = 1;
+      // }else{
+      //更新分数
 
-      if (_gameMgr.is_quit) {
-        //初始化分数
-        for (var _posId in data.score_list) {
-          _gameMgr.getPlayerData(_posId).score = parseInt(data.score_list[_posId]);
-          _gameMgr.getPlayerData(_posId).score_offset = 0;
+      for (var posId in [0, 1, 2, 3]) {
+        if (_gameMgr.getPlayerData(posId)) {
+          var _gameMgr$getPlayerDat;
+
+          _gameMgr.getPlayerData(posId).score = parseInt(_gameMgr.getPlayerData(posId).score) + ((_gameMgr$getPlayerDat = _gameMgr.getPlayerData(posId).score_offset) !== null && _gameMgr$getPlayerDat !== void 0 ? _gameMgr$getPlayerDat : 0);
+          _gameMgr.getPlayerData(posId).score_offset = 0;
         }
-
-        _gameMgr.is_quit = false;
-        _gameMgr.play_index = 1;
-      } else {
-        //更新分数
-        for (var posId in [0, 1, 2, 3]) {
-          if (_gameMgr.getPlayerData(posId)) {
-            var _gameMgr$getPlayerDat;
-
-            _gameMgr.getPlayerData(posId).score = parseInt(_gameMgr.getPlayerData(posId).score) + ((_gameMgr$getPlayerDat = _gameMgr.getPlayerData(posId).score_offset) !== null && _gameMgr$getPlayerDat !== void 0 ? _gameMgr$getPlayerDat : 0);
-            _gameMgr.getPlayerData(posId).score_offset = 0;
-          }
-        }
-
-        _gameMgr.play_index++;
       }
+
+      _gameMgr.play_index++; // }
 
       _gameMgr.playerData.self.cards = data.cards;
       if (_gameMgr.playerData.left) _gameMgr.playerData.left.cards = [0, 0, 0, 0, 0, 0, 0];
@@ -262,9 +258,10 @@ var socketMgr = function socketMgr() {
       }
 
       _gameMgr.getPlayerData(data.nextPosId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
-      _gameMgr.playerData.turn = data.nextPosId;
 
       _eventMgr.fire('PLAY_CARD_SUCCESS', data);
+
+      _gameMgr.playerData.turn = data.nextPosId;
 
       _eventMgr.fire('CHANGE_TURN');
     });
@@ -391,8 +388,8 @@ var socketMgr = function socketMgr() {
   };
 
   that.passCard = function () {
-    if (that.checkIsObserve()) return;
-    console.log("_gameMgr.isRecover", _gameMgr.isRecover);
+    if (that.checkIsObserve()) return; // console.log("_gameMgr.isRecover",_gameMgr.isRecover)
+
     if (_gameMgr.isRecover) return;
 
     _socket.emit('PLAY_PASS');

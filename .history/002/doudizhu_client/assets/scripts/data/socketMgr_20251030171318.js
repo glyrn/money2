@@ -108,6 +108,7 @@ const socketMgr = function(){
             _gameMgr.posState.self.isDizhu = false;
             _eventMgr.fire("POS_STATUS_CHANGE");
             _eventMgr.fire("LOGIN_SUCCESS")
+            _eventMgr.fire("LOGIN_SUCCESS1")
 
             if(_cbLogin) {
                 _cbLogin();
@@ -213,7 +214,9 @@ const socketMgr = function(){
  
                 //炸弹
                 if(card_type == 'AAAA' && card_len >= 4){
-                    cc.playEffect('sound/bomb',false,1);
+                    if(!_gameMgr.isRecover){
+                        cc.playEffect('sound/bomb',false,1);
+                    }
 
                     if (_gameMgr.roomState.ctxPos === 'self') {
                         _gameMgr.posState.self.ratio += 2;
