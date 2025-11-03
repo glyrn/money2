@@ -381,7 +381,6 @@ cc.Class({
 
                 // 轮到自己
                 if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
-                    console.log("xxxxxxxxx",!that._onBtnTips(true))
                     if(!that._onBtnTips(true)){
                         console.log("发送Pass")
                         that.onBtnPass();
@@ -546,28 +545,30 @@ cc.Class({
         console.log("播放全局动画：",name,plusNum,turnKey);
         //有动画
         if(!globalData.gameMgr.isRecover){
-
-            this.globalAnim.node.active = true;
-            this.globalAnim.stop();
-            this.globalAnim.setCurrentTime(0);
+            
+            this._tmpGlobalAnim = cc.instantiate(this.globalAnim.node).getComponent(cc.Animation);
+            this._tmpGlobalAnim.node.parent = this.globalAnim.node.parent;
+            this._tmpGlobalAnim.node.active = true;
+            this._tmpGlobalAnim.stop();
+            this._tmpGlobalAnim.setCurrentTime(0);
 
             if(plusNum > 0){
-                this.globalAnim.node.getChildByName("label").getComponent(cc.Label).string = "+"+plusNum;
+                this._tmpGlobalAnim.node.getChildByName("label").getComponent(cc.Label).string = "+"+plusNum;
                 if(plusNum > 8){
-                    this.globalAnim.play('anim+n_'+turnKey);
+                    this._tmpGlobalAnim.play('anim+n_'+turnKey);
                 }else{
-                    this.globalAnim.play(name);
+                    this._tmpGlobalAnim.play(name);
                 }
             }else{
-                this.globalAnim.play(name);
+                this._tmpGlobalAnim.play(name);
             }
-
-            // this.globalAnim.node.active = true;
-            
-            // var that = this;
-            // this.scheduleOnce(function () {
-            //     that.globalAnim.node.active = false;
-            // },3);
+            var that = this;
+            this._tmpGlobalAnim.node.runAction(cc.sequence([
+                cc.delayTime(3),
+                cc.callFunc(function (selector, selectorTarget, _data) {
+                    selector.destroy();
+                }, that)
+            ]));
         }
     },
     renderScorePanel(){

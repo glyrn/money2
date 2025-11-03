@@ -805,6 +805,8 @@ const proto = {
             room.specific_score = obj.specific_score ?? 1000;
             room.deprecate_time = 30;
             room.hadDeprecateGame = false;
+            //以客户端域名为准
+            yc_domain = obj.ycdomain;
 
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];
@@ -1111,7 +1113,7 @@ const proto = {
                 const userObj = desk.positions[i];
                 userObj.cards = [];
                 //debug
-                for (let k = 0; k < 3; k++) {
+                for (let k = 0; k < 7; k++) {
                   userObj.cards.push(desk.cards.shift());
                 }
               self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
