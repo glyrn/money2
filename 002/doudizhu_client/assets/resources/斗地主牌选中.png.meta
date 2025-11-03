@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "2f6fa61e-eed6-40cd-bcc8-31bb03ef8e3c",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 360,
+  "height": 489,
+  "platformSettings": {},
+  "subMetas": {
+    "斗地主牌选中": {
+      "ver": "1.0.4",
+      "uuid": "f09e0b93-e8b8-404a-a345-ea4d83c86042",
+      "rawTextureUuid": "2f6fa61e-eed6-40cd-bcc8-31bb03ef8e3c",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 3,
+      "offsetY": 0,
+      "trimX": 12,
+      "trimY": 9,
+      "width": 342,
+      "height": 471,
+      "rawWidth": 360,
+      "rawHeight": 489,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

@@ -1,0 +1,1 @@
+CocosCreator/CocosCreator.exe --path projectPath --build "platform=android;debug=true"

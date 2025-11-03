@@ -395,11 +395,11 @@ const proto = {
 
         if(desk.time_out > 0){
           desk.time_out--;
+          console.log("自动pass",desk.time_out)
         }else{ //时间到
 
           if(!desk.hadExecutePlayCard){
               desk.hadExecutePlayCard = true;
-
               this.makePass(desk,desk.cur_posId);
           }
         }
@@ -451,8 +451,7 @@ const proto = {
       score_list:desk.score_list,
     });
   },
-  makePass:function(desk,curPosId){
-    console.log("makePass")
+  _getPlusNum:function(desk){
     var plusNum = 0;
     var last_card = desk.out_cards[desk.out_cards.length - 1];
     if(!last_card) return;
@@ -480,6 +479,33 @@ const proto = {
     }else{
       plusNum = 1;
     }
+    return plusNum;
+  },
+   _getPlusPrepareNum:function(desk){
+    var plusNum = 0;
+    var last_card = desk.out_cards[desk.out_cards.length - 1];
+    if(!last_card) return 0;
+
+    for (let i = desk.out_cards.length - 1; i >= 0; i--) {
+      var v = desk.out_cards[i];
+      if(v.value == 'plus2' ){
+        if(!v.mark){
+          plusNum += 2;
+        }
+      }else if (v.value == 'plus4'){
+        if(!v.mark){
+          plusNum += 4;
+        }
+      }else{
+        break;
+      }
+    }
+    console.log("计算plusNum",plusNum)
+    return plusNum;
+  },
+  makePass:function(desk,curPosId){
+    console.log("makePass")
+    var plusNum = this._getPlusNum(desk);
 
     var userObj = desk.positions[curPosId];
     var nextPosId = this.getNextPosId(desk,curPosId);
@@ -494,7 +520,7 @@ const proto = {
       // console.log(userObj.name,"手牌：",userObj.cards,userObj.cards.length);
     }
 
-    // console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
+    //console.log("玩家["+userObj.name+"] 摸牌 ",plus_cards,' 手牌：',userObj.cards.length);
     this.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
     desk.hadExecutePlayCard = false;
     desk.time_out = 30;
@@ -648,11 +674,13 @@ const proto = {
             
             //保存观众socket + uid
             roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
-
+            
+            socket.emit("SET_RECOVER_STATUS",{isRecover:true});
             for (let k = 0; k < userObj.recover_disconnect_data.length; k++) {
               var emitObj = userObj.recover_disconnect_data[k];
               socket.emit(emitObj.event,emitObj.data);
             }
+            socket.emit("SET_RECOVER_STATUS",{isRecover:false});
             break;
           }
         }
@@ -884,9 +912,11 @@ const proto = {
           if(isOk){
 
             var nextPosId;
+            var skipPosId;
 
             if(obj.value == 'stop'){
-                nextPosId = self.getNextPosId(desk,self.getNextPosId(desk,curPosId));
+                skipPosId = self.getNextPosId(desk,curPosId);
+                nextPosId = self.getNextPosId(desk,skipPosId);
             }else if(obj.value == 'turn'){
                 desk.direct = desk.direct == 1 ? 0 : 1;
                 nextPosId = self.getNextPosId(desk,curPosId);
@@ -917,14 +947,16 @@ const proto = {
               new_cards.push(_card);
             }
             desk.positions[curPosId].cards = new_cards;
-            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp()})
+            
+            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp(),plus_num:self._getPlusPrepareNum(desk),skipPosId:skipPosId})
             desk.hadExecutePlayCard = false;
             desk.time_out = 30;
             console.log("已经游玩了："+(getTimeStamp() - desk.start_time) +"秒");
             // console.log("玩家["+desk.positions[self.getPosId(socket)].name+"] 手牌：",desk.positions[curPosId].cards);
             //判断游戏结束
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
-            if(desk.positions[curPosId].cards.length <= 0)
+            //debug 
+            if(desk.positions[curPosId].cards.length <= 0 )
             {
               //重置状态
               for (let i = 0; i < desk.positions.length ; i++) {
@@ -957,10 +989,10 @@ const proto = {
                     }
                   }
                   cards_list[i] = desk.positions[i].cards;
-                  score_list[i] = score;
+                  score_list[i] = -score;
                   score_total += score;
 
-                  ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
+                  ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:-score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
                 }
               }
               score_list[winer] = score_total;
@@ -970,29 +1002,35 @@ const proto = {
               });
 
               console.log("游戏结束GAME_OVER")
-              self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list});
+              
               if(!desk.score_list) desk.score_list = [];
               desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list})
               //找出是否有人累计超过特定分数
               var is_over_specific_score = false;
               var score_map = {};
+              for (let i = 0; i < desk.positions.length ; i++) {
+                score_map[desk.positions[i].uid] = parseInt(desk.positions[i].score);
+              }
+
               for (let i = 0; i < desk.score_list.length; i++) {
-                const ycscore_list = desk.score_list[i];
+                var ycscore_list = desk.score_list[i].score_list;
                 for (let j = 0; j < ycscore_list.length; j++) {
-                  if(!score_map[ycscore_list[j].uid]){
-                    score_map[ycscore_list[j].uid] = 0;
-                  }
+                  
                   score_map[ycscore_list[j].uid] += parseInt(ycscore_list[j].score);
                 }
               }
-
               for (const key in score_map) {
-                if(score_map[key] >= desk.specific_score){
+                console.log("分数:",parseInt(score_map[key]));
+                if(parseInt(score_map[key]) >= parseInt(desk.specific_score)){
                   is_over_specific_score = true;
                 }
               }
 
-              if(is_over_specific_score >= desk.specific_score){
+              self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list,is_quit:is_over_specific_score});
+              
+              
+              console.log("是否超过指定分数？",is_over_specific_score,desk.specific_score);
+              if(is_over_specific_score){
                 self.sendYcGameOver({
                   room_id:desk.name,
                   game_id:3,
@@ -1010,6 +1048,7 @@ const proto = {
       })
 
       socket.on("PLAY_PASS",function(){
+      
         const desk = self.getDesk(socket);
         if(desk){
           if(desk.state != 1){
@@ -1052,6 +1091,8 @@ const proto = {
             desk.cards = self.createCards();
             desk.cur_posId = self.getRandomNumForRange(ready_count-1);
             desk.out_cards = [];
+            desk.time_out = 30;
+            desk.hadExecutePlayCard = false;
             desk.start_time = getTimeStamp();
             const top = self.getNumberCard(desk.cards);
             desk.out_cards.push(top);

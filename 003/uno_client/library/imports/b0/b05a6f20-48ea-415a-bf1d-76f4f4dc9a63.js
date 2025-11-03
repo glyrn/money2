@@ -6,15 +6,17 @@ cc._RF.push(module, 'b05a68gSOpBWr8ddvT03Jpj', 'Login');
 
 var _globalData = _interopRequireDefault(require("../globalData.js"));
 
+var _PanelLoading = _interopRequireDefault(require("../prefabs/PanelLoading.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 cc.Class({
   "extends": cc.Component,
-  properties: {},
+  properties: {
+    panel_loading: _PanelLoading["default"]
+  },
   onLoad: function onLoad() {
     cc.debug.setDisplayStats(false);
-
-    _globalData["default"].socketMgr.initSocket();
   },
   start: function start() {
     console.log("启动参数：" + window.location.href);
@@ -32,6 +34,9 @@ cc.Class({
       var that = this;
       cc.args = field;
       cc.args['lanuch_url'] = window.location.href;
+      that.panel_loading.showLoading(function () {
+        _globalData["default"].socketMgr.initSocket();
+      });
     }
   }
 });

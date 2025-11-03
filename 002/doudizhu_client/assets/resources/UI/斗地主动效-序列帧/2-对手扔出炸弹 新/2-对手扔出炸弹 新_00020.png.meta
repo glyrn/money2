@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.4",
+  "uuid": "211e86a9-2011-42ba-8487-66795e5adac0",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 780,
+  "height": 380,
+  "platformSettings": {},
+  "subMetas": {
+    "2-对手扔出炸弹 新_00020": {
+      "ver": "1.0.4",
+      "uuid": "acef9b7f-0955-493e-87bf-4dc49deacdc7",
+      "rawTextureUuid": "211e86a9-2011-42ba-8487-66795e5adac0",
+      "trimType": "custom",
+      "trimThreshold": 0,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 780,
+      "height": 380,
+      "rawWidth": 780,
+      "rawHeight": 380,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

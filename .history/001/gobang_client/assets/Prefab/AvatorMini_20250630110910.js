@@ -1,0 +1,42 @@
+
+
+cc.Class({
+    extends: cc.Component,
+    properties: {
+        img_avatar:cc.Sprite,
+        pcSpriteFrame:{//pc图片
+            default:null,
+            type:cc.SpriteFrame
+        },
+        lab_name:cc.Label,
+    },
+    name:"AvatorMini",
+
+    render(data,flag){
+
+        if(data == null){
+            return;
+        }
+
+
+        this.lab_name.string = data.name;
+        if(flag == 'pc') {
+
+            this.img_avatar.spriteFrame = this.pcSpriteFrame
+        }else {
+            if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
+                var that = this;
+
+                cc.loader.load(data.avatorUrl, function (err, img) {
+                    if (!err) {
+                        that._avatorUrl = data.avatorUrl;
+                        that.img_avatar.spriteFrame = new cc.SpriteFrame(img);
+                    }
+                });
+            }
+        }
+    },
+    setData(data,flag){
+        this.render(data,flag);
+    }
+});

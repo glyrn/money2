@@ -215,21 +215,20 @@ var socketMgr = function socketMgr() {
       _gameMgr.roomState.gametime_remain = 0;
       _gameMgr.diff_time = 0;
       _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+      _gameMgr.is_quit = data.is_quit;
 
       for (var i = 0; i < data.score_list.length; i++) {
         var playerData = _gameMgr.getPlayerData(i);
 
         if (playerData) {
-          var _cc$args$specific_sco;
-
           _gameMgr.getPlayerData(i).state = 1;
-          var option = i == data.winer ? 1 : -1;
-          _gameMgr.getPlayerData(i).score_offset = option * parseInt(data.score_list[i]);
-          _gameMgr.getPlayerData(i).cards = data.cards_list[i];
-
-          if (_gameMgr.getPlayerData(i).score + _gameMgr.getPlayerData(i).score_offset >= parseInt((_cc$args$specific_sco = cc.args['specific_score']) !== null && _cc$args$specific_sco !== void 0 ? _cc$args$specific_sco : 300)) {
-            _gameMgr.is_quit = true;
-          }
+          _gameMgr.getPlayerData(i).score_offset = parseInt(data.score_list[i]);
+          _gameMgr.getPlayerData(i).cards = data.cards_list[i]; // var playerScore = _gameMgr.getPlayerData(i).score + _gameMgr.getPlayerData(i).score_offset;
+          // console.log("结算分数:",_gameMgr.getPlayerData(i).score,_gameMgr.getPlayerData(i).score_offset,playerScore,parseInt(cc.args['specific_score'] ?? 300));
+          // if (playerScore >= parseInt(cc.args['specific_score'] ?? 300)) {
+          //     console.log("退出游戏!");
+          //     _gameMgr.is_quit = true;
+          // }
         }
       }
 
@@ -262,10 +261,10 @@ var socketMgr = function socketMgr() {
         _gameMgr.getPlayerData(data.posId).cards.shift();
       }
 
-      _eventMgr.fire('PLAY_CARD_SUCCESS', data);
-
       _gameMgr.getPlayerData(data.nextPosId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
       _gameMgr.playerData.turn = data.nextPosId;
+
+      _eventMgr.fire('PLAY_CARD_SUCCESS', data);
 
       _eventMgr.fire('CHANGE_TURN');
     });
@@ -392,8 +391,8 @@ var socketMgr = function socketMgr() {
   };
 
   that.passCard = function () {
-    if (that.checkIsObserve()) return;
-    console.log("_gameMgr.isRecover", _gameMgr.isRecover);
+    if (that.checkIsObserve()) return; // console.log("_gameMgr.isRecover",_gameMgr.isRecover)
+
     if (_gameMgr.isRecover) return;
 
     _socket.emit('PLAY_PASS');

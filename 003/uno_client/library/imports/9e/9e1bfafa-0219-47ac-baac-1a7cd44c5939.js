@@ -21,19 +21,18 @@ cc.Class({
     anim_pos: cc.Animation
   },
   name: "Player",
-  update: function update() {
-    var now = Date.parse(new Date()) / 1000;
-    var timer_value = this._data.target_timer_value - now;
-
-    if (this._data && timer_value >= 0) {
-      this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
-      this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
-      this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color' + _globalData["default"].gameMgr.cur_out_color];
-    }
-  },
+  // update:function(){
+  //     var now = Date.parse(new Date()) / 1000;
+  //     var timer_value = this._data.target_timer_value - now;
+  //     if(this._data && timer_value >= 0){
+  //         this.clock.getComponent(cc.ProgressBar).progress = (30 - timer_value) / 30;
+  //         this.clock.getChildByName('label').getComponent(cc.Label).string = timer_value;
+  //         this.clock.getComponent(cc.Sprite).spriteFrame = this['sp_clock_color'+globalData.gameMgr.cur_out_color];
+  //     }
+  // },
   render: function render(data, flag) {
-    this.avator = this.node.getChildByName('avator').getComponent("Avator");
-    this.clock = this.node.getChildByName('clock'); // this.panel_wait_choice = this.clock.getChildByName('panel_wait_choice').getComponent("PlaneColor");
+    this.avator = this.node.getChildByName('avator').getComponent("Avator"); // this.clock = this.node.getChildByName('clock');
+    // this.panel_wait_choice = this.clock.getChildByName('panel_wait_choice').getComponent("PlaneColor");
 
     this.tips_index = 0;
 
@@ -66,7 +65,9 @@ cc.Class({
           this._hand_cards[i].node.active = false;
         }
 
-        for (var _i = 0; _i < data.cards.length; _i++) {
+        var card_len = data.cards.length;
+
+        for (var _i = 0; _i < card_len; _i++) {
           var card;
           var basePos = cc.find("card_pos", this.node).position;
 
@@ -83,22 +84,27 @@ cc.Class({
           card.node.active = true;
 
           if (this._flag == 'self') {
-            var gapX = 55;
+            var gapX = 60;
             var gapY = 40; // var offsetY = i > 10 ? -40:0;
             // var offsetX = i > 10 ? -gap * 11 : 0; 
 
             var offsetX = -Math.floor(_i / 11) * gapX * 11;
             var offsetY = -Math.floor(_i / 11) * gapY;
             card.node.position = cc.v2(basePos.x + _i * gapX + offsetX, basePos.y + offsetY);
+            card.node.setScale(1.5, 1.5);
           } else if (this._flag == 'left') {
-            var gap = _i > 12 ? 15 : 30;
+            var gap = card_len > 12 ? 15 : 30;
             card.node.position = cc.v2(basePos.x, basePos.y + 105 - _i * gap);
+            card.node.setRotation(90);
           } else if (this._flag == 'top') {
-            var gap = _i > 12 ? 15 : 30;
-            card.node.position = cc.v2(basePos.x + _i * gap, basePos.y);
+            var gap = card_len >= 11 ? -45 : -30; // card.node.position = cc.v2(card_len * gap / 2 + basePos.x - i * gap,basePos.y);
+
+            this.node.getChildByName("card_container").getComponent(cc.Layout).spacingX = gap;
+            card.node.setRotation(180);
           } else if (this._flag == 'right') {
-            var gap = _i > 12 ? 15 : 30;
-            card.node.position = cc.v2(basePos.x, basePos.y + 105 - _i * gap);
+            var gap = card_len > 12 ? 15 : 30;
+            card.node.position = cc.v2(basePos.x, basePos.y - 105 + _i * gap);
+            card.node.setRotation(-90);
           }
 
           if (data.cards[_i] == 0) {//旁观者不能看牌
@@ -108,7 +114,7 @@ cc.Class({
               //围观不能看牌
               card.setTouchEnable(true);
               card.setPlayer(this);
-              card.render(data.cards[_i]);
+              card.render(data.cards[_i], _i);
             }
           }
         }
@@ -143,13 +149,15 @@ cc.Class({
         } else {
           this._hadPlayAnim['anim_uno'] = false;
         }
-      }
+      } // if(data.posId == globalData.gameMgr.playerData.turn &&
+      //     globalData.gameMgr.roomState.state == 1  &&
+      //     data.posId != globalData.gameMgr.playerData.self.posId){
+      //     this.clock.active = true;
+      //     // this.panel_wait_choice.playAnim(true);
+      // }else{
+      //     this.clock.active = false;
+      // }
 
-      if (data.posId == _globalData["default"].gameMgr.playerData.turn && _globalData["default"].gameMgr.roomState.state == 1 && data.posId != _globalData["default"].gameMgr.playerData.self.posId) {
-        this.clock.active = true; // this.panel_wait_choice.playAnim(true);
-      } else {
-        this.clock.active = false;
-      }
     } else {
       this.node.active = false;
 
