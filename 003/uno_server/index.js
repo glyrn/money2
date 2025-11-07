@@ -958,7 +958,7 @@ const proto = {
             //判断游戏结束
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
             //debug 
-            if(desk.positions[curPosId].cards.length <= 0 || obj.value == 8)
+            if(desk.positions[curPosId].cards.length <= 0)
             {
               //重置状态
               for (let i = 0; i < desk.positions.length ; i++) {
@@ -1113,8 +1113,8 @@ const proto = {
                 const userObj = desk.positions[i];
                 userObj.cards = [];
                 //debug
-                for (let k = 0; k < 3; k++) {
-                // for (let k = 0; k < 7; k++) {
+                // for (let k = 0; k < 3; k++) {
+                for (let k = 0; k < 7; k++) {
                   userObj.cards.push(desk.cards.shift());
                 }
               self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
