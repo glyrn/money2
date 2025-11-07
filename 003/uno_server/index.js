@@ -102,6 +102,7 @@ const proto = {
       cards.push({type:2,value:'plus2',color:c});
       cards.push({type:2,value:'plus2',color:c});
     }
+    // for (let i = 0; i < 14; i++) {
     for (let i = 0; i < 4; i++) {
       cards.push({type:2,value:'plus4',color:0});
       cards.push({type:2,value:'color',color:0});
@@ -653,6 +654,7 @@ const proto = {
       }
       desk.name = '';
       desk.state = 0;
+      desk.score_list = [];
       desk.deprecate_time = 0;
       desk.play_index = 0;
       desk.ready_count = -1;
@@ -805,8 +807,6 @@ const proto = {
             room.specific_score = obj.specific_score ?? 1000;
             room.deprecate_time = 30;
             room.hadDeprecateGame = false;
-            //以客户端域名为准
-            yc_domain = obj.ycdomain;
 
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];
@@ -958,7 +958,7 @@ const proto = {
             //判断游戏结束
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
             //debug 
-            if(desk.positions[curPosId].cards.length <= 0 )
+            if(desk.positions[curPosId].cards.length <= 0 || obj.value == 8)
             {
               //重置状态
               for (let i = 0; i < desk.positions.length ; i++) {
@@ -1015,10 +1015,10 @@ const proto = {
               }
 
               for (let i = 0; i < desk.score_list.length; i++) {
-                var ycscore_list = desk.score_list[i].score_list;
-                for (let j = 0; j < ycscore_list.length; j++) {
+                var ycscore_list2 = desk.score_list[i].score_list;
+                for (let j = 0; j < ycscore_list2.length; j++) {
                   
-                  score_map[ycscore_list[j].uid] += parseInt(ycscore_list[j].score);
+                  score_map[ycscore_list2[j].uid] += parseInt(ycscore_list2[j].score);
                 }
               }
               for (const key in score_map) {
@@ -1113,7 +1113,8 @@ const proto = {
                 const userObj = desk.positions[i];
                 userObj.cards = [];
                 //debug
-                for (let k = 0; k < 7; k++) {
+                for (let k = 0; k < 3; k++) {
+                // for (let k = 0; k < 7; k++) {
                   userObj.cards.push(desk.cards.shift());
                 }
               self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
