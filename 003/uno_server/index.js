@@ -102,6 +102,7 @@ const proto = {
       cards.push({type:2,value:'plus2',color:c});
       cards.push({type:2,value:'plus2',color:c});
     }
+    // for (let i = 0; i < 14; i++) {
     for (let i = 0; i < 4; i++) {
       cards.push({type:2,value:'plus4',color:0});
       cards.push({type:2,value:'color',color:0});
@@ -653,6 +654,7 @@ const proto = {
       }
       desk.name = '';
       desk.state = 0;
+      desk.score_list = [];
       desk.deprecate_time = 0;
       desk.play_index = 0;
       desk.ready_count = -1;
@@ -956,7 +958,7 @@ const proto = {
             //判断游戏结束
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
             //debug 
-            if(desk.positions[curPosId].cards.length <= 0 )
+            if(desk.positions[curPosId].cards.length <= 0)
             {
               //重置状态
               for (let i = 0; i < desk.positions.length ; i++) {
@@ -1013,10 +1015,10 @@ const proto = {
               }
 
               for (let i = 0; i < desk.score_list.length; i++) {
-                var ycscore_list = desk.score_list[i].score_list;
-                for (let j = 0; j < ycscore_list.length; j++) {
+                var ycscore_list2 = desk.score_list[i].score_list;
+                for (let j = 0; j < ycscore_list2.length; j++) {
                   
-                  score_map[ycscore_list[j].uid] += parseInt(ycscore_list[j].score);
+                  score_map[ycscore_list2[j].uid] += parseInt(ycscore_list2[j].score);
                 }
               }
               for (const key in score_map) {
@@ -1029,7 +1031,7 @@ const proto = {
               self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list,is_quit:is_over_specific_score});
               
               
-              console.log("是否超过指定分数？",is_over_specific_score,desk.specific_score);
+              console.log("游戏结算：",is_over_specific_score,desk.specific_score);
               if(is_over_specific_score){
                 self.sendYcGameOver({
                   room_id:desk.name,
@@ -1111,6 +1113,7 @@ const proto = {
                 const userObj = desk.positions[i];
                 userObj.cards = [];
                 //debug
+                // for (let k = 0; k < 3; k++) {
                 for (let k = 0; k < 7; k++) {
                   userObj.cards.push(desk.cards.shift());
                 }

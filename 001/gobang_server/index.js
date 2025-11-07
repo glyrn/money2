@@ -720,6 +720,8 @@ const proto = {
               room.play_count = obj.play_count;
               room.deprecate_time = 30;
               room.hadDeprecateGame = false;
+              //以客户端域名为准
+              yc_domain = obj.ycdomain;
 
               var target = null;
               if(room.play_mode == 1){ //人人对战
