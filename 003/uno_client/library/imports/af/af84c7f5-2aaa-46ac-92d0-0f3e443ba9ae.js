@@ -213,7 +213,7 @@ var socketMgr = function socketMgr() {
       _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
       _gameMgr.is_quit = data.is_quit;
 
-      for (var i = 0; i < data.score_list.length; i++) {
+      for (var i in data.score_list) {
         var playerData = _gameMgr.getPlayerData(i);
 
         if (playerData) {

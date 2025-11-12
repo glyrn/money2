@@ -185,7 +185,7 @@ const socketMgr = function(){
             _gameMgr.diff_time = 0;
             _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
             _gameMgr.is_quit = data.is_quit;
-            for (let i = 0; i < data.score_list.length; i++) {
+            for (const i in data.score_list) {
                 var playerData = _gameMgr.getPlayerData(i);
                 if(playerData) {
                     _gameMgr.getPlayerData(i).state = 1;

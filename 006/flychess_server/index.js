@@ -627,8 +627,6 @@ const proto = {
             room.play_count = obj.play_count;
             room.deprecate_time = 30;
             room.hadDeprecateGame = false;
-            //以客户端域名为准
-            yc_domain = obj.ycdomain;
 
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];

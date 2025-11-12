@@ -82,7 +82,7 @@ cc.Class({
 
     _globalData["default"].eventlister.on("GAME_START", function (data) {
       that.reset();
-      that.pushCardToDesk(data.top, -1, 0, 0);
+      that.pushCardToDesk(data.top, -1, 0, 0, 0);
       that.img_deck.active = true;
       that.btn_quit.active = false;
       that.panel_continue.active = false;
@@ -94,7 +94,7 @@ cc.Class({
     });
 
     _globalData["default"].eventlister.on("PLAY_CARD_SUCCESS", function (data) {
-      that.pushCardToDesk(data.card, data.posId, data.plus_num, data.skipPosId);
+      that.pushCardToDesk(data.card, data.posId, data.plus_num, data.skipPosId, data.nextPosId);
       that.renderPlayer();
     });
 
@@ -327,7 +327,7 @@ cc.Class({
   renderRemainCard: function renderRemainCard() {
     this.img_deck.getChildByName("label").getComponent(cc.Label).string = _globalData["default"].gameMgr.card_remain;
   },
-  pushCardToDesk: function pushCardToDesk(card, posId, plusNum, skipPosId) {
+  pushCardToDesk: function pushCardToDesk(card, posId, plusNum, skipPosId, nextPosId) {
     //记录当前出牌颜色、类型、位置
     _globalData["default"].gameMgr.cur_out_color = card.color;
     _globalData["default"].gameMgr.cur_out_value = card.value;
@@ -415,7 +415,7 @@ cc.Class({
     //播放全局动画
 
 
-    var turnKey = _globalData["default"].gameMgr.getPlayerDataKey(_globalData["default"].gameMgr.playerData.turn);
+    var turnKey = _globalData["default"].gameMgr.getPlayerDataKey(nextPosId);
 
     if (plusNum > 0) {
       this.showGlobalEffect('anim+' + plusNum + "_" + turnKey, plusNum, turnKey);
@@ -554,8 +554,8 @@ cc.Class({
 
     if (!_globalData["default"].gameMgr.isRecover) {
       this._tmpGlobalAnim = cc.instantiate(this.globalAnim.node).getComponent(cc.Animation);
-      this._tmpGlobalAnim.node.parent = this.globalAnim.node.parent;
       this._tmpGlobalAnim.node.active = true;
+      this._tmpGlobalAnim.node.parent = this.globalAnim.node.parent;
 
       this._tmpGlobalAnim.stop();
 
@@ -575,7 +575,9 @@ cc.Class({
 
       var that = this;
 
-      this._tmpGlobalAnim.node.runAction(cc.sequence([cc.delayTime(3), cc.callFunc(function (selector, selectorTarget, _data) {
+      this._tmpGlobalAnim.node.runAction(cc.sequence([cc.delayTime(2), cc.callFunc(function (selector, selectorTarget, _data) {
+        selector.getChildByName("sprite_splash").active = false;
+      }, that), cc.delayTime(1), cc.callFunc(function (selector, selectorTarget, _data) {
         selector.destroy();
       }, that)]));
     }
