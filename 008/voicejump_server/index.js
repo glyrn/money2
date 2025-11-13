@@ -323,6 +323,7 @@ const proto = {
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
           console.log(desk.deprecate_time)
+
         }else{ //时间到
 
           if(!desk.hadDeprecateGame){
@@ -331,6 +332,9 @@ const proto = {
             this.deprecateGame(desk);
           }
         }
+      }else if(desk.state == 1){
+          //同步时间
+          self.broadCastRoom("SYNC_SERVER_TIME",desk.deskId,{server_time:getTimeStamp()});
       }
     }
   },
@@ -618,8 +622,6 @@ const proto = {
             room.play_count = obj.play_count;
             room.hadDeprecateGame = false;
             room.deprecate_time = 30;
-            //以客户端域名为准
-            yc_domain = obj.ycdomain;
 
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];
