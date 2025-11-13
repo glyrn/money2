@@ -394,6 +394,9 @@ const proto = {
       //开始游戏
       if(desk.state == 1){
 
+        //同步时间
+        this.broadCastRoom("SYNC_SERVER_TIME",desk.deskId,{server_time:getTimeStamp()});
+        
         if(desk.time_out > 0){
           desk.time_out--;
           console.log("自动pass",desk.time_out)
