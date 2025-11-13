@@ -315,6 +315,7 @@ const proto = {
       var desk = this.desks[i];
       //检测弃局
       if(desk.state == 0 && desk.deprecate_time > 0){
+        
 
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
@@ -328,6 +329,9 @@ const proto = {
           }
         }
       }else if(desk.state == 1 && desk.time_out > 0){
+
+        //同步时间
+        this.broadCastRoom("SYNC_SERVER_TIME",desk.deskId,{server_time:getTimeStamp()});
 
         desk.time_out--;
         if(desk.time_out > 0){
@@ -829,12 +833,6 @@ const proto = {
         var desk = self.getDesk(socket);
         if(desk){
           self.makeNextPlayerDice(desk);
-
-          //如果下一个是掉线ing 则继续跳下一个
-          var nextUserObj = self.getPositionByPosId(desk, desk.cur_posId);
-          if (nextUserObj && nextUserObj.disconnectTime > 0) {
-            self.makeNextPlayerDice(desk);
-          }
         }
       })
     });
