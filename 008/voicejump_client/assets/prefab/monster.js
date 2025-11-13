@@ -19,8 +19,7 @@ cc.Class({
     },
     update:function(dt){
 
-        var d = new Date();
-        var seconds = d.getSeconds() + globalData.gameMgr.diff_time;
+        var seconds = globalData.gameMgr.server_time;
         if(seconds % 5 === 0){
 
             if(this.last_seconds == seconds){
@@ -51,9 +50,9 @@ cc.Class({
 
         //右边
         if(p_bird.x >= p_monster.x){
-            this.currentSpeedX = 40 * dt;
+            this.currentSpeedX = 45 * dt;
         }else{ //左边
-            this.currentSpeedX = -40 * dt;
+            this.currentSpeedX = -45 * dt;
         }
 
         this.node.x += this.currentSpeedX;

@@ -184,7 +184,7 @@ cc.Class({
 
     update:function(){
 
-        var now = Math.floor(Date.parse(new Date()) / 1000);
+        var now = globalData.gameMgr.server_time;
         var timer_value = globalData.gameMgr.playerData.self.target_timer_value - now;
         if (timer_value >= 0) {
             if(globalData.gameMgr.roomState.state == 1) {

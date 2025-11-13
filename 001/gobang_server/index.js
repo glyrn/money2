@@ -428,6 +428,10 @@ const proto = {
       //轮流
       }else if(desk.state == 1 && desk.time_out > 0){
         desk.time_out--;
+
+        //同步时间
+        this.broadCastRoom("SYNC_SERVER_TIME",desk.deskId,{server_time:getTimeStamp()});
+
         if(desk.time_out > 0){
           console.log("下棋倒计时:",desk.time_out)
         }else{

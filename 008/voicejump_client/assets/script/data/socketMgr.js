@@ -138,6 +138,10 @@ const socketMgr = function(){
         //     _eventMgr.fire("REFRESH_DATA",data)
         // });
 
+        _socket.on("SYNC_SERVER_TIME",function(data){
+            _gameMgr.server_time = data.server_time;
+        });
+
         _socket.on("BIRD_MOVE_SUCCESS",function(data){
             _eventMgr.fire("BIRD_MOVE_SUCCESS",data)
         });
@@ -178,6 +182,9 @@ const socketMgr = function(){
             _gameMgr.isRecover = data.isRecover;
             _eventMgr.fire("SET_RECOVER_STATUS");
         });
+
+
+
         _socket.on('GAME_OVER',function(data){
             
             that._cur_x = null;

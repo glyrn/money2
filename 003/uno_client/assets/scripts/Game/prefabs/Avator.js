@@ -13,10 +13,11 @@ cc.Class({
         node_timer:cc.Node,
     },
     name:"Avator",
-    update(){
+    update(df){
         if(this._posId == globalData.gameMgr.playerData.turn){
             this.node_timer.active = true;
-            var now_ts = (new Date().getTime() / 1000);
+            globalData.gameMgr.server_time += df;
+            var now_ts = globalData.gameMgr.server_time;
             var time_value = this._data.target_timer_value - Math.floor(now_ts);;
             var time_value_ts = this._data.target_timer_value - now_ts;
             time_value_ts = time_value_ts >= 0 ? time_value_ts:0;
@@ -25,7 +26,6 @@ cc.Class({
                 this.lab_timer.string = time_value;
             }else{
                 this.node_timer.active = false;
-                // globalData.eventlister.fire("HIDE_CTRL_PLANE");
             }
         }else{
             this.node_timer.active = false;

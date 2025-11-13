@@ -218,6 +218,13 @@ const socketMgr = function(){
     }
     that.playChess = function(x,y,move){
         if(that.checkIsObserve()) return;
+
+        var now_ts = (new Date().getTime() / 1000);
+        var time_value = globalData.gameMgr.time_out - Math.floor(now_ts);
+        if(time_value <= 1){
+            return;
+        }
+
         _socket.emit('PLAY_CHESS',{x:x,y:y,move:move});
     }
     that.retrackChess = function(){

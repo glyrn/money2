@@ -198,7 +198,7 @@ cc.Class({
     }, that);
   },
   update: function update() {
-    var now = Math.floor(Date.parse(new Date()) / 1000);
+    var now = _globalData["default"].gameMgr.server_time;
     var timer_value = _globalData["default"].gameMgr.playerData.self.target_timer_value - now;
 
     if (timer_value >= 0) {
