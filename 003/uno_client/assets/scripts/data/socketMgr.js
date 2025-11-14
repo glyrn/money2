@@ -177,13 +177,17 @@ const socketMgr = function(){
 
             _eventMgr.fire("GAME_START",data);
             _eventMgr.fire('CHANGE_TURN');
-        })
+        });
+
+        _socket.on("SYNC_SERVER_TIME",function(data){
+            _gameMgr.server_time = data.server_time;
+        });
 
         _socket.on('GAME_OVER',function(data){
             _gameMgr.roomState.state = 2;
             _gameMgr.roomState.gametime_remain = 0;
             _gameMgr.diff_time = 0;
-            _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+            // _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
             _gameMgr.is_quit = data.is_quit;
             for (const i in data.score_list) {
                 var playerData = _gameMgr.getPlayerData(i);
@@ -328,6 +332,13 @@ const socketMgr = function(){
     that.playCard = function(card){
         if(that.checkIsObserve()) return;
         if(_gameMgr.isRecover) return;
+        //防止极限操作
+        var now = _gameMgr.server_time;
+        var timer_value = _gameMgr.playerData.self.target_timer_value - now;
+        if(timer_value <= 1){
+            return;
+        }
+
         _socket.emit('PLAY_CARD',card);
     }
     that.passCard = function(){

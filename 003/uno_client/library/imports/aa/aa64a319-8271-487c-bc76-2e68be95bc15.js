@@ -21,10 +21,11 @@ cc.Class({
     node_timer: cc.Node
   },
   name: "Avator",
-  update: function update() {
+  update: function update(df) {
     if (this._posId == _globalData["default"].gameMgr.playerData.turn) {
       this.node_timer.active = true;
-      var now_ts = new Date().getTime() / 1000;
+      _globalData["default"].gameMgr.server_time += df;
+      var now_ts = _globalData["default"].gameMgr.server_time;
       var time_value = this._data.target_timer_value - Math.floor(now_ts);
       ;
       var time_value_ts = this._data.target_timer_value - now_ts;
@@ -34,7 +35,7 @@ cc.Class({
         this.img_avator_light.fillRange = -(time_value_ts / 30);
         this.lab_timer.string = time_value;
       } else {
-        this.node_timer.active = false; // globalData.eventlister.fire("HIDE_CTRL_PLANE");
+        this.node_timer.active = false;
       }
     } else {
       this.node_timer.active = false;

@@ -1,4 +1,5 @@
 
+import globalData from "./globalData";
 
 cc.Class({
     extends: cc.Component,
@@ -25,7 +26,7 @@ cc.Class({
             return;
         }
 
-        this.lab_name.string = data.name;
+        this.lab_name.string = globalData.utils.subStringResult(data.name,7);
         this.lab_score.string = data.score;
 
         this.sp_airplane.spriteFrame = this['colorPlane'+data.posId+'sf'];
