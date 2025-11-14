@@ -115,6 +115,10 @@ const socketMgr = function(){
             }
         });
 
+        _socket.on("SYNC_SERVER_TIME",function(data){
+            _gameMgr.server_time = data.server_time;
+        });
+
         _socket.on('SIT_CHANGE', function (data) {
             var target = data.target;
             if(target){
@@ -407,6 +411,12 @@ const socketMgr = function(){
     that.pass_card = function(){
         if(that.checkIsObserve()) return;
         if(_gameMgr.isRecover) return;
+        //防止极限操作
+        var now = (new Date().getTime() / 1000);
+        var time_value = _gameMgr.roomState.server_time + _gameMgr.roomState.timeout - now;
+        if(time_value <= 1){
+            return;
+        }
         _socket.emit('PLAY_CARD', []);
     }
     that.prepare = function(){
@@ -416,6 +426,13 @@ const socketMgr = function(){
     that.playCards = function(cards){
         if(that.checkIsObserve()) return;
         if(_gameMgr.isRecover) return;
+        //防止极限操作
+        var now = (new Date().getTime() / 1000);
+        var time_value = _gameMgr.roomState.server_time + _gameMgr.roomState.timeout - now;
+        if(time_value <= 1){
+            return;
+        }
+
         _socket.emit('PLAY_CARD', cards);
     }
     that.getSocket = function(){

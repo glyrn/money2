@@ -119,6 +119,10 @@ const socketMgr = function(){
             }
         });
 
+        _socket.on("SYNC_SERVER_TIME",function(data){
+            _gameMgr.server_time = data.server_time;
+        });
+
         _socket.on("PLAY_CHESS_SUCCESS",function(data){
             _gameMgr.time_out = data.time_out;
             _eventMgr.fire('PLAY_CHESS_SUCCESS', data);
@@ -210,6 +214,13 @@ const socketMgr = function(){
     }
     that.playChess = function(chessTag){
         if(that.checkIsObserve()) return;
+
+        var now_ts = (new Date().getTime() / 1000);
+        var time_value = globalData.gameMgr.time_out - Math.floor(now_ts);
+        if(time_value <= 1){
+            return;
+        }
+
         _socket.emit('PLAY_CHESS',chessTag);
     }
     that.retrackChess = function(){

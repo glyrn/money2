@@ -229,11 +229,26 @@ const socketMgr = function(){
     that.makeDiceNum = function(){
         if(that.checkIsObserve()) return;
         if(_gameMgr.isRecover) return;
+
+        //防止极限操作
+        var now_ts = (new Date().getTime() / 1000);
+        var time_value = _gameMgr.time_out - Math.floor(now_ts);
+        if(time_value <= 1){
+            return;
+        }
+
         _socket.emit('MAKE_DICE_NUM');
     }
     that.playMoveStep = function(chess_idx,num){
         if(that.checkIsObserve()) return;
         if(_gameMgr.isRecover) return;
+        //防止极限操作
+        var now_ts = (new Date().getTime() / 1000);
+        var time_value = _gameMgr.time_out - Math.floor(now_ts);
+        if(time_value <= 1){
+            return;
+        }
+        
         _socket.emit('PLAY_MOVE_STEP', {idx:chess_idx,num:num});
     }
     that.nextPlayerDice = function(){

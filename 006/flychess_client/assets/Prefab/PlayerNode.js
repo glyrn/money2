@@ -589,7 +589,7 @@ cc.Class({
             var now_ts = (new Date().getTime() / 1000);
             var time_value = globalData.gameMgr.time_out - Math.floor(now_ts);
             var time_value_ts = globalData.gameMgr.time_out - now_ts;
-            // console.log("time_value ",time_value)
+            time_value_ts = time_value_ts >= 0 ? time_value_ts:0;
             if(time_value >=0 ){
                 this.img_avator_light.fillRange = - (time_value_ts/globalData.gameMgr.time_out_limit);
                 this.lab_timer.string = time_value;

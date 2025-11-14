@@ -1,4 +1,5 @@
 
+import globalData from "../globalData";
 
 cc.Class({
     extends: cc.Component,
@@ -14,7 +15,7 @@ cc.Class({
             return;
         }
 
-        this.lab_name.string = data.name;
+        this.lab_name.string = globalData.utils.subStringResult(data.name,7);
 
         if (this._avatarUrl != data.avatarUrl && data.avatarUrl != null && data.avatarUrl != '') {
             var that = this;

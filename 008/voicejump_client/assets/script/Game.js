@@ -176,12 +176,13 @@ cc.Class({
             //观众不用麦克风
             if(!globalData.gameMgr.is_ob){
                 //初始化麦克风
-                navigator.mediaDevices.getUserMedia({audio:true}).then(
-                    stream => {
-                        that.voiceSuccess(stream);
-                    }).catch(err => {
-                        that.voiceFail(err);
-                    });
+                //debug
+                // navigator.mediaDevices.getUserMedia({audio:true}).then(
+                //     stream => {
+                //         that.voiceSuccess(stream);
+                //     }).catch(err => {
+                //         that.voiceFail(err);
+                //     });
                 that.slide_voice.active = true;
             }else{
                 that.slide_voice.active = false;
@@ -205,7 +206,7 @@ cc.Class({
     },
     renderRoomTitle(){
         this.lab_room.string = "局数:"+globalData.gameMgr.play_index +'-'+ globalData.gameMgr.play_count;
-        var distance = globalData.gameMgr.roomState.gametime_remain - Date.parse(new Date()) / 1000;
+        var distance = globalData.gameMgr.roomState.gametime_remain - globalData.gameMgr.server_time;
         if(distance > 0){
             const minutes = Math.floor((distance % ( 60 * 60)) /  60);
             const seconds = Math.floor(distance % 60);
@@ -271,13 +272,16 @@ cc.Class({
 
         var that = this;
 
-        var rms = that._rms;
+        // var rms = that._rms;
+        //debug
+        var rms = window._currentVoiceGameVolume;
+        console.log("window._currentVoiceGameVolume:",window._currentVoiceGameVolume);
 
         if(cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1 && !globalData.gameMgr.is_ob) {
 
             if (!that['player' + globalData.gameMgr.posId].fallOver) {
 
-                that.prog_voice.height = that._rms / 100 * 200;
+                that.prog_voice.height = rms / 100 * 200;
                 var curPlayer = this['player'+globalData.gameMgr.posId];
                 var position = curPlayer.node.parent.position;
                 if(curPlayer.isStand()) {

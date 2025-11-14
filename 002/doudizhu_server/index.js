@@ -318,6 +318,11 @@ const proto = {
         //出牌阶段
       }else if (game && game.getStatus() == 2){
 
+
+        //同步时间
+        this.broadCastRoom("SYNC_SERVER_TIME",desk.deskId,{server_time:getTimeStamp()});
+      
+
         if(desk.time_out > 0){
           desk.time_out--;
           
@@ -839,8 +844,6 @@ const proto = {
             room.islaizi = obj.play_mode;
             room.deprecate_time = 30;
             room.hadDeprecateGame = false;
-            //以客户端域名为准
-            yc_domain = obj.ycdomain;
 
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];
