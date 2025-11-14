@@ -323,6 +323,7 @@ const proto = {
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
           console.log(desk.deprecate_time)
+
         }else{ //时间到
 
           if(!desk.hadDeprecateGame){
@@ -331,6 +332,9 @@ const proto = {
             this.deprecateGame(desk);
           }
         }
+      }else if(desk.state == 1){
+          //同步时间
+          self.broadCastRoom("SYNC_SERVER_TIME",desk.deskId,{server_time:getTimeStamp()});
       }
     }
   },

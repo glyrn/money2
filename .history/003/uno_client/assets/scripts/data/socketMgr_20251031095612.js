@@ -100,6 +100,7 @@ const socketMgr = function(){
             let posId = data.posId;
             _gameMgr.getPlayerData(posId).state = 2;
             _gameMgr.getPlayerData(posId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
+            _gameMgr.playerData.turn = posId;
 
             _eventMgr.fire('PREPARE_SUCCESS', posId);
         });
@@ -151,15 +152,15 @@ const socketMgr = function(){
             _gameMgr.card_remain = 108;
             _gameMgr.roomState.gametime_remain = parseInt(data.server_time) + parseInt(cc.args['game_time'] ?? 4) * 60;
 
-            // if(_gameMgr.is_quit){
-            //     //初始化分数
-            //     for (const posId in data.score_list) {
-            //         _gameMgr.getPlayerData(posId).score = parseInt(data.score_list[posId]);
-            //         _gameMgr.getPlayerData(posId).score_offset = 0;
-            //     }
-            //     _gameMgr.is_quit = false;
-            //     _gameMgr.play_index = 1;
-            // }else{
+            if(_gameMgr.is_quit){
+                //初始化分数
+                for (const posId in data.score_list) {
+                    _gameMgr.getPlayerData(posId).score = parseInt(data.score_list[posId]);
+                    _gameMgr.getPlayerData(posId).score_offset = 0;
+                }
+                _gameMgr.is_quit = false;
+                _gameMgr.play_index = 1;
+            }else{
                 //更新分数
                 for (var posId in [0,1,2,3]) {
                     if(_gameMgr.getPlayerData(posId)) {
@@ -168,7 +169,7 @@ const socketMgr = function(){
                     }
                 }
                 _gameMgr.play_index++;
-            // }
+            }
 
             _gameMgr.playerData.self.cards = data.cards;
             if(_gameMgr.playerData.left)    _gameMgr.playerData.left.cards = [0,0,0,0,0,0,0];
@@ -185,7 +186,7 @@ const socketMgr = function(){
             _gameMgr.diff_time = 0;
             _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
             _gameMgr.is_quit = data.is_quit;
-            for (const i in data.score_list) {
+            for (let i = 0; i < data.score_list.length; i++) {
                 var playerData = _gameMgr.getPlayerData(i);
                 if(playerData) {
                     _gameMgr.getPlayerData(i).state = 1;
@@ -233,9 +234,10 @@ const socketMgr = function(){
             
             _gameMgr.getPlayerData(data.nextPosId).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
             _eventMgr.fire('PLAY_CARD_SUCCESS',data);
+            _eventMgr.fire('CHANGE_TURN');
+            
             _gameMgr.playerData.turn = data.nextPosId;
 
-            _eventMgr.fire('CHANGE_TURN');
         });
         _socket.on('PLAY_PASS_SUCCESS',function(data){
             console.log("手牌增加：",data.plus_cards);

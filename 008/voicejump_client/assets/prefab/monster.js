@@ -1,4 +1,5 @@
 import Bird from "./Bird";
+import globalData from "../script/data/globalData";
 
 cc.Class({
     extends: cc.Component,
@@ -19,7 +20,7 @@ cc.Class({
     update:function(dt){
 
         var d = new Date();
-        var seconds = d.getSeconds();
+        var seconds = d.getSeconds() + globalData.gameMgr.diff_time;
         if(seconds % 5 === 0){
 
             if(this.last_seconds == seconds){
@@ -50,9 +51,9 @@ cc.Class({
 
         //右边
         if(p_bird.x >= p_monster.x){
-            this.currentSpeedX = 2;
+            this.currentSpeedX = 40 * dt;
         }else{ //左边
-            this.currentSpeedX = -2;
+            this.currentSpeedX = -40 * dt;
         }
 
         this.node.x += this.currentSpeedX;

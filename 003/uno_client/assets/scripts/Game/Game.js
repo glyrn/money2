@@ -76,7 +76,7 @@ cc.Class({
 
         globalData.eventlister.on("GAME_START",function(data){
             that.reset()
-            that.pushCardToDesk(data.top,-1,0,0)
+            that.pushCardToDesk(data.top,-1,0,0,0)
             that.img_deck.active = true;
             that.btn_quit.active = false;
             that.panel_continue.active = false;
@@ -89,7 +89,7 @@ cc.Class({
 
         globalData.eventlister.on("PLAY_CARD_SUCCESS",function(data){
             
-            that.pushCardToDesk(data.card,data.posId,data.plus_num,data.skipPosId);
+            that.pushCardToDesk(data.card,data.posId,data.plus_num,data.skipPosId,data.nextPosId);
             that.renderPlayer();
        
         });
@@ -312,7 +312,7 @@ cc.Class({
     renderRemainCard(){
         this.img_deck.getChildByName("label").getComponent(cc.Label).string = globalData.gameMgr.card_remain;
     },
-    pushCardToDesk(card,posId,plusNum,skipPosId){
+    pushCardToDesk(card,posId,plusNum,skipPosId,nextPosId){
         //记录当前出牌颜色、类型、位置
         globalData.gameMgr.cur_out_color = card.color;
         globalData.gameMgr.cur_out_value = card.value;
@@ -381,7 +381,6 @@ cc.Class({
 
                 // 轮到自己
                 if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
-                    console.log("xxxxxxxxx",!that._onBtnTips(true))
                     if(!that._onBtnTips(true)){
                         console.log("发送Pass")
                         that.onBtnPass();
@@ -411,7 +410,7 @@ cc.Class({
 
         // console.log("card.value：",card.value)
         //播放全局动画
-        let turnKey = globalData.gameMgr.getPlayerDataKey(globalData.gameMgr.playerData.turn);
+        let turnKey = globalData.gameMgr.getPlayerDataKey(nextPosId);
         if(plusNum > 0){
             this.showGlobalEffect('anim+'+plusNum+"_"+turnKey,plusNum,turnKey);
         }else if(card.value == 'turn'){
@@ -546,28 +545,35 @@ cc.Class({
         console.log("播放全局动画：",name,plusNum,turnKey);
         //有动画
         if(!globalData.gameMgr.isRecover){
-
-            this.globalAnim.node.active = true;
-            this.globalAnim.stop();
-            this.globalAnim.setCurrentTime(0);
+            
+            this._tmpGlobalAnim = cc.instantiate(this.globalAnim.node).getComponent(cc.Animation);
+            this._tmpGlobalAnim.node.active = true;
+            this._tmpGlobalAnim.node.parent = this.globalAnim.node.parent;
+            
+            this._tmpGlobalAnim.stop();
+            this._tmpGlobalAnim.setCurrentTime(0);
 
             if(plusNum > 0){
-                this.globalAnim.node.getChildByName("label").getComponent(cc.Label).string = "+"+plusNum;
+                this._tmpGlobalAnim.node.getChildByName("label").getComponent(cc.Label).string = "+"+plusNum;
                 if(plusNum > 8){
-                    this.globalAnim.play('anim+n_'+turnKey);
+                    this._tmpGlobalAnim.play('anim+n_'+turnKey);
                 }else{
-                    this.globalAnim.play(name);
+                    this._tmpGlobalAnim.play(name);
                 }
             }else{
-                this.globalAnim.play(name);
+                this._tmpGlobalAnim.play(name);
             }
-
-            // this.globalAnim.node.active = true;
-            
-            // var that = this;
-            // this.scheduleOnce(function () {
-            //     that.globalAnim.node.active = false;
-            // },3);
+            var that = this;
+            this._tmpGlobalAnim.node.runAction(cc.sequence([
+                cc.delayTime(2),
+                 cc.callFunc(function (selector, selectorTarget, _data) {
+                    selector.getChildByName("sprite_splash").active = false;
+                }, that),
+                cc.delayTime(1),
+                cc.callFunc(function (selector, selectorTarget, _data) {
+                    selector.destroy();
+                }, that)
+            ]));
         }
     },
     renderScorePanel(){
@@ -588,7 +594,8 @@ cc.Class({
 
             var tmp_list = [];
             for (const posId in data.score_list) {
-                tmp_list.push({posId:posId,score:data.score_list[posId]});
+                var playerData = globalData.gameMgr.getPlayerData(posId)
+                tmp_list.push({posId:posId,score:parseInt(data.score_list[posId]) + parseInt(playerData.score)});
             }
             tmp_list.sort(function(a,b){
                 return a.score < b.score ? 1 : -1;
