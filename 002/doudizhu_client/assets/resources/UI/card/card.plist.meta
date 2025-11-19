@@ -1284,9 +1284,9 @@
       "spriteType": "normal",
       "subMetas": {}
     },
-    "laizi_12.png": {
+    "laizi_13.png": {
       "ver": "1.0.4",
-      "uuid": "1d694e84-456a-43c8-96da-1fd4d4107824",
+      "uuid": "09e36aa7-476b-4fbb-ace7-6abaafa959de",
       "rawTextureUuid": "7fd8fc0e-12e6-4380-a78e-e1ab33929453",
       "trimType": "auto",
       "trimThreshold": 1,
@@ -1306,9 +1306,9 @@
       "spriteType": "normal",
       "subMetas": {}
     },
-    "laizi_13.png": {
+    "laizi_12.png": {
       "ver": "1.0.4",
-      "uuid": "09e36aa7-476b-4fbb-ace7-6abaafa959de",
+      "uuid": "1d694e84-456a-43c8-96da-1fd4d4107824",
       "rawTextureUuid": "7fd8fc0e-12e6-4380-a78e-e1ab33929453",
       "trimType": "auto",
       "trimThreshold": 1,
