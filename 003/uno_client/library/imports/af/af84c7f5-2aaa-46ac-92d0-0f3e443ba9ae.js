@@ -172,6 +172,7 @@ var socketMgr = function socketMgr() {
       _gameMgr.roomState.state = 1; //进行中
 
       _gameMgr.getPlayerData(data.turn).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
+      _gameMgr.server_time = parseInt(data.server_time);
       _gameMgr.playerData.turn = data.turn;
       _gameMgr.card_remain = 108;
       _gameMgr.roomState.gametime_remain = parseInt(data.server_time) + parseInt((_cc$args$game_time = cc.args['game_time']) !== null && _cc$args$game_time !== void 0 ? _cc$args$game_time : 4) * 60; // if(_gameMgr.is_quit){
@@ -213,7 +214,8 @@ var socketMgr = function socketMgr() {
     _socket.on('GAME_OVER', function (data) {
       _gameMgr.roomState.state = 2;
       _gameMgr.roomState.gametime_remain = 0;
-      _gameMgr.diff_time = 0; // _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+      _gameMgr.diff_time = 0;
+      _globalData["default"].gameMgr.ready_target_time = parseInt(_globalData["default"].gameMgr.server_time) + 5; // _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
 
       _gameMgr.is_quit = data.is_quit;
 

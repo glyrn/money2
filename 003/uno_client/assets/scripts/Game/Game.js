@@ -75,6 +75,7 @@ cc.Class({
         })
 
         globalData.eventlister.on("GAME_START",function(data){
+            globalData.gameMgr.ready_target_time = null;
             that.reset()
             that.pushCardToDesk(data.top,-1,0,0,0)
             that.img_deck.active = true;
@@ -94,6 +95,7 @@ cc.Class({
        
         });
         globalData.eventlister.on('GAME_OVER',function(data){
+            globalData.gameMgr.ready_target_time = null;
             that.renderUI();
             that.renderRoom();
             that.renderPlayer();
@@ -136,14 +138,15 @@ cc.Class({
             that.renderPlayer();
         })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
-            that.panel_loading.active = false;
+            // that.panel_loading.active = false;
             that.panel_avators.render();
             that.renderRoom();
             that.renderPlayer();
         })
         globalData.eventlister.on("SET_RECOVER_STATUS",function(){
             if(globalData.gameMgr.isRecover == false){
-                that.panel_loading.active = false;
+                
+                // that.panel_loading.active = false;
 
                 // 轮到自己 检测pass
                 if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
@@ -151,6 +154,7 @@ cc.Class({
                         that.onBtnPass();
                     }
                 }
+
             }
         })
 
@@ -289,6 +293,9 @@ cc.Class({
 
         var is_visible = !globalData.gameMgr.is_quit 
         && (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2);
+        if(!globalData.gameMgr.ready_target_time){
+            globalData.gameMgr.ready_target_time = parseInt(globalData.gameMgr.server_time) + 5;
+        }
         this.panel_avators.node.active = is_visible;
         this.panel_avators.render();
         this.btn_quit.active = false;

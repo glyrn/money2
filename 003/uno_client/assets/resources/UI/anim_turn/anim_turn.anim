@@ -3,7 +3,7 @@
   "_name": "anim_turn",
   "_objFlags": 0,
   "_native": "",
-  "_duration": 0.4166666666666667,
+  "_duration": 0.43333333333333335,
   "sample": 60,
   "speed": 0.42,
   "wrapMode": 1,
@@ -160,6 +160,10 @@
             "value": {
               "__uuid__": "012e3c19-8cde-41ba-ab9a-b69cadbd448e"
             }
+          },
+          {
+            "frame": 0.4166666666666667,
+            "value": null
           }
         ]
       }
