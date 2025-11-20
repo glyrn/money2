@@ -318,13 +318,17 @@ cc.Class({
             self.retrack_lock = false;
 
             if(!globalData.gameMgr.isRecover){
-                self.scheduleOnce(function () {
+                //先不能下棋
+                globalData.gameMgr.play_lock = true;
+                // self.scheduleOnce(function () {
                     self.game_start.node.active = true;
                     self.game_start.play();
-                },0.5);
+                // },2.5);
                 self.scheduleOnce(function () {
                     self.game_start.node.active = false;
-                },2);
+                    //动效结束 可以下棋
+                    globalData.gameMgr.play_lock = false;
+                },1.5);
             }else{
                 self.game_start.node.active = false;
             }
@@ -630,6 +634,8 @@ cc.Class({
     gameOver:function(data){
 
         // this.pushNoteMsg("游戏结束！");
+        
+        globalData.gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
         globalData.gameMgr.roomState.state = 2; //结束
         globalData.gameMgr.score_list.push(data);
         

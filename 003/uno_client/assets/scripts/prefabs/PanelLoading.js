@@ -15,7 +15,7 @@ cc.Class({
     update(){
     
         this.prog_bar.progress = this._prog_value * 0.01;
-        this.lab_prog.string = this._prog_value.toFixed(2) + "%";
+        this.lab_prog.string = Math.floor(this._prog_value.toFixed(2)) + "%";
         if(this._prog_value < 100){
             this._prog_value += this.setp_value;
         }else{
@@ -25,7 +25,10 @@ cc.Class({
                 if(this._finishCbFunc){
                     this._finishCbFunc();
                 }
-                this.node.active = false;
+
+                this.scheduleOnce(function () {
+                    this.node.active = false;
+                },0.5);
             }
         }
     },

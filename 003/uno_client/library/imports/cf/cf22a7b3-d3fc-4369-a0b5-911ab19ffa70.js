@@ -81,6 +81,7 @@ cc.Class({
     });
 
     _globalData["default"].eventlister.on("GAME_START", function (data) {
+      _globalData["default"].gameMgr.ready_target_time = null;
       that.reset();
       that.pushCardToDesk(data.top, -1, 0, 0, 0);
       that.img_deck.active = true;
@@ -99,6 +100,7 @@ cc.Class({
     });
 
     _globalData["default"].eventlister.on('GAME_OVER', function (data) {
+      _globalData["default"].gameMgr.ready_target_time = null;
       that.renderUI();
       that.renderRoom();
       that.renderPlayer();
@@ -151,7 +153,7 @@ cc.Class({
     });
 
     _globalData["default"].eventlister.on("LOGIN_SUCCESS", function () {
-      that.panel_loading.active = false;
+      // that.panel_loading.active = false;
       that.panel_avators.render();
       that.renderRoom();
       that.renderPlayer();
@@ -159,8 +161,8 @@ cc.Class({
 
     _globalData["default"].eventlister.on("SET_RECOVER_STATUS", function () {
       if (_globalData["default"].gameMgr.isRecover == false) {
-        that.panel_loading.active = false; // 轮到自己 检测pass
-
+        // that.panel_loading.active = false;
+        // 轮到自己 检测pass
         if (_globalData["default"].gameMgr.playerData.turn == _globalData["default"].gameMgr.playerData.self.posId) {
           if (!that._onBtnTips(true)) {
             that.onBtnPass();
@@ -304,6 +306,11 @@ cc.Class({
     this.renderRoomTitle();
     this.btn_ready.active = _globalData["default"].gameMgr.playerData.self.state < 2;
     var is_visible = !_globalData["default"].gameMgr.is_quit && (_globalData["default"].gameMgr.roomState.state == 0 || _globalData["default"].gameMgr.roomState.state == 2);
+
+    if (!_globalData["default"].gameMgr.ready_target_time) {
+      _globalData["default"].gameMgr.ready_target_time = parseInt(_globalData["default"].gameMgr.server_time) + 5;
+    }
+
     this.panel_avators.node.active = is_visible;
     this.panel_avators.render();
     this.btn_quit.active = false; // this.btn_score.active = globalData.gameMgr.score_list.length > 0;

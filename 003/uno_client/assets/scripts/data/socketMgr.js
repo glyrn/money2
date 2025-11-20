@@ -145,12 +145,14 @@ const socketMgr = function(){
 
         _socket.on('GAME_START',function(data){
             _gameMgr.roomState.state = 1;//进行中
-
+            
+             
             _gameMgr.getPlayerData(data.turn).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
+            _gameMgr.server_time = parseInt(data.server_time);
             _gameMgr.playerData.turn = data.turn;
             _gameMgr.card_remain = 108;
             _gameMgr.roomState.gametime_remain = parseInt(data.server_time) + parseInt(cc.args['game_time'] ?? 4) * 60;
-
+            
             // if(_gameMgr.is_quit){
             //     //初始化分数
             //     for (const posId in data.score_list) {
@@ -187,6 +189,7 @@ const socketMgr = function(){
             _gameMgr.roomState.state = 2;
             _gameMgr.roomState.gametime_remain = 0;
             _gameMgr.diff_time = 0;
+             globalData.gameMgr.ready_target_time = parseInt(globalData.gameMgr.server_time) + 5;
             // _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
             _gameMgr.is_quit = data.is_quit;
             for (const i in data.score_list) {

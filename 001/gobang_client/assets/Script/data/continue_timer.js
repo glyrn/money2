@@ -8,8 +8,8 @@ cc.Class({
     update(){
 
         var now = Math.floor(new Date().getTime() / 1000);
-        if(!this._target_time || this._target_time + 5 < now){
-            this._target_time = now + 5;
+        if(!this._target_time || this._target_time + 4 < now){
+            this._target_time = now + 4;
         }
 
         var time_value = this._target_time - now;
