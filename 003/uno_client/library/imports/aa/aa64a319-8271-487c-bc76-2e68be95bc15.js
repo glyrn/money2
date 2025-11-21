@@ -54,14 +54,17 @@ cc.Class({
     this.img_net_lost.active = data.connect_state == 0;
     this.lab_name.string = data.name;
     var offset_txt = '';
+    var score_txt = data.score;
 
     if (data.score_offset > 0) {
       offset_txt = "(+" + data.score_offset + ")";
+      score_txt = parseInt(data.score) - parseInt(data.score_offset);
     } else if (data.score_offset < 0) {
       offset_txt = "(" + data.score_offset + ")";
+      score_txt = parseInt(data.score) + parseInt(data.score_offset);
     }
 
-    this.lab_score.string = data.score + offset_txt;
+    this.lab_score.string = score_txt + offset_txt;
 
     if (this._avatorUrl != data.avatorUrl && data.avatorUrl != null && data.avatorUrl != '') {
       var that = this; // var avatorUrl;
