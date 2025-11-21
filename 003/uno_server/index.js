@@ -677,7 +677,7 @@ const proto = {
       }
       desk.name = '';
       desk.state = 0;
-      desk.score_list = [];
+      desk.total_score_list = [];
       desk.deprecate_time = 0;
       desk.play_index = 0;
       desk.ready_count = -1;
