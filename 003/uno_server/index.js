@@ -981,7 +981,7 @@ const proto = {
             //判断游戏结束
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
             //debug 
-            if(desk.positions[curPosId].cards.length <= 0 || obj.value == 8)
+            if(desk.positions[curPosId].cards.length <= 0)
             {
               //重置状态
               for (let i = 0; i < desk.positions.length ; i++) {
