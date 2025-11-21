@@ -132,6 +132,7 @@ const proto = {
         deskId: i,
         state: 0,
         positions: [],
+        total_score_list:[],
         ready_count:-1,
         play_count:0,
         base_score:100,
@@ -310,42 +311,57 @@ const proto = {
             }
           }
 
-          var score_list = [];
-          var cards_list = [];
           var ycscore_list = [];
+          var cards_list = [];
+          var cur_score_offset = [];
           //计算每局得分
           var score_total = 0;
           for (let i = 0; i < desk.ready_count; i++) {
-            if (winer != i) {
+            if(winer != i){
               var score = 0;
               for (let j = 0; j < desk.positions[i].cards.length; j++) {
                 var card = desk.positions[i].cards[j];
-                if (card.type == 1) {
+                if(card.type == 1){
                   score += parseInt(card.value);
-                } else if (card.type == 2) {
-                  if (card.value == 'stop' || card.value == 'turn' || card.value == 'plus2') {
+                }else if(card.type == 2){
+                  if(card.value == 'stop' || card.value == 'turn' || card.value == 'plus2'){
                     score += 20;
-                  } else if (card.value == 'plus4' || card.value == 'color') {
+                  }else if(card.value == 'plus4' || card.value == 'color'){
                     score += 50;
                   }
                 }
               }
               cards_list[i] = desk.positions[i].cards;
-              score_list[i] = score;
               score_total += score;
-
-              ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
+              cur_score_offset[i] = -score;
+              ycscore_list.push({uid:desk.positions[i].uid,posId:i,name:desk.positions[i].name,score:-score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
             }
           }
-          score_list[winer] = score_total;
-          ycscore_list.push({uid:desk.positions[winer].uid,name:desk.positions[winer].name,score:score_total,is_win:1,avatorUrl:desk.positions[winer].avatorUrl})
+          
+          cur_score_offset[winer] = score_total;
+          ycscore_list.push({uid:desk.positions[winer].uid,posId:winer,name:desk.positions[winer].name,score:score_total,is_win:1,avatorUrl:desk.positions[winer].avatorUrl})
           ycscore_list.sort((a, b) => {
             return b.score - a.score;
           });
-          console.log("GAME_OVER超时")
-          this.broadCastRoom("GAME_OVER", desk.deskId, {winer: winer, score_list: score_list,cards_list:cards_list});
-          if(!desk.score_list) desk.score_list = [];
-          desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+
+          console.log("游戏超时 结束GAME_OVER")
+          desk.total_score_list.push(ycscore_list);
+
+          for (let i = 0; i < desk.total_score_list.length ; i++) {
+              var _list = desk.total_score_list[i];
+              for (let j = 0; j < _list.length ; j++) {
+                  desk.positions[_list[j].posId].score += _list[j].score;
+              }
+          }
+
+          var _total_score_list = [];
+          for (let i = 0; i < desk.positions.length ; i++) {
+            console.log("分数:",desk.positions[i].score);
+            _total_score_list[desk.positions[i].posId] = desk.positions[i].score;
+
+          }
+
+          self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:_total_score_list,score_offset:cur_score_offset,cards_list:cards_list,is_quit:is_over_specific_score});
 
           //超时直接结束游戏
           this.sendYcGameOver({
@@ -447,12 +463,16 @@ const proto = {
         })
       }
     }
-    if(!desk.score_list) desk.score_list = [];
-    desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+
+    desk.total_score_list.push(ycscore_list);
+    var tmp_score_list = [];
+    for(var i=0;i<desk.total_score_list.length;i++){
+      tmp_score_list.push({play_index:i+1,score_list:desk.total_score_list[i]})
+    }
     this.sendYcGameOver({
       room_id:desk.name,
       game_id:3,
-      score_list:desk.score_list,
+      score_list:tmp_score_list,
     });
   },
   _getPlusNum:function(desk){
@@ -961,7 +981,7 @@ const proto = {
             //判断游戏结束
              console.log(desk.positions[curPosId].name,"剩余牌数：",desk.positions[curPosId].cards.length);
             //debug 
-            if(desk.positions[curPosId].cards.length <= 0)
+            if(desk.positions[curPosId].cards.length <= 0 || obj.value == 8)
             {
               //重置状态
               for (let i = 0; i < desk.positions.length ; i++) {
@@ -973,9 +993,9 @@ const proto = {
 
               var winer = curPosId;
 
-              var score_list = [];
               var ycscore_list = [];
               var cards_list = [];
+              var cur_score_offset = [];
               //计算每局得分
               var score_total = 0;
               for (let i = 0; i < desk.ready_count; i++) {
@@ -994,52 +1014,52 @@ const proto = {
                     }
                   }
                   cards_list[i] = desk.positions[i].cards;
-                  score_list[i] = -score;
                   score_total += score;
-
-                  ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:-score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
+                  cur_score_offset[i] = -score;
+                  ycscore_list.push({uid:desk.positions[i].uid,posId:i,name:desk.positions[i].name,score:-score,is_win:0,avatorUrl:desk.positions[i].avatorUrl})
                 }
               }
-              score_list[winer] = score_total;
-              ycscore_list.push({uid:desk.positions[winer].uid,name:desk.positions[winer].name,score:score_total,is_win:1,avatorUrl:desk.positions[winer].avatorUrl})
+              
+              cur_score_offset[winer] = score_total;
+              ycscore_list.push({uid:desk.positions[winer].uid,posId:winer,name:desk.positions[winer].name,score:score_total,is_win:1,avatorUrl:desk.positions[winer].avatorUrl})
               ycscore_list.sort((a, b) => {
                 return b.score - a.score;
               });
 
               console.log("游戏结束GAME_OVER")
+              desk.total_score_list.push(ycscore_list);
+
+              for (let i = 0; i < desk.total_score_list.length ; i++) {
+                  var _list = desk.total_score_list[i];
+                  for (let j = 0; j < _list.length ; j++) {
+                      desk.positions[_list[j].posId].score = parseInt(desk.positions[_list[j].posId].score) + parseInt(_list[j].score);
+                  }
+              }
               
-              if(!desk.score_list) desk.score_list = [];
-              desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list})
               //找出是否有人累计超过特定分数
               var is_over_specific_score = false;
-              var score_map = {};
+              var _total_score_list = [];
               for (let i = 0; i < desk.positions.length ; i++) {
-                score_map[desk.positions[i].uid] = parseInt(desk.positions[i].score);
-              }
-
-              for (let i = 0; i < desk.score_list.length; i++) {
-                var ycscore_list2 = desk.score_list[i].score_list;
-                for (let j = 0; j < ycscore_list2.length; j++) {
-                  
-                  score_map[ycscore_list2[j].uid] += parseInt(ycscore_list2[j].score);
-                }
-              }
-              for (const key in score_map) {
-                console.log("分数:",parseInt(score_map[key]));
-                if(parseInt(score_map[key]) >= parseInt(desk.specific_score)){
+                console.log("分数:",desk.positions[i].score);
+                _total_score_list[desk.positions[i].posId] = desk.positions[i].score;
+                if(parseInt(desk.positions[i].score) >= parseInt(desk.specific_score)){
                   is_over_specific_score = true;
                 }
               }
 
-              self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:score_list,cards_list:cards_list,is_quit:is_over_specific_score});
-              
+              self.broadCastRoom("GAME_OVER",desk.deskId,{winer:winer,score_list:_total_score_list,score_offset:cur_score_offset,cards_list:cards_list,is_quit:is_over_specific_score});
               
               console.log("游戏结算：",is_over_specific_score,desk.specific_score);
               if(is_over_specific_score){
+
+                var tmp_score_list = [];
+                for(var i=0;i<desk.total_score_list.length;i++){
+                  tmp_score_list.push({play_index:i+1,score_list:desk.total_score_list[i]})
+                }
                 self.sendYcGameOver({
                   room_id:desk.name,
                   game_id:3,
-                  score_list:desk.score_list
+                  score_list:tmp_score_list
                 });
                 desk.play_index = 1;
               }else{

@@ -108,7 +108,7 @@ cc.Class({
       if (_globalData["default"].gameMgr.is_quit || data.invalid == 1) {
         //有人逃跑
         that.panel_continue.active = false;
-        that.onBtnCurScore();
+        that.renderScorePanel(data);
 
         if (!_globalData["default"].gameMgr.isRecover) {
           cc.playEffect("sound/win", false, 1);
@@ -231,14 +231,14 @@ cc.Class({
 
     this.renderRoomTitle();
   },
-  onBtnCurScore: function onBtnCurScore() {
-    this._cur_score_idx = _globalData["default"].gameMgr.score_list.length - 1;
-    this.renderScorePanel();
-  },
-  onBtnLastScore: function onBtnLastScore() {
-    this._cur_score_idx = Math.max(0, this._cur_score_idx - 1);
-    this.renderScorePanel();
-  },
+  // onBtnCurScore(){
+  //     this._cur_score_idx = globalData.gameMgr.score_list.length -1;
+  //     this.renderScorePanel()
+  // },
+  // onBtnLastScore(){
+  //     this._cur_score_idx = Math.max(0,this._cur_score_idx-1);
+  //     this.renderScorePanel()
+  // },
   onBtnTips: function onBtnTips() {
     return this._onBtnTips();
   },
@@ -589,9 +589,8 @@ cc.Class({
       }, that)]));
     }
   },
-  renderScorePanel: function renderScorePanel() {
-    this.panel_score.active = !_globalData["default"].gameMgr.isRecover;
-    var data = _globalData["default"].gameMgr.score_list[this._cur_score_idx]; //有玩家逃跑 无效回合
+  renderScorePanel: function renderScorePanel(data) {
+    this.panel_score.active = !_globalData["default"].gameMgr.isRecover; //有玩家逃跑 无效回合
 
     if (data.invalid == 1) {
       this.lab_warninig.active = true;
@@ -602,12 +601,10 @@ cc.Class({
       this.lab_items.active = true;
       var tmp_list = [];
 
-      for (var _posId in data.score_list) {
-        var playerData = _globalData["default"].gameMgr.getPlayerData(_posId);
-
+      for (var _posId in _globalData["default"].gameMgr.score_list) {
         tmp_list.push({
           posId: _posId,
-          score: parseInt(data.score_list[_posId]) + parseInt(playerData.score)
+          score: _globalData["default"].gameMgr.score_list[_posId]
         });
       }
 
@@ -620,13 +617,11 @@ cc.Class({
 
         if (tmp_list[i]) {
           var posId = tmp_list[i].posId;
-          var score = tmp_list[i].score;
 
           var playerData = _globalData["default"].gameMgr.getPlayerData(posId);
 
           if (playerData) {
             item.active = true;
-            playerData.score = score;
             item.getComponent("AvatorMini").render(playerData);
           } else {
             item.active = false;
