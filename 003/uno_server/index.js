@@ -1123,7 +1123,7 @@ const proto = {
             desk.out_cards.push(top);
 
             if(desk.play_index == 1){
-                desk.score_list = [];
+                desk.total_score_list = [];
             }
             
             //分数初始化
