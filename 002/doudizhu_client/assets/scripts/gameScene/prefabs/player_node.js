@@ -471,7 +471,7 @@ cc.Class({
                 //不是炸弹的其他类型，A AA AAA 连对 顺子等等
                 }else{
                     for (const value in check_card_map) {
-                        if(check_card_map[value] == 4 && value > globalData.gameMgr.roomState.ctxCard.key){
+                        if(check_card_map[value] == 4){
                             is_find = true;
 
                             playerData.cards.forEach(_card=>{
@@ -495,7 +495,7 @@ cc.Class({
                     
                     let check_match_len = globalData.gameMgr.roomState.ctxCard.len;
                     var isOffset = true;
-                    //飞机类型 A AA AAA 
+                    //飞机类型 A AA AAA AAAA 都需要强制找4张软炸 
                     if(globalData.gameMgr.roomState.ctxCard.type == 'AAABBB' && check_match_len == 6 ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAAB' && check_match_len == 8 ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAABBB' && check_match_len == 9 ||
@@ -505,7 +505,9 @@ cc.Class({
                         globalData.gameMgr.roomState.ctxCard.type == 'AAABB' && check_match_len == 15 ||
                         globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
-                        globalData.gameMgr.roomState.ctxCard.type == 'AAA'
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAA' || 
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAAA' || 
+                        globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'
                     )
                     {
                         check_match_len = 4;
@@ -529,7 +531,8 @@ cc.Class({
                         if((!isAllLaizi && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)) || isAllLaizi ||
                             globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                             globalData.gameMgr.roomState.ctxCard.type == 'AA' || 
-                            globalData.gameMgr.roomState.ctxCard.type == 'AAA'){
+                            globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
+                            globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'){
                             hasAAA = true;
                             //癞子+AAA的数量 等于 出牌数量
                             if(hasAAA && hasLaizi && curLaiziCards.length + check_card_map[value] >= check_match_len + offset){
