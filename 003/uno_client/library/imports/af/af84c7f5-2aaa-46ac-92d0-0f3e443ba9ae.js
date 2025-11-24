@@ -76,6 +76,7 @@ var socketMgr = function socketMgr() {
       protocol = 'wss://';
     }
 
+    console.log("defines.serverUrl:" + defines.serverUrl);
     console.log(protocol + defines.serverUrl);
     _socket = window.io.connect(protocol + defines.serverUrl, opts);
 

@@ -21,6 +21,7 @@ if (defines.isDebug) {
 defines.yc_domain = "https://www.fsyctech.com"; //------------------------------------------
 
 var url = decodeURI(window.location.href);
+console.log("url :" + url);
 
 if (url.split('?').length > 1) {
   var params = url.split('?')[1].split('&');
@@ -41,10 +42,10 @@ if (url.split('?').length > 1) {
   // cc.args['gamedomain'] = "pre-lianjin-game.xiaocorner.cn";
   // cc.args['ycdomain'] = "pre-lianjin-game.xiaocorner.cn";
 
-  console.log("test003");
+  console.log("test00xx");
 
   if (cc.args['gamedomain']) {
-    defines.serverUrl = "https://" + cc.args['gamedomain'];
+    defines.serverUrl = cc.args['gamedomain'];
   }
 
   if (cc.args['ycdomain']) {

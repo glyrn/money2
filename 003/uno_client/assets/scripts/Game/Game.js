@@ -600,7 +600,10 @@ cc.Class({
 
             var tmp_list = [];
             for (const posId in globalData.gameMgr.score_list) {
-                tmp_list.push({posId:posId,score:globalData.gameMgr.score_list[posId]});
+                var playerData = globalData.gameMgr.getPlayerData(posId);
+                if(playerData.uid > 0){
+                    tmp_list.push({posId:posId,score:globalData.gameMgr.score_list[posId]});
+                }
             }
             tmp_list.sort(function(a,b){
                 return a.score < b.score ? 1 : -1;
