@@ -464,7 +464,7 @@ cc.Class({
                                         select_card_list.push(_card);
                                     }
                                 });
-                                return true;
+                                break;
                             }
                         }
                     }else if(!isAllLaizi){ //有赖子 且不是4张赖子
@@ -477,7 +477,7 @@ cc.Class({
                                         select_card_list.push(_card);
                                     }
                                 });
-                                return true;
+                                break;
                             }
                         }
                     }

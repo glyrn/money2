@@ -362,10 +362,11 @@ function selectTips(playerData){
                                     select_card_list.push(_card);
                                 }
                             });
-                            return true;
+                            break;
                         }
                     }
                 }else if(!isAllLaizi){ //有赖子 且不是4张赖子
+                    
                     for (const value in check_card_map) {
                         if(check_card_map[value] == 4){
                             is_find = true;
@@ -375,7 +376,7 @@ function selectTips(playerData){
                                     select_card_list.push(_card);
                                 }
                             });
-                            return true;
+                            break;
                         }
                     }
                 }
@@ -487,7 +488,7 @@ let globalData = {
         roomState:{
             ctxCard:{
                 type:"AAAA",
-                key:9, //34567
+                key:14.5, //34567
                 len:4,
                 ctxPos:'left'
             },
@@ -508,7 +509,7 @@ let globalData = {
             laizi:{
                 cards:[
                     // {value:10},
-                    {value:9}
+                    {value:7}
                 ]
             },
             left:{
@@ -519,10 +520,10 @@ let globalData = {
                     // {value:11},
                     // {value:10},
                     // {value:8},
-                    {value:8},
-                    {value:9},
-                    {value:9},
-                    {value:9},
+                    {value:7},
+                    {value:14},
+                    {value:14},
+                    {value:14},
                 ]
             }
         }
@@ -531,7 +532,7 @@ let globalData = {
 
 let playerData = {
     // cards:[ {value:8}, {value:8},{value:8},{value:5},{value:7},{value:10}]
-    cards:[{value:4},{value:4},{value:4},{value:11},{value:4},{value:6},{value:7}]
+    cards:[{value:7},{value:7},{value:7},{value:10},{value:4},{value:6},{value:7}]
     // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }
 

@@ -135,7 +135,15 @@ Object.assign(
           if (type === 'AAAA'){
             //硬炸
             if( this.lastCardInfo.isAAAA){
-                if(has_laizi_num > 0 && ret.len > this.lastCardInfo.len){
+                // if(has_laizi_num > 0 && ret.len > this.lastCardInfo.len){
+                //     return {
+                //         status: true,
+                //         key,
+                //         type,
+                //         len: ret.len
+                //     }
+                // }
+                if(has_laizi_num > 0 ){
                     return {
                         status: true,
                         key,
