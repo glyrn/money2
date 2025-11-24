@@ -365,6 +365,19 @@ function selectTips(playerData){
                             return true;
                         }
                     }
+                }else if(!isAllLaizi){ //有赖子 且不是4张赖子
+                    for (const value in check_card_map) {
+                        if(check_card_map[value] == 4){
+                            is_find = true;
+
+                            playerData.cards.forEach(_card=>{
+                                if(_card.value == value){
+                                    select_card_list.push(_card);
+                                }
+                            });
+                            return true;
+                        }
+                    }
                 }
             //不是炸弹的其他类型，A AA AAA 连对 顺子等等
             }else{
@@ -401,7 +414,6 @@ function selectTips(playerData){
                     globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                     globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
                     globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
-                    globalData.gameMgr.roomState.ctxCard.type == 'AAAA' || 
                     globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'
                 )
                 {
@@ -454,10 +466,6 @@ function selectTips(playerData){
                     }
                     is_find = true;
                 }
-                // //最后试下纯3带1
-                // if(is_find == false && curLaiziCards.length >= 3){
-
-                // }
             }
 
             if(is_find){
@@ -500,7 +508,7 @@ let globalData = {
             laizi:{
                 cards:[
                     // {value:10},
-                    {value:8}
+                    {value:9}
                 ]
             },
             left:{
@@ -511,7 +519,7 @@ let globalData = {
                     // {value:11},
                     // {value:10},
                     // {value:8},
-                    {value:9},
+                    {value:8},
                     {value:9},
                     {value:9},
                     {value:9},
@@ -523,7 +531,7 @@ let globalData = {
 
 let playerData = {
     // cards:[ {value:8}, {value:8},{value:8},{value:5},{value:7},{value:10}]
-    cards:[{value:10},{value:10},{value:10},{value:8},{value:4},{value:6},{value:7}]
+    cards:[{value:4},{value:4},{value:4},{value:11},{value:4},{value:6},{value:7}]
     // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }
 

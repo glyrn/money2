@@ -177,12 +177,12 @@ cc.Class({
             if(!globalData.gameMgr.is_ob){
                 //初始化麦克风
                 //debug
-                navigator.mediaDevices.getUserMedia({audio:true}).then(
-                    stream => {
-                        that.voiceSuccess(stream);
-                    }).catch(err => {
-                        that.voiceFail(err);
-                    });
+                // navigator.mediaDevices.getUserMedia({audio:true}).then(
+                //     stream => {
+                //         that.voiceSuccess(stream);
+                //     }).catch(err => {
+                //         that.voiceFail(err);
+                //     });
                 that.slide_voice.active = true;
             }else{
                 that.slide_voice.active = false;
@@ -272,9 +272,9 @@ cc.Class({
 
         var that = this;
 
-        var rms = that._rms;
+        // var rms = that._rms;
         //debug
-        // var rms = window._currentVoiceGameVolume;
+        var rms = window._currentVoiceGameVolume;
         // console.log("window._currentVoiceGameVolume:",window._currentVoiceGameVolume);
 
         if(cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1 && !globalData.gameMgr.is_ob) {
