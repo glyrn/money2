@@ -64,6 +64,7 @@ const socketMgr = function(){
             opts['path'] = '/uno_socket.io';
             protocol = 'wss://';
         }
+        console.log("defines.serverUrl:"+defines.serverUrl)
         console.log(protocol+defines.serverUrl)
         _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('connect', () => {
@@ -145,30 +146,22 @@ const socketMgr = function(){
 
         _socket.on('GAME_START',function(data){
             _gameMgr.roomState.state = 1;//进行中
-
+            
+             
             _gameMgr.getPlayerData(data.turn).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
+            _gameMgr.server_time = parseInt(data.server_time);
             _gameMgr.playerData.turn = data.turn;
             _gameMgr.card_remain = 108;
             _gameMgr.roomState.gametime_remain = parseInt(data.server_time) + parseInt(cc.args['game_time'] ?? 4) * 60;
-
-            // if(_gameMgr.is_quit){
-            //     //初始化分数
-            //     for (const posId in data.score_list) {
-            //         _gameMgr.getPlayerData(posId).score = parseInt(data.score_list[posId]);
-            //         _gameMgr.getPlayerData(posId).score_offset = 0;
-            //     }
-            //     _gameMgr.is_quit = false;
-            //     _gameMgr.play_index = 1;
-            // }else{
-                //更新分数
-                for (var posId in [0,1,2,3]) {
-                    if(_gameMgr.getPlayerData(posId)) {
-                        _gameMgr.getPlayerData(posId).score = parseInt(_gameMgr.getPlayerData(posId).score) + (_gameMgr.getPlayerData(posId).score_offset ?? 0);
-                        _gameMgr.getPlayerData(posId).score_offset = 0;
-                    }
+            
+            //更新分数
+            for (var posId in [0,1,2,3]) {
+                if(_gameMgr.getPlayerData(posId)) {
+                    _gameMgr.getPlayerData(posId).score_offset = 0;
                 }
-                _gameMgr.play_index++;
-            // }
+            }
+            _gameMgr.play_index++;
+
 
             _gameMgr.playerData.self.cards = data.cards;
             if(_gameMgr.playerData.left)    _gameMgr.playerData.left.cards = [0,0,0,0,0,0,0];
@@ -187,24 +180,19 @@ const socketMgr = function(){
             _gameMgr.roomState.state = 2;
             _gameMgr.roomState.gametime_remain = 0;
             _gameMgr.diff_time = 0;
-            // _gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.ready_target_time = parseInt(_gameMgr.server_time) + 5;
             _gameMgr.is_quit = data.is_quit;
             for (const i in data.score_list) {
                 var playerData = _gameMgr.getPlayerData(i);
                 if(playerData) {
-                    _gameMgr.getPlayerData(i).state = 1;
-                    _gameMgr.getPlayerData(i).score_offset = parseInt(data.score_list[i]);
-                    _gameMgr.getPlayerData(i).cards = data.cards_list[i];
-                    
-                    // var playerScore = _gameMgr.getPlayerData(i).score + _gameMgr.getPlayerData(i).score_offset;
-                    // console.log("结算分数:",_gameMgr.getPlayerData(i).score,_gameMgr.getPlayerData(i).score_offset,playerScore,parseInt(cc.args['specific_score'] ?? 300));
-                    // if (playerScore >= parseInt(cc.args['specific_score'] ?? 300)) {
-                    //     console.log("退出游戏!");
-                    //     _gameMgr.is_quit = true;
-                    // }
+                    playerData.state = 1;
+                    playerData.score = data.score_list[i];
+                    playerData.score_offset = data.score_offset[i];
+                    playerData.cards = data.cards_list[i];
+
                 }
             }
-            _gameMgr.score_list.push(data);
+            _gameMgr.score_list = data.score_list;
             _eventMgr.fire("GAME_OVER",data);
         });
 

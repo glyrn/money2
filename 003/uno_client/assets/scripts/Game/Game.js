@@ -75,6 +75,7 @@ cc.Class({
         })
 
         globalData.eventlister.on("GAME_START",function(data){
+            globalData.gameMgr.ready_target_time = null;
             that.reset()
             that.pushCardToDesk(data.top,-1,0,0,0)
             that.img_deck.active = true;
@@ -94,13 +95,14 @@ cc.Class({
        
         });
         globalData.eventlister.on('GAME_OVER',function(data){
+            globalData.gameMgr.ready_target_time = null;
             that.renderUI();
             that.renderRoom();
             that.renderPlayer();
             if(globalData.gameMgr.is_quit || data.invalid == 1){ //有人逃跑
                 that.panel_continue.active = false;
                 
-                that.onBtnCurScore();
+                that.renderScorePanel(data);
 
                 if(!globalData.gameMgr.isRecover){
                     cc.playEffect("sound/win",false,1);
@@ -136,14 +138,15 @@ cc.Class({
             that.renderPlayer();
         })
         globalData.eventlister.on("LOGIN_SUCCESS",function(){
-            that.panel_loading.active = false;
+            // that.panel_loading.active = false;
             that.panel_avators.render();
             that.renderRoom();
             that.renderPlayer();
         })
         globalData.eventlister.on("SET_RECOVER_STATUS",function(){
             if(globalData.gameMgr.isRecover == false){
-                that.panel_loading.active = false;
+                
+                // that.panel_loading.active = false;
 
                 // 轮到自己 检测pass
                 if(globalData.gameMgr.playerData.turn == globalData.gameMgr.playerData.self.posId){
@@ -151,6 +154,7 @@ cc.Class({
                         that.onBtnPass();
                     }
                 }
+
             }
         })
 
@@ -215,14 +219,14 @@ cc.Class({
 
         this.renderRoomTitle();
     },
-    onBtnCurScore(){
-        this._cur_score_idx = globalData.gameMgr.score_list.length -1;
-        this.renderScorePanel()
-    },
-    onBtnLastScore(){
-        this._cur_score_idx = Math.max(0,this._cur_score_idx-1);
-        this.renderScorePanel()
-    },
+    // onBtnCurScore(){
+    //     this._cur_score_idx = globalData.gameMgr.score_list.length -1;
+    //     this.renderScorePanel()
+    // },
+    // onBtnLastScore(){
+    //     this._cur_score_idx = Math.max(0,this._cur_score_idx-1);
+    //     this.renderScorePanel()
+    // },
     onBtnTips(){
         return this._onBtnTips();
     },
@@ -289,6 +293,9 @@ cc.Class({
 
         var is_visible = !globalData.gameMgr.is_quit 
         && (globalData.gameMgr.roomState.state == 0 || globalData.gameMgr.roomState.state == 2);
+        if(!globalData.gameMgr.ready_target_time){
+            globalData.gameMgr.ready_target_time = parseInt(globalData.gameMgr.server_time) + 5;
+        }
         this.panel_avators.node.active = is_visible;
         this.panel_avators.render();
         this.btn_quit.active = false;
@@ -576,9 +583,8 @@ cc.Class({
             ]));
         }
     },
-    renderScorePanel(){
+    renderScorePanel(data){
         this.panel_score.active = !globalData.gameMgr.isRecover;
-        var data = globalData.gameMgr.score_list[this._cur_score_idx];
 
         //有玩家逃跑 无效回合
         if(data.invalid == 1){
@@ -593,9 +599,11 @@ cc.Class({
             this.lab_items.active = true;
 
             var tmp_list = [];
-            for (const posId in data.score_list) {
-                var playerData = globalData.gameMgr.getPlayerData(posId)
-                tmp_list.push({posId:posId,score:parseInt(data.score_list[posId]) + parseInt(playerData.score)});
+            for (const posId in globalData.gameMgr.score_list) {
+                var playerData = globalData.gameMgr.getPlayerData(posId);
+                if(playerData.uid > 0){
+                    tmp_list.push({posId:posId,score:globalData.gameMgr.score_list[posId]});
+                }
             }
             tmp_list.sort(function(a,b){
                 return a.score < b.score ? 1 : -1;
@@ -605,11 +613,9 @@ cc.Class({
                 var item = this.panel_score.getChildByName('items').getChildByName('player'+i);
                 if(tmp_list[i]){
                     var posId = tmp_list[i].posId;
-                    var score = tmp_list[i].score;
                     var playerData = globalData.gameMgr.getPlayerData(posId);
                     if( playerData){
                         item.active = true;
-                        playerData.score = score;
                         item.getComponent("AvatorMini").render(playerData);
                     }else{
                         item.active = false;

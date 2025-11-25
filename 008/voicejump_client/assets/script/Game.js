@@ -275,7 +275,7 @@ cc.Class({
         // var rms = that._rms;
         //debug
         var rms = window._currentVoiceGameVolume;
-        console.log("window._currentVoiceGameVolume:",window._currentVoiceGameVolume);
+        // console.log("window._currentVoiceGameVolume:",window._currentVoiceGameVolume);
 
         if(cc.args['debug'] != 1 && globalData.gameMgr.roomState.state == 1 && !globalData.gameMgr.is_ob) {
 
