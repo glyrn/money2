@@ -1303,6 +1303,7 @@ var cards15 = [10,10,10,5,5,8,8,8,2];
 var cards16 = [10,10,5,9,9,8,8,2,2];
 var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
 var cards18 = [8,5,14,10,11,12,13];
+var cards18 = [8,11,11,11];
 // console.log(validate_laizi(cards1,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));
@@ -1346,7 +1347,17 @@ function test(cards,laizis){
             console.log(has_laizi_num)
             //硬炸
             if( lastCardInfo.isAAAA){
-                if(has_laizi_num > 0 && ret.len > lastCardInfo.len){
+                
+                // if(has_laizi_num > 0 && ret.len > lastCardInfo.len){
+                //     return {
+                //         status: true,
+                //         key,
+                //         type,
+                //         len: ret.len
+                //     }
+                // }
+
+                if(has_laizi_num > 0 ){
                     return {
                         status: true,
                         key,
@@ -1354,6 +1365,7 @@ function test(cards,laizis){
                         len: ret.len
                     }
                 }
+
             }else{
                 //正常情况
                 if ( key > lastCardInfo.key) {
@@ -1389,4 +1401,4 @@ function test(cards,laizis){
     return { status: false }
 }
 
-// console.log("测试结果：",test(cards9,laizis))
+console.log("测试结果：",test(cards18,laizis))

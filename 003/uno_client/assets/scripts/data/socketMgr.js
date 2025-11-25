@@ -64,6 +64,7 @@ const socketMgr = function(){
             opts['path'] = '/uno_socket.io';
             protocol = 'wss://';
         }
+        console.log("defines.serverUrl:"+defines.serverUrl)
         console.log(protocol+defines.serverUrl)
         _socket = window.io.connect(protocol+defines.serverUrl, opts);
         _socket.on('connect', () => {

@@ -362,14 +362,28 @@ function selectTips(playerData){
                                     select_card_list.push(_card);
                                 }
                             });
-                            return true;
+                            break;
+                        }
+                    }
+                }else if(!isAllLaizi){ //有赖子 且不是4张赖子
+                    
+                    for (const value in check_card_map) {
+                        if(check_card_map[value] == 4){
+                            is_find = true;
+
+                            playerData.cards.forEach(_card=>{
+                                if(_card.value == value){
+                                    select_card_list.push(_card);
+                                }
+                            });
+                            break;
                         }
                     }
                 }
             //不是炸弹的其他类型，A AA AAA 连对 顺子等等
             }else{
                 for (const value in check_card_map) {
-                    if(check_card_map[value] == 4 && value > globalData.gameMgr.roomState.ctxCard.key){
+                    if(check_card_map[value] == 4){
                         is_find = true;
 
                         playerData.cards.forEach(_card=>{
@@ -400,7 +414,8 @@ function selectTips(playerData){
                     globalData.gameMgr.roomState.ctxCard.type == 'AAABBB' && globalData.gameMgr.roomState.ctxCard.len == 6 ||
                     globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                     globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
-                    globalData.gameMgr.roomState.ctxCard.type == 'AAA'
+                    globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'
                 )
                 {
                     check_match_len = 4;
@@ -425,7 +440,8 @@ function selectTips(playerData){
                     if((!isAllLaizi && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)) || isAllLaizi || !ctxHasLaizi ||
                         globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
-                        globalData.gameMgr.roomState.ctxCard.type == 'AAA' ){
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'){
                         hasAAA = true;
                         
                         //癞子+AAA的数量 等于 出牌数量
@@ -451,10 +467,6 @@ function selectTips(playerData){
                     }
                     is_find = true;
                 }
-                // //最后试下纯3带1
-                // if(is_find == false && curLaiziCards.length >= 3){
-
-                // }
             }
 
             if(is_find){
@@ -474,17 +486,18 @@ function selectTips(playerData){
 let globalData = {
     gameMgr:{
         roomState:{
+            ctxCard:{
+                type:"AAAA",
+                key:14.5, //34567
+                len:4,
+                ctxPos:'left'
+            },
             // ctxCard:{
             //     type:"ABCDE",
-            //     key:3, //34567
+            //     key:9, //4455667788
             //     len:5,
-            // },
-            ctxCard:{
-                type:"ABCDE",
-                key:9, //4455667788
-                len:5,
-                ctxPos:'left'
-            }
+            //     ctxPos:'left'
+            // }
             // ctxCard:{
             //     type:"AA",
             //     key:16, //4455667788
@@ -495,18 +508,22 @@ let globalData = {
         posState:{
             laizi:{
                 cards:[
-                    {value:10},
-                    {value:8}
+                    // {value:10},
+                    {value:7}
                 ]
             },
             left:{
                 ctxCards:[
                     // {value:14},
-                    {value:13},
-                    {value:12},
-                    {value:11},
-                    {value:10},
-                    {value:8},
+                    // {value:13},
+                    // {value:12},
+                    // {value:11},
+                    // {value:10},
+                    // {value:8},
+                    {value:7},
+                    {value:14},
+                    {value:14},
+                    {value:14},
                 ]
             }
         }
@@ -514,8 +531,8 @@ let globalData = {
 };
 
 let playerData = {
-    cards:[ {value:8}, {value:13},{value:12},{value:11},{value:10},{value:8}]
-    // cards:[{value:3},{value:3},{value:5},{value:6},{value:4},{value:6},{value:7}]
+    // cards:[ {value:8}, {value:8},{value:8},{value:5},{value:7},{value:10}]
+    cards:[{value:7},{value:7},{value:7},{value:10},{value:4},{value:6},{value:7}]
     // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }
 

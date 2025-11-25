@@ -1074,11 +1074,6 @@
     "meta": 1762314806675,
     "relativePath": "scripts\\data\\utils.js"
   },
-  "40b4ad2f-acec-45ab-8c7e-3f60cca209cd": {
-    "asset": 1762313189290,
-    "meta": 1762314806681,
-    "relativePath": "scripts\\defines.js"
-  },
   "7566b813-99eb-41b8-9285-96f7aa97b816": {
     "asset": 1763611157913,
     "meta": 1762313051619,
@@ -2904,19 +2899,24 @@
     "meta": 1763689189475,
     "relativePath": "scripts\\prefabs\\PanelLoading.js"
   },
-  "af84c7f5-2aaa-46ac-92d0-0f3e443ba9ae": {
-    "asset": 1763692882724,
-    "meta": 1763692887053,
-    "relativePath": "scripts\\data\\socketMgr.js"
-  },
   "aa64a319-8271-487c-bc76-2e68be95bc15": {
     "asset": 1763692756444,
     "meta": 1763692887087,
     "relativePath": "scripts\\Game\\prefabs\\Avator.js"
   },
   "cf22a7b3-d3fc-4369-a0b5-911ab19ffa70": {
-    "asset": 1763693353732,
-    "meta": 1763693355996,
+    "asset": 1763714210555,
+    "meta": 1763714218311,
     "relativePath": "scripts\\Game\\Game.js"
+  },
+  "af84c7f5-2aaa-46ac-92d0-0f3e443ba9ae": {
+    "asset": 1763697924262,
+    "meta": 1763697928359,
+    "relativePath": "scripts\\data\\socketMgr.js"
+  },
+  "40b4ad2f-acec-45ab-8c7e-3f60cca209cd": {
+    "asset": 1763698154046,
+    "meta": 1763698155639,
+    "relativePath": "scripts\\defines.js"
   }
 }

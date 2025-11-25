@@ -602,10 +602,14 @@ cc.Class({
       var tmp_list = [];
 
       for (var _posId in _globalData["default"].gameMgr.score_list) {
-        tmp_list.push({
-          posId: _posId,
-          score: _globalData["default"].gameMgr.score_list[_posId]
-        });
+        var playerData = _globalData["default"].gameMgr.getPlayerData(_posId);
+
+        if (playerData.uid > 0) {
+          tmp_list.push({
+            posId: _posId,
+            score: _globalData["default"].gameMgr.score_list[_posId]
+          });
+        }
       }
 
       tmp_list.sort(function (a, b) {
