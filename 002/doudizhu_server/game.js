@@ -122,6 +122,7 @@ Object.assign(
       for (let i = 0, len = ret.types.length; i < len; i++) {
         var type = ret.types[i].type;
         var key = ret.types[i].key;
+        let isAAAAMe = has_laizi_num == 0 && key == 'AAAA' && ret.len == 4;
         if (type === 'KING') {
           return {
             status: true,
@@ -131,19 +132,72 @@ Object.assign(
           }
         }
 
-        if (this.lastCardInfo.type === 'AAAA') {
-          if (type === 'AAAA'){
-            //硬炸
-            if( this.lastCardInfo.isAAAA){
-                // if(has_laizi_num > 0 && ret.len > this.lastCardInfo.len){
-                //     return {
-                //         status: true,
-                //         key,
-                //         type,
-                //         len: ret.len
-                //     }
-                // }
-                if(has_laizi_num > 0 ){
+        // 对方出炸 我也出炸
+        if (this.lastCardInfo.type === 'AAAA' && type == 'AAAA') {
+          //如果对方是硬炸
+          if(this.lastCardInfo.isAAAA == true){
+
+              if(isAAAAMe){
+                  if ( key > this.lastCardInfo.key) {
+                      return {
+                              status: true,
+                              key,
+                              type,
+                              len: len
+                          }
+                  }
+              }else{
+                  if( len > this.lastCardInfo.len){
+                      return {
+                              status: true,
+                              key,
+                              type,
+                              len: len
+                          }
+                  }
+              }
+
+          }else{  //如果对方是软炸
+
+              if( this.lastCardInfo.len == 4){
+                  if(isAAAAMe){
+                      return {
+                              status: true,
+                              key,
+                              type,
+                              len: len
+                          }
+                   }else{
+                        if( key > this.lastCardInfo.key){
+                            return {
+                                    status: true,
+                                    key,
+                                    type,
+                                    len: len
+                                }
+                        }
+                    }
+              }else{
+                  if( key > this.lastCardInfo.key){
+                      return {
+                              status: true,
+                              key,
+                              type,
+                              len: len
+                          }
+                  }
+              }
+          }
+        } else {
+            if (type === 'AAAA') {
+                return {
+                    status: true,
+                    key,
+                    type,
+                    len: ret.len
+                }
+            } else {
+                if (type === this.lastCardInfo.type && ret.len === this.lastCardInfo.len && key > this.lastCardInfo.key) {
                     return {
                         status: true,
                         key,
@@ -151,38 +205,8 @@ Object.assign(
                         len: ret.len
                     }
                 }
-            }else{
-              //正常情况
-              if ( key > this.lastCardInfo.key) {
-                return {
-                  status: true,
-                  key,
-                  type,
-                  len: ret.len
-                }
-              }
             }
-          }
-          
-        } else {
-          if (type === 'AAAA') {
-            return {
-              status: true,
-              key,
-              type,
-              len: ret.len
-            }
-          } else {
-            if (type === this.lastCardInfo.type && ret.len === this.lastCardInfo.len && key > this.lastCardInfo.key) {
-              return {
-                status: true,
-                key,
-                type,
-                len: ret.len
-              }
-            }
-          }
-        }
+        }  
       }
       return { status: false }
     },
