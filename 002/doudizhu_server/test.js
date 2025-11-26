@@ -1303,8 +1303,8 @@ var cards15 = [10,10,10,5,5,8,8,8,2];
 var cards16 = [10,10,5,9,9,8,8,2,2];
 var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
 // var cards18 = [8,5,14,10,11,12,13];
-var cards18 = [3,3,10,10];
-var cards19 = [13,13,13,10];
+var cards18 = [3,3,3,10];
+var cards19 = [11,11,11,11];
 // console.log(validate_laizi(cards1,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));
@@ -1342,7 +1342,7 @@ function test(cards,laizis){
 
     let isAAAAMe = has_laizi_num == 0 && type == 'AAAA' && len == 4;
 
-    let lastCardInfo = {type:'AAAA',key:2.5,len:4,isAAAA:false};
+    let lastCardInfo = {type:'AAAA',key:12.5,len:4,isAAAA:false};
     // 对方出炸 我也出炸
     if (lastCardInfo.type === 'AAAA' && type == 'AAAA') {
         //如果对方是硬炸
