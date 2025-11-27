@@ -101,7 +101,7 @@ Object.assign(
       is_all_laizi = int_cards.length === has_laizi_num;
       var ret ;
       var is_laizi = false;
-      console.log("上家出牌：",this.lastCardInfo);
+      // console.log("上家出牌：",this.lastCardInfo);
       // if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 3 && is_all_laizi) || this.lastCardInfo.is_laizi || has_laizi_num > 0) {
       if(has_laizi_num > 0){
         ret = validator.validate_laizi(int_cards,laizi_values);
@@ -109,7 +109,7 @@ Object.assign(
       }else{
         ret = validator.validate(int_cards);
       }
-      console.log("我出牌情况：",ret);
+      // console.log("我出牌情况：",ret);
 
       if (!ret.status) {
         return {
@@ -521,13 +521,14 @@ Object.assign(
             this.contextPosId = 0;
           }
 
-          const { type, len, key, status,is_laizi } = this.validate(posId, data, islaizi);
+          const { type, len, key, status,is_laizi,isAAAA } = this.validate(posId, data, islaizi);
           if (status) {
             this.lastCardInfo.type = type
             this.lastCardInfo.len = len
             this.lastCardInfo.key = key;
             this.lastCardInfo.posId = posId;
             this.lastCardInfo.is_laizi = is_laizi;
+            this.lastCardInfo.isAAAA = isAAAA;
 
             if(type === 'AAAA' && len >= 4 ||
                 type === 'AAABBB' && len === 6 ||
