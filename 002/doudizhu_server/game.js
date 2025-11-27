@@ -60,7 +60,12 @@ Object.assign(
       for (var i = 0; i < 3; i++) {
         var group = [];
         for (var j = 0; j < 17; j++) {
+          
           var offset = getRandomNumForRange(maxIndex);
+          //debug
+          // if(i == 0){
+          //   offset = 0;
+          // }
           group.push(mCards[offset]);
           mCards.splice(offset, 1);
           maxIndex--;
@@ -96,12 +101,15 @@ Object.assign(
       is_all_laizi = int_cards.length === has_laizi_num;
       var ret ;
       var is_laizi = false;
-      if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 3 && is_all_laizi) || this.lastCardInfo.is_laizi) {
+      console.log("上家出牌：",this.lastCardInfo);
+      // if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 3 && is_all_laizi) || this.lastCardInfo.is_laizi || has_laizi_num > 0) {
+      if(has_laizi_num > 0){
         ret = validator.validate_laizi(int_cards,laizi_values);
         is_laizi = true;
       }else{
         ret = validator.validate(int_cards);
       }
+      console.log("我出牌情况：",ret);
 
       if (!ret.status) {
         return {
