@@ -92,10 +92,13 @@ Object.assign(
           has_laizi_num ++;
         }
       });
+  
       is_all_laizi = int_cards.length === has_laizi_num;
       var ret ;
-      if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 3 && is_all_laizi)) {
+      var is_laizi = false;
+      if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 3 && is_all_laizi) || this.lastCardInfo.is_laizi) {
         ret = validator.validate_laizi(int_cards,laizi_values);
+        is_laizi = true;
       }else{
         ret = validator.validate(int_cards);
       }
@@ -110,7 +113,9 @@ Object.assign(
           status: true,
           key: ret.types[0].key,
           len: ret.len,
-          type: ret.types[0].type
+          type: ret.types[0].type,
+          is_laizi:is_laizi,
+          isAAAA:ret.isAAAA,
         }
       }
 
@@ -119,16 +124,18 @@ Object.assign(
           status: false,
         }
       }
-      for (let i = 0, len = ret.types.length; i < len; i++) {
+      for (let i = 0, type_len = ret.types.length; i < type_len; i++) {
         var type = ret.types[i].type;
         var key = ret.types[i].key;
-        let isAAAAMe = has_laizi_num == 0 && key == 'AAAA' && ret.len == 4;
+        let isAAAAMe = has_laizi_num == 0 && type == 'AAAA' && ret.len == 4;
         if (type === 'KING') {
           return {
             status: true,
             key,
             type,
-            len: ret.len
+            len: ret.len,
+            is_laizi:is_laizi,
+            isAAAA:ret.isAAAA,
           }
         }
 
@@ -143,29 +150,35 @@ Object.assign(
                               status: true,
                               key,
                               type,
-                              len: len
+                              len: ret.len,
+                              is_laizi:is_laizi,
+                              isAAAA:ret.isAAAA,
                           }
                   }
               }else{
-                  if( len > this.lastCardInfo.len){
+                  if( ret.len > this.lastCardInfo.len){
                       return {
                               status: true,
                               key,
                               type,
-                              len: len
+                              len: ret.len,
+                              is_laizi:is_laizi,
+                              isAAAA:ret.isAAAA,
                           }
                   }
               }
 
           }else{  //如果对方是软炸
-
+             
               if( this.lastCardInfo.len == 4){
                   if(isAAAAMe){
                       return {
                               status: true,
                               key,
                               type,
-                              len: len
+                              len: ret.len,
+                              is_laizi:is_laizi,
+                              isAAAA:ret.isAAAA,
                           }
                    }else{
                         if( key > this.lastCardInfo.key){
@@ -173,7 +186,9 @@ Object.assign(
                                     status: true,
                                     key,
                                     type,
-                                    len: len
+                                    len: ret.len,
+                                    is_laizi:is_laizi,
+                                    isAAAA:ret.isAAAA,
                                 }
                         }
                     }
@@ -183,7 +198,9 @@ Object.assign(
                               status: true,
                               key,
                               type,
-                              len: len
+                              len: ret.len,
+                              is_laizi:is_laizi,
+                              isAAAA:ret.isAAAA,
                           }
                   }
               }
@@ -194,7 +211,9 @@ Object.assign(
                     status: true,
                     key,
                     type,
-                    len: ret.len
+                    len: ret.len,
+                    is_laizi:is_laizi,
+                    isAAAA:ret.isAAAA,
                 }
             } else {
                 if (type === this.lastCardInfo.type && ret.len === this.lastCardInfo.len && key > this.lastCardInfo.key) {
@@ -202,7 +221,9 @@ Object.assign(
                         status: true,
                         key,
                         type,
-                        len: ret.len
+                        len: ret.len,
+                        is_laizi:is_laizi,
+                        isAAAA:ret.isAAAA,
                     }
                 }
             }
@@ -492,13 +513,13 @@ Object.assign(
             this.contextPosId = 0;
           }
 
-          const { type, len, key, status,isAAAA } = this.validate(posId, data, islaizi);
+          const { type, len, key, status,is_laizi } = this.validate(posId, data, islaizi);
           if (status) {
             this.lastCardInfo.type = type
             this.lastCardInfo.len = len
             this.lastCardInfo.key = key;
             this.lastCardInfo.posId = posId;
-            this.lastCardInfo.isAAAA = isAAAA;
+            this.lastCardInfo.is_laizi = is_laizi;
 
             if(type === 'AAAA' && len >= 4 ||
                 type === 'AAABBB' && len === 6 ||
