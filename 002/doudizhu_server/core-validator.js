@@ -295,7 +295,7 @@ const TYPES = {
         return {
             len: 4,
             key: cards[0],
-            status: status
+            status: status,
         }
     },
     //三带一
@@ -1083,7 +1083,8 @@ module.exports.validate = function (cards) {
       return {
           status: true,
           len: len,
-          types: ret
+          types: ret,
+          isAAAA:ret[0].type == 'AAAA',
       }
   } else {
       return {
