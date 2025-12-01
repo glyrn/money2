@@ -63,9 +63,9 @@ Object.assign(
           
           var offset = getRandomNumForRange(maxIndex);
           //debug
-          // if(i == 0){
-          //   offset = 0;
-          // }
+          if(i == 0){
+            offset = 0;
+          }
           group.push(mCards[offset]);
           mCards.splice(offset, 1);
           maxIndex--;
@@ -101,7 +101,7 @@ Object.assign(
       is_all_laizi = int_cards.length === has_laizi_num;
       var ret ;
       var is_laizi = false;
-      // console.log("上家出牌：",this.lastCardInfo);
+      console.log("上家出牌：",this.lastCardInfo);
       // if((has_laizi_num > 0 && !is_all_laizi) || (has_laizi_num >= 3 && is_all_laizi) || this.lastCardInfo.is_laizi || has_laizi_num > 0) {
       if(has_laizi_num > 0){
         ret = validator.validate_laizi(int_cards,laizi_values);
@@ -109,7 +109,7 @@ Object.assign(
       }else{
         ret = validator.validate(int_cards);
       }
-      // console.log("我出牌情况：",ret);
+      console.log("我出牌情况：",ret);
 
       if (!ret.status) {
         return {
@@ -181,12 +181,7 @@ Object.assign(
               if( this.lastCardInfo.len == 4){
                   if(isAAAAMe){
                       return {
-                              status: true,
-                              key,
-                              type,
-                              len: ret.len,
-                              is_laizi:is_laizi,
-                              isAAAA:ret.isAAAA,
+                              status: false,
                           }
                    }else{
                         if( key > this.lastCardInfo.key){
