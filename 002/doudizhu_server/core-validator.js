@@ -851,6 +851,7 @@ module.exports.validate_laizi = function(cards,laizis) {
             //4张相同
             if(is_same_laizi){
                 return {
+                    // isAAAA: true,
                     status: true,
                     len: cards.length,
                     types: [{key:cards.length * 13 + laizi_cards[0],type:"AAAA"}] 
@@ -878,7 +879,7 @@ module.exports.validate_laizi = function(cards,laizis) {
         if(cards.length == 4){
             return {
                 status: true,
-                isAAAA: normal_cards.length == 4,
+                // isAAAA: normal_cards.length == 4,
                 len: cards.length,
                 types: [{key:normal_cards[0]-0.5,type:"AAAA"}] 
             };
@@ -1084,7 +1085,7 @@ module.exports.validate = function (cards) {
           status: true,
           len: len,
           types: ret,
-          isAAAA:ret[0].type == 'AAAA',
+        //   isAAAA:ret[0].type == 'AAAA',
       }
   } else {
       return {
