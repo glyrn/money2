@@ -822,7 +822,8 @@ function validator(cards) {
         return {
             status: true,
             len: len,
-            types: ret
+            types: ret,
+            is_normal:true,
         }
     } else {
         return {
@@ -962,10 +963,11 @@ function validate_laizi(cards,laizis){
     if(normal_cards.length == 0 && laizi_cards.length >= 4){
         //4张癞子
         if(laizi_cards.length == 4){
-             var is_same_laizi = laizi_cards.every((element) => element === laizi_cards[0]);
+            var is_same_laizi = laizi_cards.every((element) => element === laizi_cards[0]);
             //4张相同
             if(is_same_laizi){
                 return {
+                    isAAAA: true,
                     status: true,
                     len: cards.length,
                     types: [{key:cards.length * 13 + laizi_cards[0],type:"AAAA"}] 
@@ -1284,7 +1286,7 @@ function validate_laizi(cards,laizis){
     };
 }
 
-var laizis = [10];
+var laizis = [4];
 var cards1 = [2,2,2,2,5,5,5,5];
 var cards2 = [8,8,8,2,5,5,5,5];
 var cards3 = [2,2,2,2,5,5,5];
@@ -1303,8 +1305,8 @@ var cards15 = [10,10,10,5,5,8,8,8,2];
 var cards16 = [10,10,5,9,9,8,8,2,2];
 var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
 // var cards18 = [8,5,14,10,11,12,13];
-var cards18 = [14,14,14,14];
-var cards19 = [10,13,13,13];
+var cards18 = [10,10,10,8];
+var cards19 = [4,4,4,13];
 // console.log(validate_laizi(cards1,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));
@@ -1319,9 +1321,27 @@ var cards19 = [10,13,13,13];
 // console.log(validate_laizi(cards11,laizis));
 // console.log(validate_laizi(cards12,laizis));
 // console.log(validate_laizi(cards15,laizis));
-console.log(validate_laizi(cards18,laizis));
+// console.log(validator(cards18));
+// console.log(validate_laizi(cards19,laizis));
 
-function test(cards,laizis){
+
+function getLastCardInfo(cards,laizi_values){
+    var has_laizi_num = 0;
+    cards.forEach(function(card){
+        if(laizi_values.indexOf(card) !== -1){
+            has_laizi_num ++;
+        }
+    });
+    if(has_laizi_num>0){
+        ret = validate_laizi(cards,laizi_values);
+    }else{
+        ret = validator(cards);
+    }
+    return ret;
+}
+
+
+function test(cards,lastCardInfo,laizis){
 
     var int_cards = cards;
 
@@ -1333,75 +1353,24 @@ function test(cards,laizis){
         }
     });
 
-    let is_all_laizi = int_cards.length === has_laizi_num;
-    
-    let ret = validate_laizi(cards,laizis);
+    // let is_all_laizi = int_cards.length === has_laizi_num;
+    let ret;
+    if(has_laizi_num > 0){
+        ret = validate_laizi(cards,laizis);
+    }else{
+        ret = validator(cards);
+    }
+    console.log("上家出：",lastCardInfo)
+    console.log("我出：",ret)
+
     let type = ret.types[0].type;
     let len = ret.len;
     let key = ret.types[0].key;
 
-    let isAAAAMe = has_laizi_num == 0 && type == 'AAAA' && len == 4;
+    lastCardInfo.type = lastCardInfo.types[0].type;
+    lastCardInfo.key = lastCardInfo.types[0].key;
 
-    let lastCardInfo = {type:'AAAA',key:13.5,len:4,isAAAA:false};
-    // 对方出炸 我也出炸
-    if (lastCardInfo.type === 'AAAA' && type == 'AAAA') {
-        //如果对方是硬炸
-        if(lastCardInfo.isAAAA == true){
-
-            if(isAAAAMe){
-                if ( key > lastCardInfo.key) {
-                    return {
-                            status: true,
-                            key,
-                            type,
-                            len: len
-                        }
-                }
-            }else{
-                if( len > lastCardInfo.len){
-                    return {
-                            status: true,
-                            key,
-                            type,
-                            len: len
-                        }
-                }
-            }
-
-        }else{  //如果对方是软炸
-
-            if( lastCardInfo.len == 4){
-                
-                if(isAAAAMe){
-                    return {
-                            status: true,
-                            key,
-                            type,
-                            len: len
-                        }
-                }else{
-                    if( key > lastCardInfo.key){
-                        return {
-                                status: true,
-                                key,
-                                type,
-                                len: len
-                            }
-                    }
-                }
-                
-            }else{
-                if( key > lastCardInfo.key){
-                    return {
-                            status: true,
-                            key,
-                            type,
-                            len: len
-                        }
-                }
-            }
-        }
-    } else {
+    if(lastCardInfo.len < 4){
         if (type === 'AAAA') {
             return {
                 status: true,
@@ -1419,8 +1388,81 @@ function test(cards,laizis){
                 }
             }
         }
-    }  
+    }else if(lastCardInfo.len == 4){
+        //对方硬炸
+        if(lastCardInfo.is_normal){
+
+            if(lastCardInfo.type == 'AAAA'){
+                if(type == lastCardInfo.type && (key > lastCardInfo.key || len > lastCardInfo.len)){
+                    return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len
+                    }
+                }
+            }else{
+                if(type == 'AAAA'){
+                    return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len
+                    }
+                }
+            }
+            
+        }else{
+            //纯赖子
+            if(lastCardInfo.isAAAA){
+                if(type == lastCardInfo.type && len > lastCardInfo.len){
+                    return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len
+                    }
+                }
+            }else{
+                if(type == lastCardInfo.type && (
+                    (len == lastCardInfo.len && key > lastCardInfo.key) || (len > lastCardInfo.len))){
+                    return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len
+                    }
+                }
+            }
+           
+        }
+
+    }else if(lastCardInfo.len > 4){
+
+        if(lastCardInfo.type == 'AAAA'){
+            if (type === lastCardInfo.type && len === lastCardInfo.len && key > lastCardInfo.key || 
+                    type === lastCardInfo.type && len > lastCardInfo.len
+                ) {
+                    return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len
+                    }
+                }
+        }else{
+            if(type == 'AAAA'){
+                return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len
+                    }
+            }
+        }
+    }
+
     return { status: false }
 }
 
-console.log("测试结果：",test(cards19,laizis))
+console.log("测试结果：",test(cards19,getLastCardInfo(cards18,laizis),laizis));
