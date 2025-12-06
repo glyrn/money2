@@ -1305,8 +1305,8 @@ var cards15 = [10,10,10,5,5,8,8,8,2];
 var cards16 = [10,10,5,9,9,8,8,2,2];
 var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
 // var cards18 = [8,5,14,10,11,12,13];
-var cards18 = [10,10,10,8];
-var cards19 = [4,4,4,13];
+var cards18 = [7,8,9,10,11];
+var cards19 = [8,9,10,11,12];
 // console.log(validate_laizi(cards1,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));
@@ -1320,7 +1320,7 @@ var cards19 = [4,4,4,13];
 // console.log(validate_laizi(cards10,laizis));
 // console.log(validate_laizi(cards11,laizis));
 // console.log(validate_laizi(cards12,laizis));
-// console.log(validate_laizi(cards15,laizis));
+// console.log(validate_laizi(cards15,laizis));     
 // console.log(validator(cards18));
 // console.log(validate_laizi(cards19,laizis));
 
@@ -1393,12 +1393,16 @@ function test(cards,lastCardInfo,laizis){
         if(lastCardInfo.is_normal){
 
             if(lastCardInfo.type == 'AAAA'){
-                if(type == lastCardInfo.type && (key > lastCardInfo.key || len > lastCardInfo.len)){
-                    return {
+
+                if( (ret.isAAAA && len >=4 )
+                    || (type == 'AAAA' && len > lastCardInfo.len)
+                    || (ret.is_normal && len == 4 && key > lastCardInfo.key)
+                ){
+                return {
                         status: true,
                         key,
                         type,
-                        len: ret.len
+                        len: ret.len,
                     }
                 }
             }else{
@@ -1424,13 +1428,22 @@ function test(cards,lastCardInfo,laizis){
                     }
                 }
             }else{
-                if(type == lastCardInfo.type && (
-                    (len == lastCardInfo.len && key > lastCardInfo.key) || (len > lastCardInfo.len))){
+                if(type == 'AAAA' && ret.is_normal){
                     return {
-                        status: true,
-                        key,
-                        type,
-                        len: ret.len
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len
+                        }
+                }else{
+                    if(type == lastCardInfo.type && (
+                        (len == lastCardInfo.len && key > lastCardInfo.key) || (len > lastCardInfo.len))){
+                        return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len
+                        }
                     }
                 }
             }
@@ -1457,6 +1470,16 @@ function test(cards,lastCardInfo,laizis){
                         key,
                         type,
                         len: ret.len
+                    }
+            }else{
+                 if(type == lastCardInfo.type && (
+                        (len == lastCardInfo.len && key > lastCardInfo.key) || (len > lastCardInfo.len))){
+                        return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len
+                        }
                     }
             }
         }
