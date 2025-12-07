@@ -102,7 +102,7 @@ Object.assign(
       var ret;
       console.log("上家出牌：",this.lastCardInfo);
 
-      if(has_laizi_num > 0){
+      if(has_laizi_num > 0 && int_cards.length > 2){
         ret = validator.validate_laizi(int_cards,laizi_values);
         ret.isAAAA = is_all_laizi;
       }else{
@@ -238,7 +238,16 @@ Object.assign(
                             is_normal:has_laizi_num == 0,
                         }
                 }else{
-                    if(type == this.lastCardInfo.type && (
+                   if(type == 'AAAA' && this.lastCardInfo.type != 'AAAA'){
+                        return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len,
+                            isAAAA:is_all_laizi,
+                            is_normal:has_laizi_num == 0,
+                        }
+                    }else if(type == this.lastCardInfo.type && (
                         (len == this.lastCardInfo.len && key > this.lastCardInfo.key) || (len > this.lastCardInfo.len))){
                         return {
                             status: true,

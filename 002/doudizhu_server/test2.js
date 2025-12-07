@@ -29,13 +29,19 @@ function selectTips(playerData){
                 if(!is_find) {
                     // 3带1
                     if(globalData.gameMgr.roomState.ctxCard.type == 'AAAB' && globalData.gameMgr.roomState.ctxCard.len == 4) {
+                        var _islaizi = false;
+                        for(var laizi_card_key in laiziCards){
+                            if(laiziCards[laizi_card_key].value == card.value){
+                                _islaizi = true;
+                            }
+                        }
 
-                        if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
+                        if ((card.value == globalData.gameMgr.roomState.ctxCard.key + i) && !_islaizi) {
                             find_count++;
                             select_card_list.push(card);
-
+                           
                             if (find_count == 3 || find_count + curLaiziCards.length >= 3) {
-                                select_card_list = [];
+                                
                                 //补上癞子
                                 for(var __i=0;__i< 3 - find_count;__i++){
                                     select_card_list.push(curLaiziCards[__i])
@@ -451,7 +457,7 @@ function selectTips(playerData){
                     check_match_len = 4;
                     isOffset = false;
                 }
-                
+               
                 playerData.cards.forEach(_card=>{
                     for(var laizi_card_key in laiziCards){
                         if(laiziCards[laizi_card_key].value == _card.value){
@@ -471,6 +477,7 @@ function selectTips(playerData){
                         globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAAB' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'){
                         hasAAA = true;
                        
@@ -517,9 +524,9 @@ let globalData = {
     gameMgr:{
         roomState:{
             ctxCard:{
-                type:"ABCDE",
-                key:7, //34567
-                len:5,
+                type:"AAAB",
+                key:14, //34567
+                len:4,
                 ctxPos:'left'
             },
             // ctxCard:{
@@ -538,7 +545,7 @@ let globalData = {
         posState:{
             laizi:{
                 cards:[
-                    {value:11},
+                    // {value:11},  
                     {value:8}
                 ]
             },
@@ -562,7 +569,7 @@ let globalData = {
 };
 
 let playerData = {
-    cards:[ {value:8}, {value:9},{value:10},{value:11},{value:12},{value:10}]
+    cards:[ {value:13}, {value:13},{value:13},{value:8},{value:9},{value:10},{value:3}]
     // cards:[{value:11},{value:11},{value:11},{value:12},{value:12},{value:8},{value:5},{value:10}]
     // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }

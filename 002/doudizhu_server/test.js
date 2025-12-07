@@ -1286,7 +1286,7 @@ function validate_laizi(cards,laizis){
     };
 }
 
-var laizis = [4];
+var laizis = [5,8];
 var cards1 = [2,2,2,2,5,5,5,5];
 var cards2 = [8,8,8,2,5,5,5,5];
 var cards3 = [2,2,2,2,5,5,5];
@@ -1305,8 +1305,8 @@ var cards15 = [10,10,10,5,5,8,8,8,2];
 var cards16 = [10,10,5,9,9,8,8,2,2];
 var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
 // var cards18 = [8,5,14,10,11,12,13];
-var cards18 = [7,8,9,10,11];
-var cards19 = [8,9,10,11,12];
+var cards18 = [5,4,4,3];
+var cards19 = [8,8,8,3];
 // console.log(validate_laizi(cards1,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));
@@ -1436,7 +1436,14 @@ function test(cards,lastCardInfo,laizis){
                             len: ret.len
                         }
                 }else{
-                    if(type == lastCardInfo.type && (
+                    if(type == 'AAAA' && lastCardInfo.type != 'AAAA'){
+                        return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len
+                        }
+                    }else if(type == lastCardInfo.type && (
                         (len == lastCardInfo.len && key > lastCardInfo.key) || (len > lastCardInfo.len))){
                         return {
                             status: true,
