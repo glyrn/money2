@@ -29,13 +29,19 @@ function selectTips(playerData){
                 if(!is_find) {
                     // 3带1
                     if(globalData.gameMgr.roomState.ctxCard.type == 'AAAB' && globalData.gameMgr.roomState.ctxCard.len == 4) {
+                        var _islaizi = false;
+                        for(var laizi_card_key in laiziCards){
+                            if(laiziCards[laizi_card_key].value == card.value){
+                                _islaizi = true;
+                            }
+                        }
 
-                        if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
+                        if ((card.value == globalData.gameMgr.roomState.ctxCard.key + i) && !_islaizi) {
                             find_count++;
                             select_card_list.push(card);
-
+                           
                             if (find_count == 3 || find_count + curLaiziCards.length >= 3) {
-                                select_card_list = [];
+                                
                                 //补上癞子
                                 for(var __i=0;__i< 3 - find_count;__i++){
                                     select_card_list.push(curLaiziCards[__i])
@@ -329,10 +335,19 @@ function selectTips(playerData){
             var check_card_map = {};
             playerData.cards.forEach(_card=>{
                 if(_card.value <= 15){
-                    if(!check_card_map[_card.value]){
-                        check_card_map[_card.value] = 0;
+                    let isLaizi = false;
+                    for(var laizi_card_key in laiziCards){
+                        if(laiziCards[laizi_card_key].value == _card.value){
+                            isLaizi = true;
+                        }
                     }
-                    check_card_map[_card.value]++;
+                    
+                    if(!isLaizi){
+                        if(!check_card_map[_card.value]){
+                            check_card_map[_card.value] = 0;
+                        }
+                        check_card_map[_card.value]++;
+                    } 
                 }
             });
 
@@ -351,6 +366,7 @@ function selectTips(playerData){
             
             //对手出炸弹 判断是否AAAA硬炸
             if(globalData.gameMgr.roomState.ctxCard.type == 'AAAA'){
+                
                 //是硬炸
                 if(ctxHasLaizi == false){
                     for (const value in check_card_map) {
@@ -366,17 +382,37 @@ function selectTips(playerData){
                         }
                     }
                 }else if(!isAllLaizi){ //有赖子 且不是4张赖子
-                    
-                    for (const value in check_card_map) {
-                        if(check_card_map[value] == 4){
-                            is_find = true;
+                    if(globalData.gameMgr.roomState.ctxCard.len == 4){
+                        for (const value in check_card_map) {
+                            if(check_card_map[value] == 4){
+                                is_find = true;
 
-                            playerData.cards.forEach(_card=>{
-                                if(_card.value == value){
-                                    select_card_list.push(_card);
-                                }
-                            });
-                            break;
+                                playerData.cards.forEach(_card=>{
+                                    if(_card.value == value){
+                                        select_card_list.push(_card);
+                                    }
+                                });
+                                break;
+                            }
+                        }
+                    }else{
+                        let offset = globalData.gameMgr.roomState.ctxCard.len - curLaiziCards.length;
+                        for (const value in check_card_map) {
+                            if(check_card_map[value] > offset){
+                                is_find = true;
+                                
+                                playerData.cards.forEach(_card=>{
+                                    if(_card.value == value){
+                                        select_card_list.push(_card);
+                                    }
+                                });
+                                curLaiziCards.forEach(_card=>{
+                                    if(select_card_list.length <= globalData.gameMgr.roomState.ctxCard.len){
+                                        select_card_list.push(_card);
+                                    }
+                                })
+                                break;
+                            }
                         }
                     }
                 }
@@ -421,7 +457,7 @@ function selectTips(playerData){
                     check_match_len = 4;
                     isOffset = false;
                 }
-                
+               
                 playerData.cards.forEach(_card=>{
                     for(var laizi_card_key in laiziCards){
                         if(laiziCards[laizi_card_key].value == _card.value){
@@ -436,14 +472,15 @@ function selectTips(playerData){
                 let offset = (isAllLaizi || ctxHasLaizi == false) && isOffset ? 1:0;
                 for (const value in check_card_map) {
                     console.log("检查AAA：",value , globalData.gameMgr.roomState.ctxCard.key,offset)
-
+ 
                     if((!isAllLaizi && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)) || isAllLaizi || !ctxHasLaizi ||
                         globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAAB' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'){
                         hasAAA = true;
-                        
+                       
                         //癞子+AAA的数量 等于 出牌数量
                         if(hasAAA && hasLaizi && curLaiziCards.length + check_card_map[value] >= check_match_len + offset){
 
@@ -487,8 +524,8 @@ let globalData = {
     gameMgr:{
         roomState:{
             ctxCard:{
-                type:"AAAA",
-                key:14.5, //34567
+                type:"AAAB",
+                key:14, //34567
                 len:4,
                 ctxPos:'left'
             },
@@ -508,8 +545,8 @@ let globalData = {
         posState:{
             laizi:{
                 cards:[
-                    // {value:10},
-                    {value:7}
+                    // {value:11},  
+                    {value:8}
                 ]
             },
             left:{
@@ -521,9 +558,10 @@ let globalData = {
                     // {value:10},
                     // {value:8},
                     {value:7},
-                    {value:14},
-                    {value:14},
-                    {value:14},
+                    {value:7},
+                    {value:7},
+                    {value:8},
+                    {value:11},
                 ]
             }
         }
@@ -531,8 +569,8 @@ let globalData = {
 };
 
 let playerData = {
-    // cards:[ {value:8}, {value:8},{value:8},{value:5},{value:7},{value:10}]
-    cards:[{value:7},{value:7},{value:7},{value:10},{value:4},{value:6},{value:7}]
+    cards:[ {value:13}, {value:13},{value:13},{value:8},{value:9},{value:10},{value:3}]
+    // cards:[{value:11},{value:11},{value:11},{value:12},{value:12},{value:8},{value:5},{value:10}]
     // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }
 

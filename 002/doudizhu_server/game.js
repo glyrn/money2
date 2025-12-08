@@ -102,10 +102,12 @@ Object.assign(
       var ret;
       console.log("上家出牌：",this.lastCardInfo);
 
-      if(has_laizi_num > 0){
+      if(has_laizi_num > 0 && int_cards.length > 2){
         ret = validator.validate_laizi(int_cards,laizi_values);
+        ret.isAAAA = is_all_laizi;
       }else{
         ret = validator.validate(int_cards);
+        ret.is_normal = true;
       }
 
       console.log("我出：",ret)
@@ -135,6 +137,17 @@ Object.assign(
       let type = ret.types[0].type;
       let len = ret.len;
       let key = ret.types[0].key;
+      //初始出牌
+      if( this.lastCardInfo.len == 0){
+           return {
+                status: true,
+                key,
+                type,
+                len: ret.len,
+                isAAAA:is_all_laizi,
+                is_normal:has_laizi_num == 0,
+            }
+      }
 
       if (type == 'KING'){
         return {
@@ -170,11 +183,15 @@ Object.assign(
         }
       }else if(this.lastCardInfo.len == 4){
             //对方硬炸
-            if(this.lastCardInfo.is_normal){
+        if(this.lastCardInfo.is_normal){
 
-                if(this.lastCardInfo.type == 'AAAA'){
-                  if(type == this.lastCardInfo.type && (key > this.lastCardInfo.key || len > this.lastCardInfo.len)){
-                        return {
+            if(this.lastCardInfo.type == 'AAAA'){
+
+                if( (ret.isAAAA && len >=4 )
+                    || (type == 'AAAA' && len > this.lastCardInfo.len)
+                    || (ret.is_normal && len == 4 && key > this.lastCardInfo.key)
+                  ){
+                    return {
                             status: true,
                             key,
                             type,
@@ -183,46 +200,69 @@ Object.assign(
                             is_normal:has_laizi_num == 0,
                         }
                   }
-                }else{
-                    if(type == 'AAAA'){
-                        return {
-                            status: true,
-                            key,
-                            type,
-                            len: ret.len,
-                            isAAAA:is_all_laizi,
-                            is_normal:has_laizi_num == 0,
-                        }
-                    }
-                }
+                
             }else{
-                //纯赖子
-                if(this.lastCardInfo.isAAAA){
-                    if(type == this.lastCardInfo.type && len > this.lastCardInfo.len){
-                        return {
-                            status: true,
-                            key,
-                            type,
-                            len: ret.len,
-                            isAAAA:is_all_laizi,
-                            is_normal:has_laizi_num == 0,
-                        }
-                    }
-                }else{
-                    if(type == this.lastCardInfo.type && ((len == this.lastCardInfo.len && key > this.lastCardInfo.key) || (len > this.lastCardInfo.len))){
-                      return {
-                          status: true,
-                          key,
-                          type,
-                          len: ret.len,
-                          isAAAA:is_all_laizi,
-                          is_normal:has_laizi_num == 0,
-                      }
+                if(type == 'AAAA'){
+                    return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len,
+                        isAAAA:is_all_laizi,
+                        is_normal:has_laizi_num == 0,
                     }
                 }
             }
+            
+        }else{
+            //纯赖子
+            if(this.lastCardInfo.isAAAA){
+                if(type == this.lastCardInfo.type && len > this.lastCardInfo.len){
+                    return {
+                        status: true,
+                        key,
+                        type,
+                        len: ret.len,
+                        isAAAA:is_all_laizi,
+                        is_normal:has_laizi_num == 0,
+                    }
+                }
+            }else{
+                if(type == 'AAAA' && ret.is_normal){
+                    return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len,
+                            isAAAA:is_all_laizi,
+                            is_normal:has_laizi_num == 0,
+                        }
+                }else{
+                   if(type == 'AAAA' && this.lastCardInfo.type != 'AAAA'){
+                        return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len,
+                            isAAAA:is_all_laizi,
+                            is_normal:has_laizi_num == 0,
+                        }
+                    }else if(type == this.lastCardInfo.type && (
+                        (len == this.lastCardInfo.len && key > this.lastCardInfo.key) || (len > this.lastCardInfo.len))){
+                        return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len,
+                            isAAAA:is_all_laizi,
+                            is_normal:has_laizi_num == 0,
+                        }
+                    }
+                }
+            }
+        }
 
-        }else if(this.lastCardInfo.len > 4){
+      }else if(this.lastCardInfo.len > 4){
 
            if(this.lastCardInfo.type == 'AAAA'){
             if (type === this.lastCardInfo.type && len === this.lastCardInfo.len && key > this.lastCardInfo.key || 
@@ -247,9 +287,21 @@ Object.assign(
                             isAAAA:is_all_laizi,
                             is_normal:has_laizi_num == 0,
                       }
+                }else{
+                  if(type == this.lastCardInfo.type && (
+                        (len == this.lastCardInfo.len && key > this.lastCardInfo.key) || (len > this.lastCardInfo.len))){
+                        return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len,
+                            isAAAA:is_all_laizi,
+                            is_normal:has_laizi_num == 0,
+                        }
+                    }
                 }
             }
-        }
+      }
 
       return { status: false }
     },
