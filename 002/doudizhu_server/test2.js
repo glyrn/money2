@@ -383,6 +383,7 @@ function selectTips(playerData){
                     }
                 }else if(!isAllLaizi){ //有赖子 且不是4张赖子
                     if(globalData.gameMgr.roomState.ctxCard.len == 4){
+                        //检查自己是否有硬炸
                         for (const value in check_card_map) {
                             if(check_card_map[value] == 4){
                                 is_find = true;
@@ -395,7 +396,34 @@ function selectTips(playerData){
                                 break;
                             }
                         }
+                        //继续检查是否有+1软炸
+                        if(is_find == false){
+                            let offset = globalData.gameMgr.roomState.ctxCard.len - curLaiziCards.length;
+                            for (const value in check_card_map) {
+                                if(check_card_map[value] > offset){
+                                    is_find = true;
+                                    
+                                    playerData.cards.forEach(_card=>{
+                                        if(_card.value == value){
+                                            select_card_list.push(_card);
+                                        }
+                                    });
+                                   
+                                    if(value > globalData.gameMgr.roomState.ctxCard.key){
+                                        if(select_card_list.length < globalData.gameMgr.roomState.ctxCard.len){
+                                            select_card_list.push(_card);
+                                        }
+                                    }else{
+                                        if(select_card_list.length <= globalData.gameMgr.roomState.ctxCard.len){
+                                            select_card_list.push(_card);
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
                     }else{
+                        //继续检查是否有+1软炸
                         let offset = globalData.gameMgr.roomState.ctxCard.len - curLaiziCards.length;
                         for (const value in check_card_map) {
                             if(check_card_map[value] > offset){
@@ -407,8 +435,14 @@ function selectTips(playerData){
                                     }
                                 });
                                 curLaiziCards.forEach(_card=>{
-                                    if(select_card_list.length <= globalData.gameMgr.roomState.ctxCard.len){
-                                        select_card_list.push(_card);
+                                    if(value > globalData.gameMgr.roomState.ctxCard.key){
+                                        if(select_card_list.length < globalData.gameMgr.roomState.ctxCard.len){
+                                            select_card_list.push(_card);
+                                        }
+                                    }else{
+                                        if(select_card_list.length <= globalData.gameMgr.roomState.ctxCard.len){
+                                            select_card_list.push(_card);
+                                        }
                                     }
                                 })
                                 break;
@@ -457,7 +491,7 @@ function selectTips(playerData){
                     check_match_len = 4;
                     isOffset = false;
                 }
-               
+                
                 playerData.cards.forEach(_card=>{
                     for(var laizi_card_key in laiziCards){
                         if(laiziCards[laizi_card_key].value == _card.value){
@@ -524,8 +558,8 @@ let globalData = {
     gameMgr:{
         roomState:{
             ctxCard:{
-                type:"AAAB",
-                key:14, //34567
+                type:"AAAA",
+                key:7, //34567
                 len:4,
                 ctxPos:'left'
             },
@@ -545,8 +579,8 @@ let globalData = {
         posState:{
             laizi:{
                 cards:[
-                    // {value:11},  
-                    {value:8}
+                    // {value:9},  
+                    {value:4}
                 ]
             },
             left:{
@@ -560,8 +594,9 @@ let globalData = {
                     {value:7},
                     {value:7},
                     {value:7},
-                    {value:8},
-                    {value:11},
+                    {value:4},
+                    // {value:11},
+                    // {value:11},
                 ]
             }
         }
@@ -569,7 +604,7 @@ let globalData = {
 };
 
 let playerData = {
-    cards:[ {value:13}, {value:13},{value:13},{value:8},{value:9},{value:10},{value:3}]
+    cards:[ {value:13}, {value:13},{value:13},{value:9},{value:4},{value:10}]
     // cards:[{value:11},{value:11},{value:11},{value:12},{value:12},{value:8},{value:5},{value:10}]
     // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }
