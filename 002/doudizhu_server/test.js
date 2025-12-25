@@ -1004,7 +1004,7 @@ function validate_laizi(cards,laizis){
             return {
                 status: true,
                 len: cards.length,
-                types: [{key:(cards.length-1) * 13 + normal_cards[0],type:"AAAA"}] 
+                types: [{key:normal_cards[0]-0.5,type:"AAAA"}] 
             };
         }
     }
@@ -1286,7 +1286,7 @@ function validate_laizi(cards,laizis){
     };
 }
 
-var laizis = [5,8];
+var laizis = [12];
 var cards1 = [2,2,2,2,5,5,5,5];
 var cards2 = [8,8,8,2,5,5,5,5];
 var cards3 = [2,2,2,2,5,5,5];
@@ -1303,11 +1303,11 @@ var cards13 = [6,6,5,2,8,9,9,5];
 var cards14 = [3,4,5,6,7];
 var cards15 = [10,10,10,5,5,8,8,8,2];
 var cards16 = [10,10,5,9,9,8,8,2,2];
-var cards17 = [10,10,5,9,9,5,8,8,8,14,14,12,12,4,4];
+var cards17 = [3,6,6,6];
 // var cards18 = [8,5,14,10,11,12,13];
-var cards18 = [5,4,4,3];
-var cards19 = [8,8,8,3];
-// console.log(validate_laizi(cards1,laizis));
+var cards18 = [8,7,7,7];
+var cards19 = [9,8,12,12];
+// console.log(validate_laizi(cards17,laizis));
 // console.log(validate_laizi(cards2,laizis));
 // console.log(validate_laizi(cards3,laizis));
 // console.log(validate_laizi(cards4,laizis));
@@ -1406,12 +1406,22 @@ function test(cards,lastCardInfo,laizis){
                     }
                 }
             }else{
+
                 if(type == 'AAAA'){
                     return {
                         status: true,
                         key,
                         type,
                         len: ret.len
+                    }
+                }else{
+                    if(lastCardInfo.type == type && key > lastCardInfo.key){
+                        return {
+                            status: true,
+                            key,
+                            type,
+                            len: ret.len
+                        }
                     }
                 }
             }

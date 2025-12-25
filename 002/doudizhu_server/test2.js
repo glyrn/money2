@@ -39,42 +39,54 @@ function selectTips(playerData){
                         if ((card.value == globalData.gameMgr.roomState.ctxCard.key + i) && !_islaizi) {
                             find_count++;
                             select_card_list.push(card);
-                           
+                            
                             if (find_count == 3 || find_count + curLaiziCards.length >= 3) {
                                 
                                 //补上癞子
                                 for(var __i=0;__i< 3 - find_count;__i++){
                                     select_card_list.push(curLaiziCards[__i])
                                 }
-
-                                var singleCard;
-                                playerData.cards.forEach(card => {
+                                
+                                var singleCard = null;
+                                for (let x = playerData.cards.length - 1; x >= 0; x--) {
+                                    var card = playerData.cards[x];
+                                    var is_exist = false;
                                     select_card_list.forEach(_card => {
-                                        if (card.value != _card.value) {
-                                            singleCard = card;
-                                        }
+                                        if (card.value == _card.value) is_exist = true;
                                     })
-                                })
+
+                                    if(!is_exist){
+                                        singleCard = card;
+                                        break;
+                                    }
+                                }
+
                                 if (singleCard) {
                                     select_card_list.push(singleCard);
                                     is_find = true;
                                 }
                             }
+
                         }else{
                             //纯3癞子
                             if(is_find == false && curLaiziCards.length >=3){
                                 for(var __i=0;__i< 3 - find_count;__i++){
                                     select_card_list.push(curLaiziCards[__i])
                                 }
-
-                                var singleCard;
-                                playerData.cards.forEach(card => {
+                                var singleCard = null;
+                                for (let x = playerData.cards.length - 1; x >= 0; x--) {
+                                    var card = playerData.cards[x];
+                                    var is_exist = false;
                                     select_card_list.forEach(_card => {
-                                        if (card.value != _card.value) {
-                                            singleCard = card;
-                                        }
+                                        if (card.value == _card.value) is_exist = true;
                                     })
-                                })
+
+                                    if(!is_exist){
+                                        singleCard = card;
+                                        break;
+                                    }
+                                }
+                                 
                                 if (singleCard) {
                                     select_card_list.push(singleCard);
                                     is_find = true;
@@ -176,7 +188,7 @@ function selectTips(playerData){
                         }
                         // 4带2
                     }else if (globalData.gameMgr.roomState.ctxCard.type == 'AAAABC') {
-
+                    
                         if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
                             find_count++;
                             select_card_list.push(card);
@@ -323,6 +335,7 @@ function selectTips(playerData){
             globalData.gameMgr.roomState.ctxCard.type == 'AAABB' || 
             globalData.gameMgr.roomState.ctxCard.type == 'AAABBB' || 
             globalData.gameMgr.roomState.ctxCard.type == 'AABBCC' || 
+            globalData.gameMgr.roomState.ctxCard.type == 'AAAABC' || 
             globalData.gameMgr.roomState.ctxCard.type == 'A' ||
             globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
             globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
@@ -409,22 +422,26 @@ function selectTips(playerData){
                                         }
                                     });
                                    
-                                    if(value > globalData.gameMgr.roomState.ctxCard.key){
-                                        if(select_card_list.length < globalData.gameMgr.roomState.ctxCard.len){
-                                            select_card_list.push(_card);
+                                    curLaiziCards.forEach(_card=>{
+                                        if(value > globalData.gameMgr.roomState.ctxCard.key){
+                                            if(select_card_list.length < globalData.gameMgr.roomState.ctxCard.len){
+                                                select_card_list.push(_card);
+                                            }
+                                        }else{
+                                            if(select_card_list.length <= globalData.gameMgr.roomState.ctxCard.len){
+                                                select_card_list.push(_card);
+                                            }
                                         }
-                                    }else{
-                                        if(select_card_list.length <= globalData.gameMgr.roomState.ctxCard.len){
-                                            select_card_list.push(_card);
-                                        }
-                                    }
+                                    })
                                     break;
                                 }
                             }
                         }
                     }else{
+                        
                         //继续检查是否有+1软炸
                         let offset = globalData.gameMgr.roomState.ctxCard.len - curLaiziCards.length;
+                        // console.log("xxx",offset)
                         for (const value in check_card_map) {
                             if(check_card_map[value] > offset){
                                 is_find = true;
@@ -465,7 +482,6 @@ function selectTips(playerData){
                     }
                 }
             }
-
             
             //尝试找软炸弹
             if(is_find == false){
@@ -480,11 +496,16 @@ function selectTips(playerData){
                 var isOffset = true;
                 //飞机类型 A AA AAA 都需要强制找4张软炸
                 if(globalData.gameMgr.roomState.ctxCard.type == 'AAAB' && globalData.gameMgr.roomState.ctxCard.len == 8 ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'AAABB' && globalData.gameMgr.roomState.ctxCard.len == 5 || 
                     globalData.gameMgr.roomState.ctxCard.type == 'AAABB' && globalData.gameMgr.roomState.ctxCard.len == 10 || 
                     globalData.gameMgr.roomState.ctxCard.type == 'AAABBB' && globalData.gameMgr.roomState.ctxCard.len == 6 ||
                     globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                     globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
                     globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'AAAB' ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'AAABB' ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'AABBCC' ||
+                    globalData.gameMgr.roomState.ctxCard.type == 'AAAABC' ||
                     globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'
                 )
                 {
@@ -512,6 +533,9 @@ function selectTips(playerData){
                         globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAAB' ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAABB' ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'AABBCC' ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAAABC' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'){
                         hasAAA = true;
                        
@@ -558,8 +582,8 @@ let globalData = {
     gameMgr:{
         roomState:{
             ctxCard:{
-                type:"AAAA",
-                key:7, //34567
+                type:"AAAB",
+                key:8, //34567
                 len:4,
                 ctxPos:'left'
             },
@@ -579,8 +603,8 @@ let globalData = {
         posState:{
             laizi:{
                 cards:[
-                    // {value:9},  
-                    {value:4}
+                    {value:10},  
+                    {value:7}
                 ]
             },
             left:{
@@ -590,13 +614,13 @@ let globalData = {
                     // {value:12},
                     // {value:11},
                     // {value:10},
-                    // {value:8},
+                    // {value:4},
+                    {value:9},
+                    {value:8},
+                    {value:8},
                     {value:7},
-                    {value:7},
-                    {value:7},
-                    {value:4},
-                    // {value:11},
-                    // {value:11},
+                    // {value:5},
+                    // {value:5},
                 ]
             }
         }
@@ -604,8 +628,8 @@ let globalData = {
 };
 
 let playerData = {
-    cards:[ {value:13}, {value:13},{value:13},{value:9},{value:4},{value:10}]
-    // cards:[{value:11},{value:11},{value:11},{value:12},{value:12},{value:8},{value:5},{value:10}]
+    cards:[ {value:15}, {value:15}, {value:15}, {value:14}, {value:14}, {value:14},{value:9},{value:10}, {value:7}]
+    // cards:[{value:13},{value:13},{value:13},{value:5},{value:5},{value:5},{value:9},{value:10}]
     // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }
 
