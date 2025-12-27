@@ -61,6 +61,8 @@ function selectTips(playerData){
                                     }
                                 }
 
+                                // console.log("singleCard:",singleCard)
+                                // console.log("select_card_list:",select_card_list)
                                 if (singleCard) {
                                     select_card_list.push(singleCard);
                                     is_find = true;
@@ -86,7 +88,8 @@ function selectTips(playerData){
                                         break;
                                     }
                                 }
-                                 
+                                console.log("singleCard2:",singleCard)
+                                console.log("select_card_list2:",select_card_list)
                                 if (singleCard) {
                                     select_card_list.push(singleCard);
                                     is_find = true;
@@ -583,7 +586,7 @@ let globalData = {
         roomState:{
             ctxCard:{
                 type:"AAAB",
-                key:8, //34567
+                key:3, //34567
                 len:4,
                 ctxPos:'left'
             },
@@ -603,8 +606,8 @@ let globalData = {
         posState:{
             laizi:{
                 cards:[
-                    {value:10},  
-                    {value:7}
+                    {value:13},  
+                    {value:8}
                 ]
             },
             left:{
@@ -615,10 +618,10 @@ let globalData = {
                     // {value:11},
                     // {value:10},
                     // {value:4},
-                    {value:9},
-                    {value:8},
-                    {value:8},
-                    {value:7},
+                    {value:3},
+                    {value:3},
+                    {value:4},
+                    {value:3},
                     // {value:5},
                     // {value:5},
                 ]
@@ -628,7 +631,8 @@ let globalData = {
 };
 
 let playerData = {
-    cards:[ {value:15}, {value:15}, {value:15}, {value:14}, {value:14}, {value:14},{value:9},{value:10}, {value:7}]
+    cards:[ {value:14}, {value:13}, {value:12}, {value:11},  {value:11},{value:14}, {value:10},{value:10},{value:9}, {value:9},{value:8},{value:7},{value:7},
+        {value:9},{value:9},{value:9}]
     // cards:[{value:13},{value:13},{value:13},{value:5},{value:5},{value:5},{value:9},{value:10}]
     // cards:[{value:3},{value:6},{value:3},{value:7},{value:7},{value:3},{value:12},{value:4},{value:4},{value:12},{value:12}]
 }

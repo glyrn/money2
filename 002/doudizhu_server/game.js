@@ -63,9 +63,9 @@ Object.assign(
           
           var offset = getRandomNumForRange(maxIndex);
           //debug
-          if(i == 0){
-            offset = 0;
-          }
+          //if(i == 0){
+          //  offset = 0;
+          //}
           group.push(mCards[offset]);
           mCards.splice(offset, 1);
           maxIndex--;
