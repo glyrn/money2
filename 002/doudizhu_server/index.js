@@ -336,7 +336,7 @@ const proto = {
 
               game.next(curUserObj, [], desk.islaizi);
 
-                desk.time_out = 15;
+                desk.time_out = 20;
                 desk.hadExecutePlayCard = false;
                 self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
                   ctxData: {
@@ -347,7 +347,7 @@ const proto = {
                     posId: curUserObj.posId,
                   },
                   posId: game.getContextPosId(),
-                  timeout: 15,
+                  timeout: 20,
                   server_time:getTimeStamp(),
                   isPass: true,
                 });
@@ -358,7 +358,7 @@ const proto = {
               if(minCard){
                 game.next(curUserObj.posId, [minCard], desk.islaizi);
 
-                desk.time_out = 15;
+                desk.time_out = 20;
                 desk.hadExecutePlayCard = false;
                 self.broadCastRoom('CTX_PLAY_CHANGE', desk.deskId, {
                   ctxData: {
@@ -369,7 +369,7 @@ const proto = {
                     posId: curUserObj.posId, 
                   },
                   posId: game.getContextPosId(),
-                  timeout: 15,
+                  timeout: 20,
                   server_time:getTimeStamp(),
                   isPass: false,
                 })
@@ -533,9 +533,9 @@ const proto = {
 
     this.broadCastRoom("GAME_START",deskId, { cards:cards,play_index:desk.play_index });
 
-    desk.time_out = 15;
+    desk.time_out = 20;
     desk.hadExecuteCallScore = false;
-    this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos: game.getContextPosId(), ctxScore: game.getContextScore(), timeout: 15,server_time:getTimeStamp() });
+    this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos: game.getContextPosId(), ctxScore: game.getContextScore(), timeout: 20,server_time:getTimeStamp() });
   },
   clearRoomByUid:function(uid){
     var deskId = 0;
@@ -652,9 +652,9 @@ const proto = {
       let ctxPos = game.getContextPosId();
       let ctxScore = game.getContextScore();
       let calledScores = game.getCalledScores();
-      desk.time_out = 15;
+      desk.time_out = 20;
       desk.hadExecuteCallScore = false;
-      this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15,server_time:getTimeStamp() });
+      this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 20,server_time:getTimeStamp() });
       //如果下一个玩家是离线的那么跳过 传给下一个人
       if(this.getUserObjByPosId(ctxPos).disconnectTime > 0){
           status = game.next(ctxPos, 0).getStatus();
@@ -662,9 +662,9 @@ const proto = {
           ctxScore = game.getContextScore();
           calledScores = game.getCalledScores();
 
-          desk.time_out = 15;
+          desk.time_out = 20;
           desk.hadExecuteCallScore = false;
-          this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15,server_time:getTimeStamp() });
+          this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 20,server_time:getTimeStamp() });
       }
       //如果下一个玩家是离线的那么跳过 传给下一个人
       if(this.getUserObjByPosId(ctxPos).disconnectTime > 0){
@@ -673,9 +673,9 @@ const proto = {
           ctxScore = game.getContextScore();
           calledScores = game.getCalledScores();
 
-          desk.time_out = 15;
+          desk.time_out = 20;
           desk.hadExecuteCallScore = false;
-          this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 15,server_time:getTimeStamp() });
+          this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos, ctxScore, calledScores, timeout: 20,server_time:getTimeStamp() });
       }
     }
     if (status == 2) {
@@ -686,7 +686,7 @@ const proto = {
       game.contextLaiziCards = laiziCards;
       this.socketEmit(userObj,'CALL_SCORE_SUCCESS',score);
 
-      this.broadCastRoom('SHOW_TOP_CARD', deskId, { topCards,laiziCards, dizhuPosId, timeout: 15,score:game.getMaxScoreInfo().score,server_time:getTimeStamp() });
+      this.broadCastRoom('SHOW_TOP_CARD', deskId, { topCards,laiziCards, dizhuPosId, timeout: 20,score:game.getMaxScoreInfo().score,server_time:getTimeStamp() });
       desk.time_out = 30;
       desk.hadExecuteCallScore = false;
       this.broadCastRoom('CTX_PLAY_CHANGE', deskId, {
@@ -1000,7 +1000,7 @@ const proto = {
               return;
             }
 
-            desk.time_out = 15;
+            desk.time_out = 20;
             desk.hadExecutePlayCard = false;
             self.broadCastRoom('CTX_PLAY_CHANGE', deskId, {
               ctxData: {
@@ -1011,7 +1011,7 @@ const proto = {
                 posId:posId,
               },
               posId: game.getContextPosId(),
-              timeout: 15,
+              timeout: 20,
               server_time:getTimeStamp(),
               isPass:isPass,
             })

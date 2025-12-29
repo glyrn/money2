@@ -112,28 +112,43 @@ cc.Class({
                     if(!is_find) {
                         // 3带1
                         if(globalData.gameMgr.roomState.ctxCard.type == 'AAAB' && globalData.gameMgr.roomState.ctxCard.len == 4) {
-
-                            if (card.value == globalData.gameMgr.roomState.ctxCard.key + i) {
+                            var _islaizi = false;
+                            for(var laizi_card_key in laiziCards){
+                                console.log(laizi_card_key,laiziCards[laizi_card_key].value,card.value)
+                                if(laiziCards[laizi_card_key].value == card.value){
+                                    _islaizi = true;
+                                }
+                            } 
+         
+                            if ((card.value == globalData.gameMgr.roomState.ctxCard.key + i) && !_islaizi) {
                                 find_count++;
                                 select_card_list.push(card);
-
+    
                                 if (find_count == 3 || find_count + curLaiziCards.length >= 3) {
+                                    
+                                    var singleCard = null;
+                                    for (let x = playerData.cards.length - 1; x >= 0; x--) {
+                                        var card = playerData.cards[x];
+                                        var is_exist = false;
+                                        select_card_list.forEach(_card => {
+                                            if (card.value == _card.value) is_exist = true;
+                                        })
+
+                                        if(!is_exist){
+                                            singleCard = card;
+                                            break;
+                                        }
+                                    }
+       
                                     //补上癞子
                                     for(var __i=0;__i< 3 - find_count;__i++){
                                         select_card_list.push(curLaiziCards[__i])
                                     }
 
-                                    var singleCard;
-                                    playerData.cards.forEach(card => {
-                                        select_card_list.forEach(_card => {
-                                            if (card.value != _card.value) {
-                                                singleCard = card;
-                                            }
-                                        })
-                                    })
                                     if (singleCard) {
                                         select_card_list.push(singleCard);
                                         is_find = true;
+
                                     }
                                 }
                             }else{
@@ -143,14 +158,20 @@ cc.Class({
                                         select_card_list.push(curLaiziCards[__i])
                                     }
 
-                                    var singleCard;
-                                    playerData.cards.forEach(card => {
+                                    var singleCard = null;
+                                    for (let x = playerData.cards.length - 1; x >= 0; x--) {
+                                        var card = playerData.cards[x];
+                                        var is_exist = false;
                                         select_card_list.forEach(_card => {
-                                            if (card.value != _card.value) {
-                                                singleCard = card;
-                                            }
+                                            if (card.value == _card.value) is_exist = true;
                                         })
-                                    })
+
+                                        if(!is_exist){
+                                            singleCard = card;
+                                            break;
+                                        }
+                                    }
+
                                     if (singleCard) {
                                         select_card_list.push(singleCard);
                                         is_find = true;
@@ -360,7 +381,7 @@ cc.Class({
 
                             //最多找补量
                             var head_gap_len = 14 - curNormalMaxCard;
-                            console.log("head_gap_len:",head_gap_len)
+                            // console.log("head_gap_len:",head_gap_len)
                             //尝试找癞子补
                             if(select_card_list.length + remainLaiziCards.length >= globalData.gameMgr.roomState.ctxCard.len)
                             {
@@ -419,6 +440,7 @@ cc.Class({
                 globalData.gameMgr.roomState.ctxCard.type == 'AAABB' || 
                 globalData.gameMgr.roomState.ctxCard.type == 'AAABBB' || 
                 globalData.gameMgr.roomState.ctxCard.type == 'AABBCC' || 
+                globalData.gameMgr.roomState.ctxCard.type == 'AAAABC' || 
                 globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                 globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
                 globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
@@ -431,28 +453,40 @@ cc.Class({
                 var check_card_map = {};
                 playerData.cards.forEach(_card=>{
                     if(_card.value <= 15){
-                        if(!check_card_map[_card.value]){
-                            check_card_map[_card.value] = 0;
+                        let isLaizi = false;
+                        for(var laizi_card_key in laiziCards){
+                            if(laiziCards[laizi_card_key].value == _card.value){
+                                isLaizi = true;
+                            }
                         }
-                        check_card_map[_card.value]++;
+                        
+                        if(!isLaizi){
+                            if(!check_card_map[_card.value]){
+                                check_card_map[_card.value] = 0;
+                            }
+                            check_card_map[_card.value]++;
+                        } 
                     }
                 });
 
                 let ctxCards = globalData.gameMgr.posState[globalData.gameMgr.roomState.ctxCard.ctxPos].ctxCards;
                 let ctxHasLaizi = false;
                 let ctxLaiziNum = 0;
+                let ctxOriginValue = 0;
                 ctxCards.forEach(_card=>{
                     for(var laizi_card_key in laiziCards){
                         if(laiziCards[laizi_card_key].value == _card.value){
                             ctxHasLaizi = true;
                             ctxLaiziNum++;
+                        }else{
+                            ctxOriginValue = _card.value;
                         }
                     }
                 });
                 let isAllLaizi = ctxLaiziNum == ctxCards.length;
 
                 //对手出炸弹 判断是否AAAA硬炸
-                if(globalData.gameMgr.roomState.ctxCard.type == 'AAAA'){
+                if(globalData.gameMgr.roomState.ctxCard.type == 'AAAA' ){
                     //是硬炸
                     if(ctxHasLaizi == false){
                         for (const value in check_card_map) {
@@ -468,16 +502,74 @@ cc.Class({
                             }
                         }
                     }else if(!isAllLaizi){ //有赖子 且不是4张赖子
-                        for (const value in check_card_map) {
-                            if(check_card_map[value] == 4){
-                                is_find = true;
+                        
+                        if(globalData.gameMgr.roomState.ctxCard.len == 4){
+                            //检查自己是否有硬炸
+                            for (const value in check_card_map) {
+                                if(check_card_map[value] == 4){
+                                    is_find = true;
 
-                                playerData.cards.forEach(_card=>{
-                                    if(_card.value == value){
-                                        select_card_list.push(_card);
+                                    playerData.cards.forEach(_card=>{
+                                        if(_card.value == value){
+                                            select_card_list.push(_card);
+                                        }
+                                    });
+                                    break;
+                                }
+                            }
+                            //继续检查是否有+1软炸
+                            if(is_find == false){
+                                let offset = globalData.gameMgr.roomState.ctxCard.len - curLaiziCards.length;
+                                for (const value in check_card_map) {
+                                    if(check_card_map[value] > offset){
+                                        is_find = true;
+                                        
+                                        playerData.cards.forEach(_card=>{
+                                            if(_card.value == value){
+                                                select_card_list.push(_card);
+                                            }
+                                        });
+                                    
+                                        curLaiziCards.forEach(_card=>{
+                                            if(value > globalData.gameMgr.roomState.ctxCard.key){
+                                                if(select_card_list.length < globalData.gameMgr.roomState.ctxCard.len){
+                                                    select_card_list.push(_card);
+                                                }
+                                            }else{
+                                                if(select_card_list.length <= globalData.gameMgr.roomState.ctxCard.len){
+                                                    select_card_list.push(_card);
+                                                }
+                                            }
+                                        })
+                                        break;
                                     }
-                                });
-                                break;
+                                }
+                            }
+                        }else{
+                            //继续检查是否有+1软炸
+                            let offset = globalData.gameMgr.roomState.ctxCard.len - curLaiziCards.length;
+                            for (const value in check_card_map) {
+                                if(check_card_map[value] > offset){
+                                    is_find = true;
+                                    
+                                    playerData.cards.forEach(_card=>{
+                                        if(_card.value == value){
+                                            select_card_list.push(_card);
+                                        }
+                                    });
+                                    curLaiziCards.forEach(_card=>{
+                                        if(value > globalData.gameMgr.roomState.ctxCard.key){
+                                            if(select_card_list.length < globalData.gameMgr.roomState.ctxCard.len){
+                                                select_card_list.push(_card);
+                                            }
+                                        }else{
+                                            if(select_card_list.length <= globalData.gameMgr.roomState.ctxCard.len){
+                                                select_card_list.push(_card);
+                                            }
+                                        }
+                                    })
+                                    break;
+                                }
                             }
                         }
                     }
@@ -514,11 +606,14 @@ cc.Class({
                         globalData.gameMgr.roomState.ctxCard.type == 'AAABBB' && check_match_len == 9 ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAABB' && check_match_len == 10 || 
                         globalData.gameMgr.roomState.ctxCard.type == 'AAABB' && check_match_len == 12 ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAABB' && check_match_len == 5 ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAAB' && check_match_len == 12 ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAABB' && check_match_len == 15 ||
                         globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AA' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'AAA' || 
+                        globalData.gameMgr.roomState.ctxCard.type == 'AABBCC' ||
+                        globalData.gameMgr.roomState.ctxCard.type == 'AAAABC' ||
                         globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'
                     )
                     {
@@ -540,10 +635,14 @@ cc.Class({
                     for (const value in check_card_map) {
                         console.log("检查AAA：",value , globalData.gameMgr.roomState.ctxCard.key)
 
-                        if((!isAllLaizi && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)) || isAllLaizi ||
+                        if((!isAllLaizi && value > Math.ceil(globalData.gameMgr.roomState.ctxCard.key)) || isAllLaizi ||  !ctxHasLaizi ||
                             globalData.gameMgr.roomState.ctxCard.type == 'A' ||
                             globalData.gameMgr.roomState.ctxCard.type == 'AA' || 
                             globalData.gameMgr.roomState.ctxCard.type == 'AAA' ||
+                            globalData.gameMgr.roomState.ctxCard.type == 'AAAB' ||
+                            globalData.gameMgr.roomState.ctxCard.type == 'AAABB' ||
+                            globalData.gameMgr.roomState.ctxCard.type == 'AABBCC' ||
+                            globalData.gameMgr.roomState.ctxCard.type == 'AAAABC' ||
                             globalData.gameMgr.roomState.ctxCard.type == 'ABCDE'){
                             hasAAA = true;
                             //癞子+AAA的数量 等于 出牌数量
