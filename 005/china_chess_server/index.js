@@ -783,11 +783,22 @@ const proto = {
           room.score_list.push({play_index:room.play_index,score_list:score_list})
           
           if(room.play_index == room.play_count){
+            // 去重
+            let unique_list = [];
+            for (let i = 1; i <= room.play_count; i++) {
+              for (let j = 0; j < room.score_list[j].length; j++) {
+                const element = room.score_list[j];
+                if(element.play_index == i){
+                  unique_list.push(element);
+                }
+              }             
+            }
+
             //发送给云村数据
             self.sendYcGameOver({
               room_id:room.name,
               game_id:5,
-              score_list:room.score_list
+              score_list:unique_list
             });
           }
         }
