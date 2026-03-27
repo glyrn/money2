@@ -750,7 +750,8 @@ const proto = {
 
       socket.on('REQ_GAME_OVER',function(data){
         var room = self.getDesk(socket);
-        if(room){
+        // 防止重复发送结算
+        if(room && room.state != 0){
           room.state = 0;
           room.deprecate_time = 30;
           room.hadDeprecateGame = false;

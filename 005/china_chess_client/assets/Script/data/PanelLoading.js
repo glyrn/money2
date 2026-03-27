@@ -18,9 +18,15 @@ cc.Class({
         this.lab_prog.string = this._prog_value.toFixed(2) + "%";
         if(this._prog_value < 100){
             this._prog_value += this.setp_value;
+
+            window.parent.postMessage({'event_loading':{type:"runing",value:this._prog_value}}, "*");
+            console.log("Loading中",this._prog_value);
         }else{
             if(!this._had_init){
                 this._had_init = true;
+
+                window.parent.postMessage({'event_loading':{type:"end"}}, "*");
+                console.log("Loading结束",this._prog_value);
                 
                 if(this._finishCbFunc){
                     this._finishCbFunc();
@@ -34,5 +40,8 @@ cc.Class({
         this._prog_value = 0;
         this._had_init = false;
         this._finishCbFunc = cbFunc;
+
+        window.parent.postMessage({'event_loading':{type:"start"}}, "*");
+        console.log("开始展示Loading");
     }
 });
