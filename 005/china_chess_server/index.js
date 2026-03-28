@@ -786,10 +786,11 @@ const proto = {
             // 去重
             let unique_list = [];
             for (let i = 1; i <= room.play_count; i++) {
-              for (let j = 0; j < room.score_list[j].length; j++) {
+              for (let j = 0; j < room.score_list.length; j++) {
                 const element = room.score_list[j];
                 if(element.play_index == i){
                   unique_list.push(element);
+                  break;
                 }
               }             
             }
