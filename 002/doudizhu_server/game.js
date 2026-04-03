@@ -361,10 +361,12 @@ Object.assign(
     },
     getCardIndexByPosId(card, posId) {
       var cards = this.getCardsByPosId(posId);
-      for (var i = 0, len = cards.length; i < len; i++) {
-        var curr = cards[i];
-        if (curr.value === card.value && curr.type === card.type) {
-          return i;
+      if(cards){
+        for (var i = 0, len = cards.length; i < len; i++) {
+          var curr = cards[i];
+          if (curr.value === card.value && curr.type === card.type) {
+            return i;
+          }
         }
       }
       return -1;
