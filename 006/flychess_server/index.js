@@ -21,7 +21,9 @@ const express = require('express'),
     app = express(),
     http = require('http').Server(app),
     io = require('socket.io')(http,ioParam);
-app.use(express.static(`${__dirname}/../flychess_client`));
+const flychessClientPath = `${__dirname}/../flychess_client`;
+const flychessClientBuildPath = `${flychessClientPath}/build/web-mobile`;
+app.use(express.static(fs.existsSync(flychessClientBuildPath) ? flychessClientBuildPath : flychessClientPath));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
