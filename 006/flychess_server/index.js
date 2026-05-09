@@ -1115,6 +1115,10 @@ Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer()
 gameServer.init();
 
+app.get('/fxq/health',function(req,res){
+  res.send({state:0,msg:"ok",game_id:6,server_time:getTimeStamp()});
+})
+
 app.get('/fxq/quit',function(req,res){
   const uid = req.query.uid;
   var deskId = gameServer.clearRoomByUid(uid);
