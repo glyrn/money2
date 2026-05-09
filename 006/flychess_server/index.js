@@ -23,6 +23,22 @@ const express = require('express'),
     io = require('socket.io')(http,ioParam);
 const flychessClientPath = `${__dirname}/../flychess_client`;
 const flychessClientBuildPath = `${flychessClientPath}/build/web-mobile`;
+app.get('/', function(req, res, next) {
+  if (Object.keys(req.query || {}).length > 0) {
+    return next();
+  }
+
+  const demoId = Date.now();
+  const demoUrl = '/?uid=demo_' + demoId
+    + '&name=' + encodeURIComponent('测试玩家')
+    + '&score=0'
+    + '&room=demo_' + demoId
+    + '&play_mode=1'
+    + '&ready_count=2'
+    + '&play_count=1'
+    + '&robot=1';
+  return res.redirect(302, demoUrl);
+});
 app.use(express.static(fs.existsSync(flychessClientBuildPath) ? flychessClientBuildPath : flychessClientPath));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
