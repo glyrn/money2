@@ -29,7 +29,8 @@ app.get('/', function(req, res, next) {
   }
 
   const demoId = Date.now();
-  const demoUrl = '/?uid=demo_' + demoId
+  const demoUid = 800000000 + (demoId % 100000000);
+  const demoUrl = '/?uid=' + demoUid
     + '&name=' + encodeURIComponent('测试玩家')
     + '&score=0'
     + '&room=demo_' + demoId
@@ -282,10 +283,13 @@ const proto = {
   makeRobotUid:function(desk,posId){
     return 900000000 + desk.deskId * 10 + posId;
   },
+  hasUser:function(userObj){
+    return !!(userObj && userObj.uid !== 0 && userObj.uid !== '0' && userObj.uid !== null && userObj.uid !== undefined && userObj.uid !== '');
+  },
   countRobotUsers:function(desk){
     var count = 0;
     for (let i = 0; i < desk.positions.length; i++) {
-      if(this.isRobotUser(desk.positions[i]) && desk.positions[i].uid > 0){
+      if(this.isRobotUser(desk.positions[i]) && this.hasUser(desk.positions[i])){
         count++;
       }
     }
@@ -294,7 +298,7 @@ const proto = {
   countOccupiedUsers:function(desk){
     var count = 0;
     for (let i = 0; i < desk.positions.length; i++) {
-      if(desk.positions[i].uid > 0){
+      if(this.hasUser(desk.positions[i])){
         count++;
       }
     }
@@ -371,7 +375,7 @@ const proto = {
   prepareRobotPlayers:function(desk){
     for (let i = 0; i < desk.positions.length; i++) {
       var userObj = desk.positions[i];
-      if(this.isRobotUser(userObj) && userObj.uid > 0 && userObj.state == 1){
+      if(this.isRobotUser(userObj) && this.hasUser(userObj) && userObj.state == 1){
         userObj.state = 2;
         this.broadCastRoom("PREPARE_SUCCESS",desk.deskId,userObj.posId);
       }
@@ -609,8 +613,8 @@ const proto = {
         let userObjNum = 0;
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.uid > 0) userObjNum++;
-          if(userObj.uid <= 0){
+          if(this.hasUser(userObj)) userObjNum++;
+          if(!this.hasUser(userObj)){
             continue;
           }
           if(except){
@@ -644,7 +648,7 @@ const proto = {
     var ycscore_list = [];
     for (let i = 0; i < desk.positions.length; i++) {
       desk.positions[i].state = 1;
-      if(desk.positions[i].uid >0 && !this.isRobotUser(desk.positions[i])) {
+      if(this.hasUser(desk.positions[i]) && !this.isRobotUser(desk.positions[i])) {
         ycscore_list.push({
           uid: desk.positions[i].uid,
           name: desk.positions[i].name,
@@ -730,7 +734,7 @@ const proto = {
           var isClean = true;
           var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
-            if(this.desks[i].positions[k].uid > 0 ){
+            if(this.hasUser(this.desks[i].positions[k])){
               isClean = false;
             }
           }
@@ -778,7 +782,7 @@ const proto = {
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
           for (let k = 0; k < this.desks[i].positions.length; k++) {
-            if(this.desks[i].positions[k].uid > 0 ){
+            if(this.hasUser(this.desks[i].positions[k])){
               isClean = false;
             }
           }
@@ -809,7 +813,7 @@ const proto = {
           let userObjNum = 0;
           for (let j = 0; j < roomObj.positions.length; j++) {
             var userObj = roomObj.positions[j];
-            if(userObj.uid > 0) userObjNum++;
+            if(this.hasUser(userObj)) userObjNum++;
           }
           //空房间 要顺便清一下房间内的玩家信息
           if(userObjNum == 0 && isFind == false){
@@ -864,7 +868,7 @@ const proto = {
         //推送其中一个在线玩家的数据
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.uid > 0 && userObj.disconnectTime == null){
+          if(this.hasUser(userObj) && userObj.disconnectTime == null){
             
             //保存观众socket + uid
             roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
@@ -1021,7 +1025,7 @@ const proto = {
 
 	              var playerData = {};
 	              for (let i = 0; i < room.positions.length; i++) {
-	                if(room.positions[i].uid > 0){
+                if(self.hasUser(room.positions[i])){
                   playerData[room.positions[i].posId] = {
                     uid: room.positions[i].uid,
                     state: room.positions[i].state,
