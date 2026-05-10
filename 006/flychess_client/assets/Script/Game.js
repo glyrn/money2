@@ -65,8 +65,7 @@ cc.Class({
     onBtnDice(){
 
         if(!this._isCanMakeDiceLock){
-            this._isCanMakeDiceLock = true;
-            globalData.socketMgr.makeDiceNum()
+            this._isCanMakeDiceLock = globalData.socketMgr.makeDiceNum();
         }
     },
     onBackHome(data){
@@ -135,13 +134,16 @@ cc.Class({
     onMakeDiceNumSuccess(data){
         var that = this;
         console.log("MakeDiceNumSuccess 骰子： ",data.num)
-        if(!cc.gameInBackgroud){
-            this.showDiceNum(data.num,data.posId,function(){
-                that.playerNodes[data.posId].render()
-                that.playerNodes[data.posId].showCtrlCircle(data.num);
-                // that.playerNodes[data.posId].
-            });
+        if(cc.gameInBackgroud){
+            that.playerNodes[data.posId].render()
+            that.playerNodes[data.posId].showCtrlCircle(data.num);
+            return;
         }
+        this.showDiceNum(data.num,data.posId,function(){
+            that.playerNodes[data.posId].render()
+            that.playerNodes[data.posId].showCtrlCircle(data.num);
+            // that.playerNodes[data.posId].
+        });
     },
     onShowTips(msg){
         var that = this;

@@ -531,8 +531,11 @@ const proto = {
       return {moved:false,finished:false};
     }
     var result = robotLogic.advanceChessState(userObj,data.idx,num,desk.play_mode);
-    if(!result.moved){
+    if(!result.moved && isRobotAction){
       return result;
+    }
+    if(!result.moved){
+      result = {moved:true,finished:false};
     }
     desk.turn_action = 'wait_next';
     this.broadCastRoom("PLAY_MOVE_STEP_SUCCESS",desk.deskId,{idx:parseInt(data.idx,10),num:num,posId:posId});

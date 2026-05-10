@@ -201,7 +201,6 @@ const socketMgr = function(){
         cc.game.targetOff(that);
         cc.game.on(cc.game.EVENT_HIDE, function(){
             console.log("进入后台")
-            _eventMgr.removeAllLister();
             _socket.close();
         },that);
         cc.game.on(cc.game.EVENT_SHOW, function(){
@@ -227,38 +226,42 @@ const socketMgr = function(){
         _socket.emit('PREPARE');
     }
     that.makeDiceNum = function(){
-        if(that.checkIsObserve()) return;
-        if(_gameMgr.isRecover) return;
+        if(that.checkIsObserve()) return false;
+        if(_gameMgr.isRecover) return false;
 
         //防止极限操作
         var now_ts = (new Date().getTime() / 1000);
         var time_value = _gameMgr.time_out - Math.floor(now_ts);
         if(time_value <= 1){
-            return;
+            return false;
         }
 
         _socket.emit('MAKE_DICE_NUM');
+        return true;
     }
     that.playMoveStep = function(chess_idx,num){
-        if(that.checkIsObserve()) return;
-        if(_gameMgr.isRecover) return;
+        if(that.checkIsObserve()) return false;
+        if(_gameMgr.isRecover) return false;
         //防止极限操作
         var now_ts = (new Date().getTime() / 1000);
         var time_value = _gameMgr.time_out - Math.floor(now_ts);
         if(time_value <= 1){
-            return;
+            return false;
         }
         
         _socket.emit('PLAY_MOVE_STEP', {idx:chess_idx,num:num});
+        return true;
     }
     that.nextPlayerDice = function(){
-        if(that.checkIsObserve()) return;
-        if(_gameMgr.isRecover) return;
+        if(that.checkIsObserve()) return false;
+        if(_gameMgr.isRecover) return false;
         _socket.emit('NEXT_PLAYER_DICE');
+        return true;
     }
     that.finish_chess = function(posId,chess_idx){
-        if(that.checkIsObserve()) return;
+        if(that.checkIsObserve()) return false;
         _socket.emit('FINISH_CHESS', {posId:posId,idx:chess_idx});
+        return true;
     }
 
     that.getSocket = function(){

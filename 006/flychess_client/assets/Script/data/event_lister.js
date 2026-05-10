@@ -15,7 +15,7 @@ const eventLister = function(obj){
             for(var i=0;i<methodList.length;++i){
                 var handle = methodList[i]
                 var args = []
-                for(var j = 1;i<arguments.length;++i){
+                for(var j = 1;j<arguments.length;++j){
                     args.push(arguments[j])
                 }
 
