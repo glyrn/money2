@@ -36,7 +36,8 @@ app.get('/', function(req, res, next) {
     + '&play_mode=1'
     + '&ready_count=2'
     + '&play_count=1'
-    + '&robot=1';
+    + '&robot=1'
+    + '&auto_ready=1';
   return res.redirect(302, demoUrl);
 });
 app.use(express.static(fs.existsSync(flychessClientBuildPath) ? flychessClientBuildPath : flychessClientPath));
@@ -298,6 +299,24 @@ const proto = {
       }
     }
     return count;
+  },
+  shouldAutoPrepareUser:function(loginObj){
+    if(!loginObj){
+      return false;
+    }
+    if(loginObj.auto_ready == 1 || loginObj.auto_ready === true || loginObj.auto_ready === 'true'){
+      return true;
+    }
+    if(!loginObj.lanuch_url){
+      return false;
+    }
+    try {
+      var parsedUrl = new URL(loginObj.lanuch_url, 'http://localhost');
+      var autoReady = parsedUrl.searchParams.get('auto_ready');
+      return autoReady == 1 || autoReady === 'true';
+    } catch (err) {
+      return false;
+    }
   },
   buildRobotLoginData:function(userObj){
     return {
@@ -1024,6 +1043,11 @@ const proto = {
                 server_time:getTimeStamp(),
               });
               self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
+              if(self.shouldAutoPrepareUser(obj) && userObj.state == 1){
+                userObj.state = 2;
+                self.broadCastRoom("PREPARE_SUCCESS",room.deskId,userObj.posId);
+                self.prepareRobotPlayers(room);
+              }
 
             }else{
               socket.emit("MESSAGE",'房间已满员');
