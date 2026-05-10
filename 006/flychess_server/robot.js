@@ -65,6 +65,42 @@ function getMovableChessIndexes(player, playMode, diceNum) {
   return movable;
 }
 
+function resolveMoveTargetStep(currentStep, diceNum, chessStatus, finishStep) {
+  const num = parseInt(diceNum, 10);
+  const status = parseInt(chessStatus, 10);
+  const parsedFinishStep = parseInt(finishStep, 10);
+  const maxStep = Number.isFinite(parsedFinishStep) ? parsedFinishStep : FINISH_STEP;
+  const parsedStep = parseInt(currentStep, 10);
+  let step = Number.isFinite(parsedStep) && parsedStep >= 0 ? parsedStep : 0;
+  let directForward = true;
+
+  if (!Number.isFinite(num) || num <= 0) {
+    return step;
+  }
+
+  if (step > 0 || status === 2) {
+    step++;
+  }
+
+  for (let i = 0; i < num; i++) {
+    if (i >= num - 1) {
+      continue;
+    }
+    if (directForward) {
+      if (step + 1 > maxStep) {
+        step--;
+        directForward = false;
+      } else {
+        step++;
+      }
+    } else {
+      step--;
+    }
+  }
+
+  return Math.max(0, step);
+}
+
 function selectRobotMove(player, playMode, diceNum, randomFn) {
   const state = createRobotState(player);
   const movable = getMovableChessIndexes(state, playMode, diceNum);
@@ -75,7 +111,7 @@ function selectRobotMove(player, playMode, diceNum, randomFn) {
   const finishing = movable.find((idx) => {
     const status = parseInt(state.chess_status[idx], 10);
     const step = parseInt(state.chess_steps[idx], 10);
-    return (status === 1 || status === 2) && step >= 0 && step + parseInt(diceNum, 10) >= FINISH_STEP;
+    return (status === 1 || status === 2) && step >= 0 && resolveMoveTargetStep(step, diceNum, status) === FINISH_STEP;
   });
   if (finishing !== undefined) {
     return finishing;
@@ -111,9 +147,9 @@ function advanceChessState(player, chessIdx, diceNum, playMode) {
   }
 
   if (status === 1 || status === 2) {
-    const currentStep = Math.max(0, parseInt(state.chess_steps[idx], 10));
-    const nextStep = currentStep + num;
-    if (nextStep >= FINISH_STEP) {
+    const currentStep = state.chess_steps[idx];
+    const nextStep = resolveMoveTargetStep(currentStep, num, status);
+    if (nextStep === FINISH_STEP) {
       state.chess_status[idx] = 3;
       state.chess_steps[idx] = -1;
       state.finish_chess[idx] = 1;
@@ -142,5 +178,6 @@ module.exports = {
   getRandomDelayMs,
   normalizeRobotCount,
   parseRobotCountFromLaunchUrl,
+  resolveMoveTargetStep,
   selectRobotMove,
 };

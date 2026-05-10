@@ -30,16 +30,17 @@ test('getMovableChessIndexes includes takeoff and active chess but excludes fini
   assert.deepEqual(robot.getMovableChessIndexes(player, 1, 5), [1, 2]);
 });
 
-test('selectRobotMove prioritizes finishing before takeoff and random active moves', () => {
+test('selectRobotMove prioritizes exact finishing before takeoff and random active moves', () => {
   const player = robot.createRobotState({
     chess_status: {0: 0, 1: 2, 2: 2, 3: 3},
     chess_steps: {0: -1, 1: 12, 2: robot.FINISH_STEP - 1, 3: -1},
   });
 
-  assert.equal(robot.selectRobotMove(player, 1, 2, () => 0), 2);
+  assert.equal(robot.selectRobotMove(player, 1, 1, () => 0), 2);
+  assert.equal(robot.selectRobotMove(player, 1, 2, () => 0), 1);
 });
 
-test('advanceChessState takes off, advances, and marks finish', () => {
+test('advanceChessState takes off, advances, and only marks exact finish', () => {
   const player = robot.createRobotState();
 
   let result = robot.advanceChessState(player, 0, 6, 0);
@@ -49,8 +50,46 @@ test('advanceChessState takes off, advances, and marks finish', () => {
 
   player.chess_status[0] = 2;
   player.chess_steps[0] = robot.FINISH_STEP - 1;
-  result = robot.advanceChessState(player, 0, 2, 1);
+  result = robot.advanceChessState(player, 0, 1, 1);
   assert.deepEqual(result, {moved: true, finished: true});
   assert.equal(player.chess_status[0], 3);
   assert.equal(player.finish_chess[0], 1);
+});
+
+test('advanceChessState matches client movement from takeoff point', () => {
+  const player = robot.createRobotState({
+    chess_status: {0: 1},
+    chess_steps: {0: 0},
+  });
+
+  const result = robot.advanceChessState(player, 0, 2, 1);
+  assert.deepEqual(result, {moved: true, finished: false});
+  assert.equal(player.chess_status[0], 2);
+  assert.equal(player.chess_steps[0], 1);
+});
+
+test('advanceChessState bounces back instead of finishing when dice overshoots finish', () => {
+  const player = robot.createRobotState({
+    chess_status: {0: 2},
+    chess_steps: {0: robot.FINISH_STEP - 1},
+  });
+
+  const result = robot.advanceChessState(player, 0, 2, 1);
+  assert.deepEqual(result, {moved: true, finished: false});
+  assert.equal(player.chess_status[0], 2);
+  assert.equal(player.chess_steps[0], robot.FINISH_STEP - 1);
+  assert.equal(player.finish_chess[0], 0);
+});
+
+test('advanceChessState bounces multiple excess steps on the final lane', () => {
+  const player = robot.createRobotState({
+    chess_status: {0: 2},
+    chess_steps: {0: robot.FINISH_STEP - 2},
+  });
+
+  const result = robot.advanceChessState(player, 0, 4, 1);
+  assert.deepEqual(result, {moved: true, finished: false});
+  assert.equal(player.chess_status[0], 2);
+  assert.equal(player.chess_steps[0], robot.FINISH_STEP - 2);
+  assert.equal(player.finish_chess[0], 0);
 });
