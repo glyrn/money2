@@ -1,5 +1,11 @@
 const MAX_ROBOT_COUNT = 3;
 const FINISH_STEP = 55;
+const RING_STEP_COUNT = 50;
+const RING_PLACE_COUNT = 52;
+const STRAIGHT_MID_STEP = 52;
+const START_OFFSETS = [0, 13, 26, 39];
+const JUMP_STEPS = [4, 17, 30, 43];
+const NO_JUMP_STEPS = [10, 23, 36, 49];
 
 function normalizeRobotCount(value) {
   const count = parseInt(value, 10);
@@ -65,6 +71,40 @@ function getMovableChessIndexes(player, playMode, diceNum) {
   return movable;
 }
 
+function createMoveResult(moved, finished, effects) {
+  const result = {moved, finished};
+  Object.defineProperty(result, 'effects', {
+    enumerable: false,
+    value: effects || {landings: [], flyHit: false},
+  });
+  return result;
+}
+
+function getPlaceInfo(posId, step) {
+  const pos = parseInt(posId, 10);
+  const idx = parseInt(step, 10);
+  if (!Number.isFinite(pos) || !Number.isFinite(idx) || idx < 0) {
+    return null;
+  }
+  if (idx === FINISH_STEP) {
+    return {type: 6, color: pos, ringIndex: null, eatable: false, midStraight: false};
+  }
+  if (idx >= RING_STEP_COUNT && idx < FINISH_STEP) {
+    return {type: 3, color: pos, ringIndex: null, eatable: false, midStraight: idx === STRAIGHT_MID_STEP};
+  }
+
+  let type = 0;
+  if (JUMP_STEPS.includes(idx)) {
+    type = 2;
+  } else if (NO_JUMP_STEPS.includes(idx)) {
+    type = 7;
+  }
+
+  const color = (idx + pos + 3) % 4;
+  const ringIndex = (START_OFFSETS[pos] + idx) % RING_PLACE_COUNT;
+  return {type, color, ringIndex, eatable: type === 0 || type === 2 || type === 7, midStraight: false};
+}
+
 function resolveMoveTargetStep(currentStep, diceNum, chessStatus, finishStep) {
   const num = parseInt(diceNum, 10);
   const status = parseInt(chessStatus, 10);
@@ -101,6 +141,75 @@ function resolveMoveTargetStep(currentStep, diceNum, chessStatus, finishStep) {
   return Math.max(0, step);
 }
 
+function applyBombMove(currentStep) {
+  let step = Math.max(0, parseInt(currentStep, 10));
+  for (let i = 0; i < 3; i++) {
+    if (step - 1 >= 0) {
+      step--;
+    } else {
+      step = 0;
+    }
+  }
+  return step;
+}
+
+function resolveActiveMoveOutcome(currentStep, diceNum, chessStatus, posId) {
+  const pos = Number.isFinite(parseInt(posId, 10)) ? parseInt(posId, 10) : 0;
+  const effects = {landings: [], flyHit: false};
+  let step = resolveMoveTargetStep(currentStep, diceNum, chessStatus);
+  let status = 2;
+  let finished = false;
+
+  function landOnCurrentStep() {
+    const place = getPlaceInfo(pos, step);
+    if (!place) {
+      return false;
+    }
+
+    effects.landings.push({posId: pos, step});
+
+    if (place.type === 2 && place.color === pos) {
+      step += 12;
+      effects.flyHit = true;
+      effects.landings.push({posId: pos, step});
+      const jumpTarget = getPlaceInfo(pos, step);
+      if (jumpTarget && jumpTarget.type === 1) {
+        step = applyBombMove(step);
+        effects.landings.push({posId: pos, step});
+      }
+      return true;
+    }
+
+    if (place.type === 1) {
+      step = applyBombMove(step);
+      effects.landings.push({posId: pos, step});
+      return true;
+    }
+
+    return false;
+  }
+
+  const firstPlace = getPlaceInfo(pos, step);
+  if (firstPlace && firstPlace.type === 6) {
+    return {step: -1, status: 3, finished: true, effects};
+  }
+
+  const isSpecial = landOnCurrentStep();
+  if (!isSpecial) {
+    const targetPlace = getPlaceInfo(pos, step);
+    if (targetPlace && targetPlace.type === 6) {
+      finished = true;
+      status = 3;
+      step = -1;
+    } else if (targetPlace && targetPlace.type === 0 && targetPlace.color === pos) {
+      step = resolveMoveTargetStep(step, 4, 2);
+      landOnCurrentStep();
+    }
+  }
+
+  return {step, status, finished, effects};
+}
+
 function selectRobotMove(player, playMode, diceNum, randomFn) {
   const state = createRobotState(player);
   const movable = getMovableChessIndexes(state, playMode, diceNum);
@@ -111,7 +220,7 @@ function selectRobotMove(player, playMode, diceNum, randomFn) {
   const finishing = movable.find((idx) => {
     const status = parseInt(state.chess_status[idx], 10);
     const step = parseInt(state.chess_steps[idx], 10);
-    return (status === 1 || status === 2) && step >= 0 && resolveMoveTargetStep(step, diceNum, status) === FINISH_STEP;
+    return (status === 1 || status === 2) && step >= 0 && resolveActiveMoveOutcome(step, diceNum, status, state.posId).finished;
   });
   if (finishing !== undefined) {
     return finishing;
@@ -124,43 +233,43 @@ function selectRobotMove(player, playMode, diceNum, randomFn) {
   return candidates[Math.max(0, Math.min(index, candidates.length - 1))];
 }
 
-function advanceChessState(player, chessIdx, diceNum, playMode) {
+function advanceChessState(player, chessIdx, diceNum, playMode, posId) {
   const state = createRobotState(player);
   const idx = parseInt(chessIdx, 10);
   const num = parseInt(diceNum, 10);
   if (idx < 0 || idx > 3 || !Number.isFinite(num) || num <= 0) {
-    return {moved: false, finished: false};
+    return createMoveResult(false, false);
   }
 
   const status = parseInt(state.chess_status[idx], 10);
   if (status === 3) {
-    return {moved: false, finished: false};
+    return createMoveResult(false, false);
   }
 
   if (status === 0) {
     if (!canTakeoff(playMode, num)) {
-      return {moved: false, finished: false};
+      return createMoveResult(false, false);
     }
     state.chess_status[idx] = 1;
     state.chess_steps[idx] = 0;
-    return {moved: true, finished: false};
+    return createMoveResult(true, false);
   }
 
   if (status === 1 || status === 2) {
     const currentStep = state.chess_steps[idx];
-    const nextStep = resolveMoveTargetStep(currentStep, num, status);
-    if (nextStep === FINISH_STEP) {
+    const outcome = resolveActiveMoveOutcome(currentStep, num, status, posId !== undefined ? posId : state.posId);
+    if (outcome.finished) {
       state.chess_status[idx] = 3;
       state.chess_steps[idx] = -1;
       state.finish_chess[idx] = 1;
-      return {moved: true, finished: true};
+      return createMoveResult(true, true, outcome.effects);
     }
-    state.chess_status[idx] = 2;
-    state.chess_steps[idx] = nextStep;
-    return {moved: true, finished: false};
+    state.chess_status[idx] = outcome.status;
+    state.chess_steps[idx] = outcome.step;
+    return createMoveResult(true, false, outcome.effects);
   }
 
-  return {moved: false, finished: false};
+  return createMoveResult(false, false);
 }
 
 function getRandomDelayMs(randomFn) {
@@ -171,13 +280,16 @@ function getRandomDelayMs(randomFn) {
 module.exports = {
   FINISH_STEP,
   MAX_ROBOT_COUNT,
+  STRAIGHT_MID_STEP,
   advanceChessState,
   canTakeoff,
   createRobotState,
+  getPlaceInfo,
   getMovableChessIndexes,
   getRandomDelayMs,
   normalizeRobotCount,
   parseRobotCountFromLaunchUrl,
+  resolveActiveMoveOutcome,
   resolveMoveTargetStep,
   selectRobotMove,
 };

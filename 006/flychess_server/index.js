@@ -416,7 +416,7 @@ const proto = {
       }
     }
 
-    this.broadCastRoom("GAME_START",desk.deskId,{posId:desk.cur_posId,bomb_idxs:bomb_idxs,time_out:getTimeStamp()+desk.time_out});
+    this.broadCastRoom("GAME_START",desk.deskId,{posId:desk.cur_posId,bomb_idxs:bomb_idxs,time_out:getTimeStamp()+desk.time_out,server_time:getTimeStamp()});
     this.scheduleRobotTurnIfNeeded(desk);
     return true;
   },
@@ -435,9 +435,21 @@ const proto = {
       desk.time_out = 10;
       desk.hadTimeOut = false;
       console.log(" 轮到 ",desk.positions[desk.cur_posId].name,desk.cur_posId);
-      this.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS", desk.deskId, {posId: desk.cur_posId,time_out:getTimeStamp()+desk.time_out});
+      this.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS", desk.deskId, {posId: desk.cur_posId,time_out:getTimeStamp()+desk.time_out,server_time:getTimeStamp()});
       this.scheduleRobotTurnIfNeeded(desk);
     }
+  },
+  startMoveAfterDice:function(desk,posId,num){
+    desk.cur_dice_num = num;
+    desk.turn_action = 'move';
+    desk.time_out = 30;
+    desk.hadTimeOut = false;
+    this.broadCastRoom("MAKE_DICE_NUM_SUCCESS",desk.deskId,{num:num,posId:posId,time_out:getTimeStamp()+desk.time_out,server_time:getTimeStamp()});
+    if(this.canSkipMove(desk,posId)){
+      this.makeNextPlayerDice(desk);
+      return false;
+    }
+    return true;
   },
   scheduleRobotTurnIfNeeded:function(desk){
     this.clearRobotTimer(desk);
@@ -474,12 +486,9 @@ const proto = {
     }
 
     var num = this.getRandomNumForRange(5)+1;
-    desk.cur_dice_num = num;
-    desk.turn_action = 'move';
-    desk.time_out = 30;
-    desk.hadTimeOut = false;
-    this.broadCastRoom("MAKE_DICE_NUM_SUCCESS",desk.deskId,{num:num,posId:userObj.posId,time_out:getTimeStamp()+desk.time_out});
-    this.scheduleRobotTurnIfNeeded(desk);
+    if(this.startMoveAfterDice(desk,userObj.posId,num)){
+      this.scheduleRobotTurnIfNeeded(desk);
+    }
   },
   runRobotMove:function(deskId,uid){
     var desk = this.getDeskById(deskId);
@@ -530,16 +539,74 @@ const proto = {
     if(num != desk.cur_dice_num){
       return {moved:false,finished:false};
     }
-    var result = robotLogic.advanceChessState(userObj,data.idx,num,desk.play_mode);
+    var result = robotLogic.advanceChessState(userObj,data.idx,num,desk.play_mode,posId);
     if(!result.moved && isRobotAction){
       return result;
     }
     if(!result.moved){
       result = {moved:true,finished:false};
     }
+    this.applyMoveEffects(desk,posId,data.idx,result);
     desk.turn_action = 'wait_next';
     this.broadCastRoom("PLAY_MOVE_STEP_SUCCESS",desk.deskId,{idx:parseInt(data.idx,10),num:num,posId:posId});
     return result;
+  },
+  backHomeChess:function(userObj,idx){
+    if(!userObj || idx < 0 || idx > 3 || userObj.chess_status[idx] == 3){
+      return;
+    }
+    userObj.chess_status[idx] = 0;
+    userObj.chess_steps[idx] = -1;
+    userObj.finish_chess[idx] = 0;
+    userObj.finish_chess_sent[idx] = 0;
+  },
+  applyEatAtStep:function(desk,posId,step){
+    var sourcePlace = robotLogic.getPlaceInfo(posId,step);
+    if(!sourcePlace || !sourcePlace.eatable || sourcePlace.ringIndex == null){
+      return;
+    }
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(i == posId){
+        continue;
+      }
+      var targetUser = desk.positions[i];
+      if(!targetUser || targetUser.state <= 0){
+        continue;
+      }
+      for (let j = 0; j < 4; j++) {
+        if(parseInt(targetUser.chess_status[j],10) != 2){
+          continue;
+        }
+        var targetPlace = robotLogic.getPlaceInfo(i,targetUser.chess_steps[j]);
+        if(targetPlace && targetPlace.eatable && targetPlace.ringIndex === sourcePlace.ringIndex){
+          this.backHomeChess(targetUser,j);
+        }
+      }
+    }
+  },
+  applyFlyHit:function(desk,posId){
+    var targetPosId = (parseInt(posId,10) + 2) % 4;
+    var targetUser = desk.positions[targetPosId];
+    if(!targetUser || targetUser.state <= 0){
+      return;
+    }
+    for (let i = 0; i < 4; i++) {
+      if(parseInt(targetUser.chess_status[i],10) == 2 && parseInt(targetUser.chess_steps[i],10) == robotLogic.STRAIGHT_MID_STEP){
+        this.backHomeChess(targetUser,i);
+      }
+    }
+  },
+  applyMoveEffects:function(desk,posId,chessIdx,result){
+    if(!result || !result.effects){
+      return;
+    }
+    var landings = result.effects.landings || [];
+    for (let i = 0; i < landings.length; i++) {
+      this.applyEatAtStep(desk,posId,landings[i].step);
+    }
+    if(result.effects.flyHit){
+      this.applyFlyHit(desk,posId);
+    }
   },
   canSkipMove:function(desk,posId){
     if(!desk || desk.state != 1 || desk.turn_action != 'move'){
@@ -574,7 +641,7 @@ const proto = {
     if(this.checkOver(desk.deskId,posId) && desk.state == 1){
       this.clearRobotTimer(desk);
       desk.state = 0; //游戏结束
-      desk.deprecate_time = 30;
+      desk.deprecate_time = 0;
       desk.hadDeprecateGame = false;
 
       var score_list = {};
@@ -1097,7 +1164,7 @@ const proto = {
                 
                 desk.time_out = 30;
                 desk.hadTimeOut = false;
-                self.broadCastRoom("MAKE_DICE_NUM_SUCCESS",desk.deskId,{num:5,posId:userObj.posId,time_out:getTimeStamp()+desk.time_out});
+                self.broadCastRoom("MAKE_DICE_NUM_SUCCESS",desk.deskId,{num:5,posId:userObj.posId,time_out:getTimeStamp()+desk.time_out,server_time:getTimeStamp()});
 
                 self.makeNextPlayerDice(desk);
               }
@@ -1124,11 +1191,7 @@ const proto = {
 	        var desk = self.getDesk(socket);
 
 	        if(desk && desk.state == 1 && desk.cur_posId == posId && desk.turn_action == 'dice'){
-	          desk.cur_dice_num = num;
-	          desk.turn_action = 'move';
-	          desk.time_out = 30;
-	          desk.hadTimeOut = false;
-	          self.broadCastRoom("MAKE_DICE_NUM_SUCCESS",self.getDeskId(socket),{num:num,posId:posId,time_out:getTimeStamp()+desk.time_out});
+	          self.startMoveAfterDice(desk,posId,num);
 	        }
 	      });
 	      socket.on('PLAY_MOVE_STEP',function(data){

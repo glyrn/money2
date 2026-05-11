@@ -596,7 +596,7 @@ cc.Class({
 
         if(this.posId == globalData.gameMgr.turn){
             this.node_timer.active = true;
-            var now_ts = (new Date().getTime() / 1000);
+            var now_ts = globalData.socketMgr.getServerTime();
             var time_value = globalData.gameMgr.time_out - Math.floor(now_ts);
             var time_value_ts = globalData.gameMgr.time_out - now_ts;
             time_value_ts = time_value_ts >= 0 ? time_value_ts:0;

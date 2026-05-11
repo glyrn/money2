@@ -18,6 +18,17 @@ const socketMgr = function(){
     that.setUtils = function(utils){
         _utils = utils
     },
+    that.getServerTime = function(){
+        var now = Math.floor(new Date().getTime() / 1000);
+        return now - (_gameMgr.diff_time || 0);
+    },
+    that.updateServerTime = function(serverTime){
+        if(serverTime){
+            var now = Math.floor(new Date().getTime() / 1000);
+            _gameMgr.server_time = serverTime;
+            _gameMgr.diff_time = now - serverTime;
+        }
+    },
     that.reloadGameScene = function(){
          _eventMgr.removeAllLister()
             cc.director.preloadScene("Game",function(){},function() {
@@ -105,9 +116,7 @@ const socketMgr = function(){
             _gameMgr.posId = data.posId;
             _gameMgr.play_index = 0;
             _gameMgr.play_count = data.play_count;
-            _gameMgr.server_time = data.server_time;
-            var now = Math.floor(new Date().getTime() / 1000);
-            _gameMgr.diff_time = now - data.server_time;
+            that.updateServerTime(data.server_time);
             
             // console.log(_gameMgr.playerData)
             // _gameMgr.checkBeat();
@@ -120,8 +129,12 @@ const socketMgr = function(){
             _gameMgr.isRecover = data.isRecover;
             _eventMgr.fire("SET_RECOVER_STATUS");
         });
+        _socket.on("SYNC_SERVER_TIME",function(data){
+            that.updateServerTime(data.server_time);
+        });
 
         _socket.on("MAKE_DICE_NUM_SUCCESS",function(data){
+            that.updateServerTime(data.server_time);
             if( _gameMgr.playerData[data.posId]){
                 _gameMgr.playerData[data.posId].dice = data.num;
             }
@@ -149,6 +162,7 @@ const socketMgr = function(){
         })
 
         _socket.on('NEXT_PLAYER_DICE_SUCCESS',function(data){
+            that.updateServerTime(data.server_time);
             _gameMgr.time_out = data.time_out;
             _gameMgr.time_out_limit = 10;
             _gameMgr.turn = data.posId;
@@ -158,6 +172,7 @@ const socketMgr = function(){
             _eventMgr.fire("FINISH_CHESS_SUCCESS",data);
         })
         _socket.on('GAME_START',function(data){
+            that.updateServerTime(data.server_time);
             _gameMgr.roomState.state = 1;//进行中
 
             _gameMgr.play_index++;
@@ -230,8 +245,7 @@ const socketMgr = function(){
         if(_gameMgr.isRecover) return false;
 
         //防止极限操作
-        var now_ts = (new Date().getTime() / 1000);
-        var time_value = _gameMgr.time_out - Math.floor(now_ts);
+        var time_value = _gameMgr.time_out - that.getServerTime();
         if(time_value <= 1){
             return false;
         }
@@ -243,8 +257,7 @@ const socketMgr = function(){
         if(that.checkIsObserve()) return false;
         if(_gameMgr.isRecover) return false;
         //防止极限操作
-        var now_ts = (new Date().getTime() / 1000);
-        var time_value = _gameMgr.time_out - Math.floor(now_ts);
+        var time_value = _gameMgr.time_out - that.getServerTime();
         if(time_value <= 1){
             return false;
         }

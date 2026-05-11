@@ -56,7 +56,7 @@ test('advanceChessState takes off, advances, and only marks exact finish', () =>
   assert.equal(player.finish_chess[0], 1);
 });
 
-test('advanceChessState matches client movement from takeoff point', () => {
+test('advanceChessState matches client movement and bonus from takeoff point', () => {
   const player = robot.createRobotState({
     chess_status: {0: 1},
     chess_steps: {0: 0},
@@ -65,7 +65,32 @@ test('advanceChessState matches client movement from takeoff point', () => {
   const result = robot.advanceChessState(player, 0, 2, 1);
   assert.deepEqual(result, {moved: true, finished: false});
   assert.equal(player.chess_status[0], 2);
-  assert.equal(player.chess_steps[0], 1);
+  assert.equal(player.chess_steps[0], 5);
+});
+
+test('advanceChessState applies same-color bonus and jump squares like the client', () => {
+  const player = robot.createRobotState({
+    chess_status: {0: 2},
+    chess_steps: {0: 11},
+  });
+
+  const result = robot.advanceChessState(player, 0, 2, 1, 0);
+  assert.equal(result.moved, true);
+  assert.equal(result.finished, false);
+  assert.equal(player.chess_status[0], 2);
+  assert.equal(player.chess_steps[0], 29);
+});
+
+test('advanceChessState keeps final-lane bounce correct after previous bonus movement', () => {
+  const player = robot.createRobotState({
+    chess_status: {0: 2},
+    chess_steps: {0: 51},
+  });
+
+  const result = robot.advanceChessState(player, 0, 4, 1, 0);
+  assert.deepEqual(result, {moved: true, finished: true});
+  assert.equal(player.chess_status[0], 3);
+  assert.equal(player.chess_steps[0], -1);
 });
 
 test('advanceChessState bounces back instead of finishing when dice overshoots finish', () => {
