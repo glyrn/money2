@@ -15,6 +15,7 @@ const gameCfg = JSON.parse(fs.readFileSync('gameCfg.json', 'utf8'));
 
 const yc_domain = gameCfg['yc_domain'];//www.fsyctech.com';
 const game_port = gameCfg['game_port'];
+const SKIP_MOVE_DELAY_MS = 1200;
 console.log("结算域名："+yc_domain)
 
 const express = require('express'),
@@ -446,10 +447,28 @@ const proto = {
     desk.hadTimeOut = false;
     this.broadCastRoom("MAKE_DICE_NUM_SUCCESS",desk.deskId,{num:num,posId:posId,time_out:getTimeStamp()+desk.time_out,server_time:getTimeStamp()});
     if(this.canSkipMove(desk,posId)){
-      this.makeNextPlayerDice(desk);
+      this.scheduleSkipMoveTurn(desk,posId);
       return false;
     }
     return true;
+  },
+  scheduleSkipMoveTurn:function(desk,posId){
+    this.clearRobotTimer(desk);
+    if(!desk || desk.state != 1 || desk.cur_posId != posId){
+      return;
+    }
+
+    desk.turn_action = 'skip_wait';
+    desk.time_out = 30;
+    desk.hadTimeOut = false;
+    var token = ++desk.robot_action_token;
+    var self = this;
+    desk.robot_timer = setTimeout(function(){
+      if(desk.robot_action_token != token || desk.state != 1 || desk.cur_posId != posId || desk.turn_action != 'skip_wait'){
+        return;
+      }
+      self.makeNextPlayerDice(desk);
+    },SKIP_MOVE_DELAY_MS);
   },
   scheduleRobotTurnIfNeeded:function(desk){
     this.clearRobotTimer(desk);
