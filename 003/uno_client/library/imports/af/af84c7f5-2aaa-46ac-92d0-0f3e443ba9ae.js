@@ -73,7 +73,7 @@ var socketMgr = function socketMgr() {
       protocol = 'ws://';
     } else {
       opts['path'] = '/uno_socket.io';
-      protocol = 'wss://';
+      protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     }
 
     console.log("defines.serverUrl:" + defines.serverUrl);

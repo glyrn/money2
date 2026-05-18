@@ -81,6 +81,14 @@ test('advanceChessState applies same-color bonus and jump squares like the clien
   assert.equal(player.chess_steps[0], 29);
 });
 
+test('collision landing is the final resolved square instead of intermediate path squares', () => {
+  const outcome = robot.resolveActiveMoveOutcome(11, 2, 2, 0);
+
+  assert.deepEqual(outcome.effects.landings.map((landing) => landing.step), [13, 17, 29]);
+  assert.equal(outcome.effects.flyHit, true);
+  assert.deepEqual(robot.getCollisionLandingSteps(outcome.effects), [29]);
+});
+
 test('advanceChessState keeps final-lane bounce correct after previous bonus movement', () => {
   const player = robot.createRobotState({
     chess_status: {0: 2},

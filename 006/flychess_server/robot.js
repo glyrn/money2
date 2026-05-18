@@ -210,6 +210,19 @@ function resolveActiveMoveOutcome(currentStep, diceNum, chessStatus, posId) {
   return {step, status, finished, effects};
 }
 
+function getCollisionLandingSteps(effects) {
+  const landings = Array.isArray(effects && effects.landings) ? effects.landings : [];
+  if (landings.length === 0) {
+    return [];
+  }
+
+  const finalStep = parseInt(landings[landings.length - 1].step, 10);
+  if (!Number.isFinite(finalStep)) {
+    return [];
+  }
+  return [finalStep];
+}
+
 function selectRobotMove(player, playMode, diceNum, randomFn) {
   const state = createRobotState(player);
   const movable = getMovableChessIndexes(state, playMode, diceNum);
@@ -284,6 +297,7 @@ module.exports = {
   advanceChessState,
   canTakeoff,
   createRobotState,
+  getCollisionLandingSteps,
   getPlaceInfo,
   getMovableChessIndexes,
   getRandomDelayMs,
