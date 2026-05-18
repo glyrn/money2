@@ -40,10 +40,17 @@ cc.Class({
 
         if(globalData.gameMgr.posId == this.posId){
             if(!this._chessClickLock){
-                this._chessClickLock = true;
-                globalData.socketMgr.playMoveStep(chess_idx,this.cur_num);
+                var isSent = globalData.socketMgr.playMoveStep(chess_idx,this.cur_num);
+                if(isSent){
+                    this._chessClickLock = true;
+                    this.unschedule(this.unlockChessClick);
+                    this.scheduleOnce(this.unlockChessClick,3);
+                }
             }
         }
+    },
+    unlockChessClick(){
+        this._chessClickLock = false;
     },
     resumeAllActions(){
         // for (let i = 0; i < this.chess_list.length; i++) {
@@ -64,7 +71,7 @@ cc.Class({
 
             if(!globalData.gameMgr.isRecover){ //正常游玩
                 if(globalData.gameMgr.posId == that.posId){
-                    that._chessClickLock = false;
+                    that.unlockChessClick();
                     globalData.eventlister.fire("FINISH_MOVE_STEP");
                 }
             }
@@ -85,6 +92,7 @@ cc.Class({
         }
     },
     showCtrlCircle(num){
+        this.unlockChessClick();
 
         var isCanUp = false;
         if(globalData.gameMgr.play_mode == 0 && num == 6){
@@ -528,6 +536,7 @@ cc.Class({
          this.dice_bg.active = isShow;
     },
     reset(){
+        this.unlockChessClick();
         this.chess_steps = {0:-1,1:-1,2:-1,3:-1};
         this.chess_status = {0:0,1:0,2:0,3:0};
         this.chess_stand_list = [];
@@ -537,6 +546,7 @@ cc.Class({
         }
     },
     resetChessSelectIcon(){
+        this.unlockChessClick();
         for (let i = 0; i < this.chess_list.length; i++) {
             this.chess_list[i].getChildByName('select_icon').active = false;
         }
@@ -586,7 +596,7 @@ cc.Class({
 
         if(this.posId == globalData.gameMgr.turn){
             this.node_timer.active = true;
-            var now_ts = (new Date().getTime() / 1000);
+            var now_ts = globalData.socketMgr.getServerTime();
             var time_value = globalData.gameMgr.time_out - Math.floor(now_ts);
             var time_value_ts = globalData.gameMgr.time_out - now_ts;
             time_value_ts = time_value_ts >= 0 ? time_value_ts:0;

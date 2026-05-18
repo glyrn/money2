@@ -3,6 +3,7 @@ const os = require('os');
 const https = require('https');
 const fs = require('fs');
 const _ = require('lodash');
+const robotLogic = require('./robot');
 //本地调试
 var isDebug = false;
 var ioParam = {path:'/fxq_socket.io'};
@@ -14,13 +15,34 @@ const gameCfg = JSON.parse(fs.readFileSync('gameCfg.json', 'utf8'));
 
 const yc_domain = gameCfg['yc_domain'];//www.fsyctech.com';
 const game_port = gameCfg['game_port'];
+const SKIP_MOVE_DELAY_MS = 1200;
 console.log("结算域名："+yc_domain)
 
 const express = require('express'),
     app = express(),
     http = require('http').Server(app),
     io = require('socket.io')(http,ioParam);
-app.use(express.static(`${__dirname}/../flychess_client`));
+const flychessClientPath = `${__dirname}/../flychess_client`;
+const flychessClientBuildPath = `${flychessClientPath}/build/web-mobile`;
+app.get('/', function(req, res, next) {
+  if (Object.keys(req.query || {}).length > 0) {
+    return next();
+  }
+
+  const demoId = Date.now();
+  const demoUid = 800000000 + (demoId % 100000000);
+  const demoUrl = '/?uid=' + demoUid
+    + '&name=' + encodeURIComponent('测试玩家')
+    + '&score=0'
+    + '&room=demo_' + demoId
+    + '&play_mode=1'
+    + '&ready_count=2'
+    + '&play_count=1'
+    + '&robot=1'
+    + '&auto_ready=1';
+  return res.redirect(302, demoUrl);
+});
+app.use(express.static(fs.existsSync(flychessClientBuildPath) ? flychessClientBuildPath : flychessClientPath));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -76,6 +98,10 @@ const proto = {
         base_score:100,
         play_index:0,
         cur_posId:0,
+        cur_dice_num:0,
+        turn_action:'dice',
+        robot_timer:null,
+        robot_action_token:0,
         ob_socket_map:{},
       }
       for (let j = 0; j < 4; j++) {
@@ -87,7 +113,11 @@ const proto = {
           avatorUrl: '',
           score:0,
           socket:null,
+          isRobot:false,
           finish_chess:{0:0,1:0,2:0,3:0},
+          finish_chess_sent:{0:0,1:0,2:0,3:0},
+          chess_status:{0:0,1:0,2:0,3:0},
+          chess_steps:{0:-1,1:-1,2:-1,3:-1},
           recover_disconnect_data:[],
         })
       }
@@ -233,6 +263,164 @@ const proto = {
 
     return finish_count == win_num;
   },
+  resetChessState:function(userObj){
+    userObj.finish_chess = {0:0,1:0,2:0,3:0};
+    userObj.finish_chess_sent = {0:0,1:0,2:0,3:0};
+    userObj.chess_status = {0:0,1:0,2:0,3:0};
+    userObj.chess_steps = {0:-1,1:-1,2:-1,3:-1};
+  },
+  isRobotUser:function(userObj){
+    return !!(userObj && userObj.isRobot === true);
+  },
+  clearRobotTimer:function(desk){
+    if(desk && desk.robot_timer){
+      clearTimeout(desk.robot_timer);
+      desk.robot_timer = null;
+    }
+    if(desk){
+      desk.robot_action_token++;
+    }
+  },
+  makeRobotUid:function(desk,posId){
+    return 900000000 + desk.deskId * 10 + posId;
+  },
+  hasUser:function(userObj){
+    return !!(userObj && userObj.uid !== 0 && userObj.uid !== '0' && userObj.uid !== null && userObj.uid !== undefined && userObj.uid !== '');
+  },
+  countRobotUsers:function(desk){
+    var count = 0;
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(this.isRobotUser(desk.positions[i]) && this.hasUser(desk.positions[i])){
+        count++;
+      }
+    }
+    return count;
+  },
+  countOccupiedUsers:function(desk){
+    var count = 0;
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(this.hasUser(desk.positions[i])){
+        count++;
+      }
+    }
+    return count;
+  },
+  shouldAutoPrepareUser:function(loginObj){
+    if(!loginObj){
+      return false;
+    }
+    if(loginObj.auto_ready == 1 || loginObj.auto_ready === true || loginObj.auto_ready === 'true'){
+      return true;
+    }
+    if(!loginObj.lanuch_url){
+      return false;
+    }
+    try {
+      var parsedUrl = new URL(loginObj.lanuch_url, 'http://localhost');
+      var autoReady = parsedUrl.searchParams.get('auto_ready');
+      return autoReady == 1 || autoReady === 'true';
+    } catch (err) {
+      return false;
+    }
+  },
+  buildRobotLoginData:function(userObj){
+    return {
+      uid:userObj.uid,
+      state:userObj.state,
+      name:userObj.name,
+      avatorUrl:userObj.avatorUrl,
+      score:userObj.score,
+      posId:userObj.posId,
+      isRobot:true,
+    };
+  },
+  ensureRobotPlayers:function(desk,loginObj){
+    if(!desk || desk.state != 0){
+      return;
+    }
+
+    var robotCount = robotLogic.normalizeRobotCount(loginObj.robot);
+    if(robotCount <= 0){
+      robotCount = robotLogic.parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
+    }
+    if(robotCount <= 0){
+      return;
+    }
+
+    var targetRobotCount = Math.min(robotCount, Math.max(0, desk.ready_count - 1));
+    var robotIndex = this.countRobotUsers(desk);
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(robotIndex >= targetRobotCount || this.countOccupiedUsers(desk) >= desk.ready_count){
+        break;
+      }
+      var userObj = desk.positions[i];
+      if(userObj.uid != 0){
+        continue;
+      }
+      userObj.uid = this.makeRobotUid(desk,userObj.posId);
+      userObj.state = 1;
+      userObj.name = "机器人" + (robotIndex + 1);
+      userObj.avatorUrl = '';
+      userObj.score = 0;
+      userObj.socket = null;
+      userObj.isRobot = true;
+      userObj.disconnectTime = null;
+      userObj.recover_disconnect_data = [];
+      this.resetChessState(userObj);
+      this.broadCastRoom("SIT_CHANGE",desk.deskId,{target:this.buildRobotLoginData(userObj),posId:userObj.posId});
+      robotIndex++;
+    }
+
+    this.prepareRobotPlayers(desk);
+  },
+  prepareRobotPlayers:function(desk){
+    for (let i = 0; i < desk.positions.length; i++) {
+      var userObj = desk.positions[i];
+      if(this.isRobotUser(userObj) && this.hasUser(userObj) && userObj.state == 1){
+        userObj.state = 2;
+        this.broadCastRoom("PREPARE_SUCCESS",desk.deskId,userObj.posId);
+      }
+    }
+    this.tryStartGame(desk);
+  },
+  tryStartGame:function(desk){
+    if(!desk || desk.state != 0){
+      return false;
+    }
+    var ready_count = 0;
+    for (let j = 0; j < desk.positions.length; j++) {
+      if(desk.positions[j].state == 2){
+        ready_count++;
+      }
+    }
+    if(desk.ready_count != ready_count){
+      return false;
+    }
+
+    desk.state = 1;//开始游戏
+    desk.time_out = 10;
+    desk.hadTimeOut = false;
+    desk.turn_action = 'dice';
+    desk.cur_dice_num = 0;
+    desk.cur_posId = this.getRandomNumForRange(ready_count-1);
+    var bomb_idxs = {};
+    desk.play_index++;
+    if(desk.play_index > desk.play_count){
+      desk.play_index -= desk.play_count;
+    }
+    if(desk.play_index == 1){
+      desk.score_list = [];
+    }
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(desk.positions[i].state == 2){
+        this.resetChessState(desk.positions[i]);
+      }
+    }
+
+    this.broadCastRoom("GAME_START",desk.deskId,{posId:desk.cur_posId,bomb_idxs:bomb_idxs,time_out:getTimeStamp()+desk.time_out,server_time:getTimeStamp()});
+    this.scheduleRobotTurnIfNeeded(desk);
+    return true;
+  },
   makeNextPlayerDice:function(desk) {
     console.log("makeNextPlayerDice")
     //游戏中
@@ -243,12 +431,279 @@ const proto = {
       if (desk.cur_posId >= desk.ready_count) {
         desk.cur_posId = 0;
       }
-      desk.cur_dice_num = 5;
+      desk.cur_dice_num = 0;
+      desk.turn_action = 'dice';
       desk.time_out = 10;
       desk.hadTimeOut = false;
       console.log(" 轮到 ",desk.positions[desk.cur_posId].name,desk.cur_posId);
-      this.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS", desk.deskId, {posId: desk.cur_posId,time_out:getTimeStamp()+desk.time_out});
+      this.broadCastRoom("NEXT_PLAYER_DICE_SUCCESS", desk.deskId, {posId: desk.cur_posId,time_out:getTimeStamp()+desk.time_out,server_time:getTimeStamp()});
+      this.scheduleRobotTurnIfNeeded(desk);
     }
+  },
+  startMoveAfterDice:function(desk,posId,num){
+    desk.cur_dice_num = num;
+    desk.turn_action = 'move';
+    desk.time_out = 30;
+    desk.hadTimeOut = false;
+    this.broadCastRoom("MAKE_DICE_NUM_SUCCESS",desk.deskId,{num:num,posId:posId,time_out:getTimeStamp()+desk.time_out,server_time:getTimeStamp()});
+    if(this.canSkipMove(desk,posId)){
+      this.scheduleSkipMoveTurn(desk,posId);
+      return false;
+    }
+    return true;
+  },
+  scheduleSkipMoveTurn:function(desk,posId){
+    this.clearRobotTimer(desk);
+    if(!desk || desk.state != 1 || desk.cur_posId != posId){
+      return;
+    }
+
+    desk.turn_action = 'skip_wait';
+    desk.time_out = 30;
+    desk.hadTimeOut = false;
+    var token = ++desk.robot_action_token;
+    var self = this;
+    desk.robot_timer = setTimeout(function(){
+      if(desk.robot_action_token != token || desk.state != 1 || desk.cur_posId != posId || desk.turn_action != 'skip_wait'){
+        return;
+      }
+      self.makeNextPlayerDice(desk);
+    },SKIP_MOVE_DELAY_MS);
+  },
+  scheduleRobotTurnIfNeeded:function(desk){
+    this.clearRobotTimer(desk);
+    if(!desk || desk.state != 1){
+      return;
+    }
+    var userObj = desk.positions[desk.cur_posId];
+    if(!this.isRobotUser(userObj) || userObj.state != 2){
+      return;
+    }
+
+    var token = ++desk.robot_action_token;
+    var delay = robotLogic.getRandomDelayMs();
+    var self = this;
+    desk.robot_timer = setTimeout(function(){
+      if(desk.robot_action_token != token || desk.state != 1){
+        return;
+      }
+      if(desk.turn_action == 'move'){
+        self.runRobotMove(desk.deskId,userObj.uid);
+      }else{
+        self.runRobotDice(desk.deskId,userObj.uid);
+      }
+    },delay);
+  },
+  runRobotDice:function(deskId,uid){
+    var desk = this.getDeskById(deskId);
+    if(!desk || desk.state != 1){
+      return;
+    }
+    var userObj = desk.positions[desk.cur_posId];
+    if(!this.isRobotUser(userObj) || userObj.uid != uid || desk.turn_action != 'dice'){
+      return;
+    }
+
+    var num = this.getRandomNumForRange(5)+1;
+    if(this.startMoveAfterDice(desk,userObj.posId,num)){
+      this.scheduleRobotTurnIfNeeded(desk);
+    }
+  },
+  runRobotMove:function(deskId,uid){
+    var desk = this.getDeskById(deskId);
+    if(!desk || desk.state != 1){
+      return;
+    }
+    var userObj = desk.positions[desk.cur_posId];
+    if(!this.isRobotUser(userObj) || userObj.uid != uid || desk.turn_action != 'move'){
+      return;
+    }
+
+    var chessIdx = robotLogic.selectRobotMove(userObj,desk.play_mode,desk.cur_dice_num);
+    if(chessIdx == null){
+      this.makeNextPlayerDice(desk);
+      return;
+    }
+
+    var result = this.handlePlayMoveStep(desk,userObj.posId,{idx:chessIdx,num:desk.cur_dice_num},true);
+    if(!result || !result.moved){
+      this.makeNextPlayerDice(desk);
+      return;
+    }
+
+    var token = ++desk.robot_action_token;
+    var delay = result.finished ? 1200 : Math.min(3200,800 + desk.cur_dice_num * 250);
+    var self = this;
+    desk.robot_timer = setTimeout(function(){
+      if(desk.robot_action_token != token || desk.state != 1){
+        return;
+      }
+      if(result.finished){
+        self.handleFinishChess(desk,{posId:userObj.posId,idx:chessIdx});
+      }
+      if(desk.state == 1){
+        self.makeNextPlayerDice(desk);
+      }
+    },delay);
+  },
+  handlePlayMoveStep:function(desk,posId,data,isRobotAction){
+    if(!desk || desk.state != 1 || desk.cur_posId != posId || desk.turn_action != 'move'){
+      return {moved:false,finished:false};
+    }
+    if(!data){
+      return {moved:false,finished:false};
+    }
+    var userObj = desk.positions[posId];
+    if(!userObj || userObj.state != 2){
+      return {moved:false,finished:false};
+    }
+    var idx = parseInt(data.idx,10);
+    if(!Number.isFinite(idx) || idx < 0 || idx > 3){
+      return {moved:false,finished:false};
+    }
+    var num = parseInt(data.num,10);
+    if(!Number.isFinite(num) || num != desk.cur_dice_num){
+      return {moved:false,finished:false};
+    }
+    var result = robotLogic.advanceChessState(userObj,idx,num,desk.play_mode,posId);
+    if(!result.moved && isRobotAction){
+      return result;
+    }
+    if(!result.moved){
+      result = {moved:true,finished:false};
+    }
+    this.applyMoveEffects(desk,posId,idx,result);
+    desk.turn_action = 'wait_next';
+    this.broadCastRoom("PLAY_MOVE_STEP_SUCCESS",desk.deskId,{idx:idx,num:num,posId:posId});
+    return result;
+  },
+  backHomeChess:function(userObj,idx){
+    if(!userObj || idx < 0 || idx > 3 || userObj.chess_status[idx] == 3){
+      return;
+    }
+    userObj.chess_status[idx] = 0;
+    userObj.chess_steps[idx] = -1;
+    userObj.finish_chess[idx] = 0;
+    userObj.finish_chess_sent[idx] = 0;
+  },
+  applyEatAtStep:function(desk,posId,step){
+    var sourcePlace = robotLogic.getPlaceInfo(posId,step);
+    if(!sourcePlace || !sourcePlace.eatable || sourcePlace.ringIndex == null){
+      return;
+    }
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(i == posId){
+        continue;
+      }
+      var targetUser = desk.positions[i];
+      if(!targetUser || targetUser.state <= 0){
+        continue;
+      }
+      for (let j = 0; j < 4; j++) {
+        if(parseInt(targetUser.chess_status[j],10) != 2){
+          continue;
+        }
+        var targetPlace = robotLogic.getPlaceInfo(i,targetUser.chess_steps[j]);
+        if(targetPlace && targetPlace.eatable && targetPlace.ringIndex === sourcePlace.ringIndex){
+          this.backHomeChess(targetUser,j);
+        }
+      }
+    }
+  },
+  applyFlyHit:function(desk,posId){
+    var targetPosId = (parseInt(posId,10) + 2) % 4;
+    var targetUser = desk.positions[targetPosId];
+    if(!targetUser || targetUser.state <= 0){
+      return;
+    }
+    for (let i = 0; i < 4; i++) {
+      if(parseInt(targetUser.chess_status[i],10) == 2 && parseInt(targetUser.chess_steps[i],10) == robotLogic.STRAIGHT_MID_STEP){
+        this.backHomeChess(targetUser,i);
+      }
+    }
+  },
+  applyMoveEffects:function(desk,posId,chessIdx,result){
+    if(!result || !result.effects){
+      return;
+    }
+    var landings = result.effects.landings || [];
+    for (let i = 0; i < landings.length; i++) {
+      this.applyEatAtStep(desk,posId,landings[i].step);
+    }
+    if(result.effects.flyHit){
+      this.applyFlyHit(desk,posId);
+    }
+  },
+  canSkipMove:function(desk,posId){
+    if(!desk || desk.state != 1 || desk.turn_action != 'move'){
+      return false;
+    }
+    var userObj = desk.positions[posId];
+    if(!userObj || userObj.state != 2){
+      return false;
+    }
+    return robotLogic.getMovableChessIndexes(userObj,desk.play_mode,desk.cur_dice_num).length == 0;
+  },
+  handleFinishChess:function(desk,data){
+    if(!desk || desk.state != 1 || !data){
+      return false;
+    }
+    var posId = parseInt(data.posId,10);
+    var idx = parseInt(data.idx,10);
+    if(!Number.isFinite(posId) || !Number.isFinite(idx) || posId < 0 || posId >= desk.positions.length || idx < 0 || idx > 3){
+      return false;
+    }
+
+    var userObj = desk.positions[posId];
+    if(!userObj || userObj.state <= 0 || userObj.finish_chess_sent[idx] == 1){
+      return false;
+    }
+    if(userObj.finish_chess[idx] != 1 || userObj.chess_status[idx] != 3){
+      return false;
+    }
+    userObj.finish_chess[idx] = 1;
+    userObj.finish_chess_sent[idx] = 1;
+    userObj.chess_status[idx] = 3;
+    userObj.chess_steps[idx] = -1;
+    this.broadCastRoom("FINISH_CHESS_SUCCESS",desk.deskId,{posId:posId,idx:idx});
+
+    if(this.checkOver(desk.deskId,posId) && desk.state == 1){
+      this.clearRobotTimer(desk);
+      desk.state = 0; //游戏结束
+      desk.deprecate_time = 0;
+      desk.hadDeprecateGame = false;
+
+      var score_list = {};
+      var ycscore_list = [];
+      for (let i = 0; i < desk.positions.length; i++) {
+        if(desk.positions[i].state == 2){
+          var score = 0;
+          for (const k in desk.positions[i].finish_chess) {
+            if(desk.positions[i].finish_chess[k] == 1){
+              score += 10;
+            }
+          }
+          score_list[desk.positions[i].posId] = score;
+          desk.positions[i].state = 1;
+          this.resetChessState(desk.positions[i]);
+          if(!this.isRobotUser(desk.positions[i])){
+            ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:posId == i?1:0,avatorUrl:desk.positions[i].avatorUrl});
+          }
+        }
+      }
+      this.broadCastRoom("GAME_OVER",desk.deskId,{winer:posId,score_list:score_list});
+      if(!desk.score_list) desk.score_list = [];
+      desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
+
+      if(desk.play_index == desk.play_count){
+        this.sendYcGameOver({
+          room_id:desk.name,
+          game_id:6,
+          score_list:desk.score_list
+        });
+      }
+    }
+    return true;
   },
  broadCastRoom:function(event,roomId,data,except){
     for (let i = 0; i < this.desks.length; i++) {
@@ -257,7 +712,10 @@ const proto = {
         let userObjNum = 0;
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.uid > 0) userObjNum++;
+          if(this.hasUser(userObj)) userObjNum++;
+          if(!this.hasUser(userObj)){
+            continue;
+          }
           if(except){
             if(userObj.uid != except){
               this.socketEmit(userObj,event,data);
@@ -280,6 +738,7 @@ const proto = {
   deprecateGame:function(desk){
 
     console.log("发送弃局！")
+    this.clearRobotTimer(desk);
     this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
     desk.state = 0;
     desk.hadDeprecateGame = false;
@@ -288,7 +747,7 @@ const proto = {
     var ycscore_list = [];
     for (let i = 0; i < desk.positions.length; i++) {
       desk.positions[i].state = 1;
-      if(desk.positions[i].uid >0) {
+      if(this.hasUser(desk.positions[i]) && !this.isRobotUser(desk.positions[i])) {
         ycscore_list.push({
           uid: desk.positions[i].uid,
           name: desk.positions[i].name,
@@ -355,13 +814,16 @@ const proto = {
 
         if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
+          var wasPlaying = this.desks[i].state == 1;
           let name = userObj.name;
           userObj.uid = 0;
           userObj.state = 0;
           userObj.name = '';
           userObj.avatorUrl = '';
           userObj.score = 0;
+          userObj.isRobot = false;
           userObj.disconnectTime = null;
+          this.resetChessState(userObj);
           //清空断线重连信息
           userObj.recover_disconnect_data = [];
 
@@ -372,7 +834,7 @@ const proto = {
           var isClean = true;
           var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
-            if(this.desks[i].positions[k].uid > 0 ){
+            if(this.hasUser(this.desks[i].positions[k])){
               isClean = false;
             }
           }
@@ -383,11 +845,12 @@ const proto = {
             this.desks[i].play_mode = -1;
             this.desks[i].ready_count = -1;
           }
+          if(wasPlaying){
             // this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
             // this.broadCastRoom("MESSAGE",desk.deskId,"中途有人逃跑本局成绩作废");
             this.deprecateGame(desk);
-    
-            
+          }
+
           }
         }
       
@@ -403,12 +866,15 @@ const proto = {
         if(userObj.uid == uid && roomObj.deskId != curRoomId){
 
           console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
+          var wasPlaying = roomObj.state == 1;
           userObj.uid = 0;
           userObj.state = 0;
           userObj.name = '';
           userObj.avatorUrl = '';
           userObj.score = 0;
+          userObj.isRobot = false;
           userObj.disconnectTime = null;
+          this.resetChessState(userObj);
           //清空断线重连信息
           userObj.recover_disconnect_data = [];
 
@@ -418,7 +884,7 @@ const proto = {
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
           for (let k = 0; k < this.desks[i].positions.length; k++) {
-            if(this.desks[i].positions[k].uid > 0 ){
+            if(this.hasUser(this.desks[i].positions[k])){
               isClean = false;
             }
           }
@@ -430,9 +896,11 @@ const proto = {
           }
 
           let desk = this.desks[i];
-          // this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
-            // this.broadCastRoom("MESSAGE",desk.deskId,"中途有人逃跑本局成绩作废");
-          this.deprecateGame(desk);
+          if(wasPlaying){
+            // this.broadCastRoom("GAME_OVER", desk.deskId, {invalid:1,winer: -1, score_list: []});
+              // this.broadCastRoom("MESSAGE",desk.deskId,"中途有人逃跑本局成绩作废");
+            this.deprecateGame(desk);
+          }
 
         }
       }
@@ -449,7 +917,7 @@ const proto = {
           let userObjNum = 0;
           for (let j = 0; j < roomObj.positions.length; j++) {
             var userObj = roomObj.positions[j];
-            if(userObj.uid > 0) userObjNum++;
+            if(this.hasUser(userObj)) userObjNum++;
           }
           //空房间 要顺便清一下房间内的玩家信息
           if(userObjNum == 0 && isFind == false){
@@ -467,6 +935,7 @@ const proto = {
     }
     var desk = this.getDeskById(deskId);
     if(desk){
+      this.clearRobotTimer(desk);
       for (let k = 0; k < desk.positions.length; k++) {
         var userObj = desk.positions[k];
         userObj.uid = 0;
@@ -475,7 +944,8 @@ const proto = {
         userObj.avatorUrl = '';
         userObj.score = 0;
         userObj.disconnectTime = null;
-        userObj.finish_chess = {0:0,1:0,2:0,3:0};
+        userObj.isRobot = false;
+        this.resetChessState(userObj);
         //清空断线重连信息
         userObj.recover_disconnect_data = [];
       }
@@ -484,7 +954,10 @@ const proto = {
       desk.deprecate_time = 0;
       desk.time_out = 0;
       desk.hadTimeOut = false;
+      desk.cur_dice_num = 0;
+      desk.turn_action = 'dice';
       desk.play_index = 0;
+      desk.play_mode = -1;
       desk.ready_count = -1;
       desk.ob_socket_map = {};
     }
@@ -499,7 +972,7 @@ const proto = {
         //推送其中一个在线玩家的数据
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.uid > 0 && userObj.disconnectTime == null){
+          if(this.hasUser(userObj) && userObj.disconnectTime == null){
             
             //保存观众socket + uid
             roomObj.ob_socket_map[socket.id] = {socket:socket,ouid:obj.uid,uid:userObj.uid};
@@ -637,33 +1110,37 @@ const proto = {
               if (userObj.uid == 0) {
                 userObj.uid = obj.uid;
                 userObj.state = 1;
-                userObj.name = obj.name;
-                userObj.avatorUrl = obj.avatorUrl;
-                userObj.score = obj.score;
-                userObj.socket = socket;
-                obj.posId = userObj.posId;
-                obj.state = 1;
-                flag = true;
+	                userObj.name = obj.name;
+	                userObj.avatorUrl = obj.avatorUrl;
+	                userObj.score = obj.score;
+	                userObj.socket = socket;
+	                userObj.isRobot = false;
+	                self.resetChessState(userObj);
+	                obj.posId = userObj.posId;
+	                obj.state = 1;
+	                flag = true;
                 break;
               }
             }
             if(flag){// 坐下成功
 
-              self.clients[obj.uid] = socket;
+	              self.clients[obj.uid] = socket;
+	              self.ensureRobotPlayers(room,obj);
 
-              var playerData = {};
-              for (let i = 0; i < room.positions.length; i++) {
-                if(room.positions[i].uid > 0){
+	              var playerData = {};
+	              for (let i = 0; i < room.positions.length; i++) {
+                if(self.hasUser(room.positions[i])){
                   playerData[room.positions[i].posId] = {
                     uid: room.positions[i].uid,
                     state: room.positions[i].state,
                     name: room.positions[i].name,
-                    avatorUrl: room.positions[i].avatorUrl,
-                    score: room.positions[i].score,
-                    posId: room.positions[i].posId,
-                  };
-                }
-              }
+	                    avatorUrl: room.positions[i].avatorUrl,
+	                    score: room.positions[i].score,
+	                    posId: room.positions[i].posId,
+	                    isRobot: room.positions[i].isRobot === true,
+	                  };
+	                }
+	              }
               self.socketEmit(userObj,"LOGIN_SUCCESS",{
                 roomId:room.name,
                 posId:obj.posId,
@@ -674,6 +1151,11 @@ const proto = {
                 server_time:getTimeStamp(),
               });
               self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
+              if(self.shouldAutoPrepareUser(obj) && userObj.state == 1){
+                userObj.state = 2;
+                self.broadCastRoom("PREPARE_SUCCESS",room.deskId,userObj.posId);
+                self.prepareRobotPlayers(room);
+              }
 
             }else{
               socket.emit("MESSAGE",'房间已满员');
@@ -681,52 +1163,21 @@ const proto = {
           }
       })
 
-      socket.on("PREPARE",function(){
+	      socket.on("PREPARE",function(){
 
-        var isStartGame = false;
-        var ready_count = 0;
-        var desk = self.getDesk(socket);
-        if(desk){
-          for (let j = 0; j < desk.positions.length; j++) {
-            var userObj = desk.positions[j];
-            if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
-              desk.positions[j].state = 2;
-            }
-            if(desk.positions[j].state == 2){
-              ready_count++;
-            }
-          }
+	        var desk = self.getDesk(socket);
+	        if(desk){
+	          for (let j = 0; j < desk.positions.length; j++) {
+	            var userObj = desk.positions[j];
+	            if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
+	              desk.positions[j].state = 2;
+	            }
+	          }
 
-          if(desk.ready_count == ready_count){
-           
-            isStartGame = true;
-          }
-
-          self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),self.getPosId(socket));
-          if(isStartGame && desk.state == 0)
-          {
-            desk.state = 1;//开始游戏
-            desk.time_out = 10;
-            desk.hadTimeOut = false;
-            desk.cur_posId = self.getRandomNumForRange(ready_count-1);
-            var bomb_idxs = {};
-            //不要炸弹了
-            // for (let i = 0; i < 6; i++) {
-            //   bomb_idxs[self.getRandomNumForRange(51)] = 1;
-            // }
-            desk.play_index++;
-            if(desk.play_index > desk.play_count){
-              desk.play_index -= desk.play_count;
-            }
-            //重置成绩
-            if(desk.play_index == 1){
-              desk.score_list = [];
-            }
-
-            self.broadCastRoom("GAME_START",self.getDeskId(socket),{posId:desk.cur_posId,bomb_idxs:bomb_idxs,time_out:getTimeStamp()+desk.time_out});
-          }
-        }
-      });
+	          self.broadCastRoom("PREPARE_SUCCESS",self.getDeskId(socket),self.getPosId(socket));
+	          self.prepareRobotPlayers(desk);
+	        }
+	      });
 
       socket.on('disconnect', function(){
 
@@ -742,12 +1193,11 @@ const proto = {
             if(userObj.state > 0 && userObj.socket && userObj.socket.id == socket.id) {
 
               //下一个玩家
-              if(desk.cur_posId == userObj.posId){
+              if(desk.state == 1 && desk.cur_posId == userObj.posId){
                 //重置点数
-                
                 desk.time_out = 30;
                 desk.hadTimeOut = false;
-                self.broadCastRoom("MAKE_DICE_NUM_SUCCESS",desk.deskId,{num:5,posId:userObj.posId,time_out:getTimeStamp()+desk.time_out});
+                self.broadCastRoom("MAKE_DICE_NUM_SUCCESS",desk.deskId,{num:5,posId:userObj.posId,time_out:getTimeStamp()+desk.time_out,server_time:getTimeStamp()});
 
                 self.makeNextPlayerDice(desk);
               }
@@ -766,75 +1216,38 @@ const proto = {
           }
         }
       });
-      socket.on('MAKE_DICE_NUM', function(){
-        var posId = self.getPosId(socket);
-        var num = self.getRandomNumForRange(5)+1;
-        //debug 
-        // num = 2;
-        var desk = self.getDesk(socket);
+	      socket.on('MAKE_DICE_NUM', function(){
+	        var posId = self.getPosId(socket);
+	        var num = self.getRandomNumForRange(5)+1;
+	        //debug
+	        // num = 2;
+	        var desk = self.getDesk(socket);
 
-        if(desk && desk.state == 1){
-          desk.cur_dice_num = num;
-          desk.time_out = 30;
-          desk.hadTimeOut = false;
-          self.broadCastRoom("MAKE_DICE_NUM_SUCCESS",self.getDeskId(socket),{num:num,posId:posId,time_out:getTimeStamp()+desk.time_out});
-        }
-      });
-      socket.on('PLAY_MOVE_STEP',function(data){
-        data.posId = self.getPosId(socket);
-        var desk = self.getDesk(socket);
-        if(desk){
-            self.broadCastRoom("PLAY_MOVE_STEP_SUCCESS",desk.deskId,data);  
-        }
-      });
-      socket.on('FINISH_CHESS',function(data){
-        var desk = self.getDesk(socket);
-        if(desk){
-          var posId = data.posId;
-          desk.positions[posId].finish_chess[data.idx] = 1;
-          self.broadCastRoom("FINISH_CHESS_SUCCESS",desk.deskId,data);
-
-          if(self.checkOver(desk.deskId,posId) && desk.state == 1){
-            desk.state = 0; //游戏结束
-            desk.deprecate_time = 30;
-            desk.hadDeprecateGame = false;
-            
-            var score_list = {};
-            var ycscore_list = [];
-            for (let i = 0; i < desk.positions.length; i++) {
-              if(desk.positions[i].state == 2){
-                var score = 0;
-                for (const k in desk.positions[i].finish_chess) {
-                  if(desk.positions[i].finish_chess[k] == 1){
-                    score += 10;
-                  }
-                }
-                score_list[desk.positions[i].posId] = score;
-                desk.positions[i].state = 1;
-                desk.positions[i].finish_chess = {0:0,1:0,2:0,3:0};
-                ycscore_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score,is_win:posId == i?1:0,avatorUrl:desk.positions[i].avatorUrl});
-              }
-            }
-            self.broadCastRoom("GAME_OVER",desk.deskId,{winer:posId,score_list:score_list});
-            if(!desk.score_list) desk.score_list = [];
-            desk.score_list.push({play_index:desk.play_index,score_list:ycscore_list});
-
-            if(desk.play_index == desk.play_count){
-              self.sendYcGameOver({
-                room_id:desk.name,
-                game_id:6,
-                score_list:desk.score_list
-              });
-            }
-          }
-        }
-      });
-      socket.on('NEXT_PLAYER_DICE',function(){
-        var desk = self.getDesk(socket);
-        if(desk){
-          self.makeNextPlayerDice(desk);
-        }
-      })
+	        if(desk && desk.state == 1 && desk.cur_posId == posId && desk.turn_action == 'dice'){
+	          self.startMoveAfterDice(desk,posId,num);
+	        }
+	      });
+	      socket.on('PLAY_MOVE_STEP',function(data){
+	        var posId = self.getPosId(socket);
+	        var desk = self.getDesk(socket);
+	        if(desk){
+	          self.handlePlayMoveStep(desk,posId,data,false);
+	        }
+	      });
+	      socket.on('FINISH_CHESS',function(data){
+	        var desk = self.getDesk(socket);
+	        var posId = self.getPosId(socket);
+	        if(desk && posId !== undefined && data){
+	          self.handleFinishChess(desk,{posId:posId,idx:data.idx});
+	        }
+	      });
+	      socket.on('NEXT_PLAYER_DICE',function(){
+	        var desk = self.getDesk(socket);
+	        var posId = self.getPosId(socket);
+	        if(desk && desk.cur_posId == posId && (desk.turn_action == 'wait_next' || self.canSkipMove(desk,posId))){
+	          self.makeNextPlayerDice(desk);
+	        }
+	      })
     });
 
     http.listen(game_port, function(){
@@ -847,6 +1260,10 @@ const proto = {
 Object.assign(GameServer.prototype, proto);
 const gameServer = new GameServer()
 gameServer.init();
+
+app.get('/fxq/health',function(req,res){
+  res.send({state:0,msg:"ok",game_id:6,server_time:getTimeStamp()});
+})
 
 app.get('/fxq/quit',function(req,res){
   const uid = req.query.uid;
