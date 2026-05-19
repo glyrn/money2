@@ -626,12 +626,9 @@ const proto = {
     if(!result || !result.effects){
       return;
     }
-    var landings = result.effects.landings || [];
+    var landings = robotLogic.getCollisionLandingSteps(result.effects);
     for (let i = 0; i < landings.length; i++) {
-      this.applyEatAtStep(desk,posId,landings[i].step);
-    }
-    if(result.effects.flyHit){
-      this.applyFlyHit(desk,posId);
+      this.applyEatAtStep(desk,posId,landings[i]);
     }
   },
   canSkipMove:function(desk,posId){

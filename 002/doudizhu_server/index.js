@@ -3,6 +3,8 @@ const os = require('os');
 const https = require('https');
 const fs = require('fs');
 const _ = require('lodash');
+const commonRobot = require('../../common/robot');
+const doudizhuRobot = require('./robot');
 //本地调试
 var isDebug = false;
 var ioParam = {path:'/hlddz_socket.io'};
@@ -20,7 +22,9 @@ const express = require('express'),
     app = express(),
     http = require('http').Server(app),
     io = require('socket.io')(http,ioParam);
-app.use(express.static(`${__dirname}/../voicejump_client`));
+const doudizhuClientPath = `${__dirname}/../doudizhu_client`;
+const doudizhuClientBuildPath = `${doudizhuClientPath}/build/web-mobile`;
+app.use(express.static(fs.existsSync(doudizhuClientBuildPath) ? doudizhuClientBuildPath : doudizhuClientPath));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -75,6 +79,8 @@ const proto = {
         base_score:100,
         play_index:0,
         ob_socket_map:{},
+        robot_timer:null,
+        robot_action_token:0,
       }
       for (let j = 0; j < 4; j++) {
         desk.positions.push({
@@ -85,6 +91,7 @@ const proto = {
           avatorUrl: '',
           score:0,
           socket:null,
+          isRobot:false,
           recover_disconnect_data:[],
         })
       }
@@ -220,6 +227,138 @@ const proto = {
     }
     return null;
   },
+  hasUser:function(userObj){
+    return !!(userObj && userObj.uid !== 0 && userObj.uid !== '0' && userObj.uid !== null && userObj.uid !== undefined && userObj.uid !== '');
+  },
+  isRobotUser:function(userObj){
+    return !!(userObj && userObj.isRobot === true);
+  },
+  clearRobotTimer:function(desk){
+    if(desk && desk.robot_timer){
+      clearTimeout(desk.robot_timer);
+      desk.robot_timer = null;
+    }
+    if(desk){
+      desk.robot_action_token++;
+    }
+  },
+  resetUser:function(userObj){
+    userObj.uid = 0;
+    userObj.state = 0;
+    userObj.name = '';
+    userObj.avatorUrl = '';
+    userObj.score = 0;
+    userObj.socket = null;
+    userObj.disconnectTime = null;
+    userObj.isRobot = false;
+    userObj.delayCallScore = null;
+    userObj.delayPlayCard = null;
+    userObj.recover_disconnect_data = [];
+  },
+  countRobotUsers:function(desk){
+    var count = 0;
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(this.isRobotUser(desk.positions[i]) && this.hasUser(desk.positions[i])){
+        count++;
+      }
+    }
+    return count;
+  },
+  countOccupiedUsers:function(desk){
+    var count = 0;
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(this.hasUser(desk.positions[i])){
+        count++;
+      }
+    }
+    return count;
+  },
+  ensureRobotPlayers:function(desk,loginObj){
+    if(!desk || desk.state != 0){
+      return;
+    }
+    var robotCount = commonRobot.normalizeRobotCount(loginObj.robot);
+    if(robotCount <= 0){
+      robotCount = commonRobot.parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
+    }
+    if(robotCount <= 0){
+      return;
+    }
+    var targetRobotCount = Math.min(robotCount, 2);
+    var robotIndex = this.countRobotUsers(desk);
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(robotIndex >= targetRobotCount || this.countOccupiedUsers(desk) >= 3){
+        break;
+      }
+      var userObj = desk.positions[i];
+      if(this.hasUser(userObj)){
+        continue;
+      }
+      userObj.uid = commonRobot.makeRobotUid(desk,userObj.posId);
+      userObj.state = 1;
+      userObj.name = '机器人' + (robotIndex + 1);
+      userObj.avatorUrl = '';
+      userObj.score = 0;
+      userObj.socket = null;
+      userObj.isRobot = true;
+      userObj.disconnectTime = null;
+      userObj.recover_disconnect_data = [];
+      this.broadCastRoom("SIT_CHANGE",desk.deskId,{target:commonRobot.buildRobotLoginData(userObj),posId:userObj.posId});
+      robotIndex++;
+    }
+  },
+  prepareRobotPlayers:function(desk){
+    for (let i = 0; i < desk.positions.length; i++) {
+      var userObj = desk.positions[i];
+      if(this.isRobotUser(userObj) && this.hasUser(userObj) && userObj.state == 1){
+        userObj.state = 2;
+        this.broadCastRoom("PREPARE_SUCCESS",desk.deskId,userObj.posId);
+      }
+    }
+    this.tryStartGame(desk);
+  },
+  shouldAutoPrepareUser:function(loginObj){
+    if(!loginObj){
+      return false;
+    }
+    if(loginObj.auto_ready == 1 || loginObj.auto_ready === true || loginObj.auto_ready === 'true'){
+      return true;
+    }
+    if(!loginObj.lanuch_url){
+      return false;
+    }
+    try {
+      var parsedUrl = new URL(loginObj.lanuch_url, 'http://localhost');
+      var autoReady = parsedUrl.searchParams.get('auto_ready');
+      return autoReady == 1 || autoReady === 'true';
+    } catch (err) {
+      return false;
+    }
+  },
+  tryStartGame:function(desk){
+    if(!desk || desk.state != 0){
+      return false;
+    }
+    var ready_count = 0;
+    for (let j = 0; j < desk.positions.length; j++) {
+      if(desk.positions[j].state == 2){
+        ready_count++;
+      }
+    }
+    if(ready_count != 3){
+      return false;
+    }
+    desk.state = 1;
+    desk.play_index++;
+    if(desk.play_index > desk.play_count){
+      desk.play_index -= desk.play_count;
+    }
+    if(desk.play_index == 1){
+      desk.score_list = [];
+    }
+    this.startGame(desk.deskId,false);
+    return true;
+  },
   getOnlinePosIds:function(deskId){
     let ret = [];
     for (let i = 0; i < this.desks.length; i++) {
@@ -270,7 +409,10 @@ const proto = {
         let userObjNum = 0;
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.uid > 0) userObjNum++;
+          if(this.hasUser(userObj)) userObjNum++;
+          if(!this.hasUser(userObj)){
+            continue;
+          }
           if(except){
             if(userObj.uid != except){
               this.socketEmit(userObj,event,data);
@@ -402,6 +544,7 @@ const proto = {
    //作废本局
   deprecateGame:function(desk){
     console.log("弃局!!")
+    this.clearRobotTimer(desk);
     this.broadCastRoom("GAME_OVER", desk.deskId,  {invalid:1,winner: [],loser: [],score: 0,ratio: 0});
     // this.broadCastRoom("MESSAGE",desk.deskId,{msg:'中途有人逃跑本局成绩作废'});
 
@@ -412,7 +555,7 @@ const proto = {
     var ycscore_list = [];
     for (let i = 0; i < desk.positions.length; i++) {
       desk.positions[i].state = 1;
-      if(desk.positions[i].uid >0) {
+      if(this.hasUser(desk.positions[i]) && !this.isRobotUser(desk.positions[i])) {
         ycscore_list.push({
           uid: desk.positions[i].uid,
           name: desk.positions[i].name,
@@ -440,16 +583,7 @@ const proto = {
         if(userObj.disconnectTime > 0 && getTimeStamp() - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
-          userObj.uid = 0;
-          userObj.state = 0;
-          userObj.name = '';
-          userObj.avatorUrl = '';
-          userObj.score = 0;
-          userObj.disconnectTime = null;
-          userObj.delayCallScore = null;
-          userObj.delayPlayCard = null;
-          //清空断线重连信息
-          userObj.recover_disconnect_data = [];
+          this.resetUser(userObj);
           this.broadCastRoom("MESSAGE",this.desks[i].deskId, { msg:'玩家'+name+'已掉线'},userObj.uid);
           this.broadCastRoom("SIT_CHANGE",this.desks[i].deskId,{target:null,posId:userObj.posId},userObj.uid);
 
@@ -486,14 +620,7 @@ const proto = {
         if(userObj.uid == uid && roomObj.deskId != curRoomId){
           let name = userObj.name;
           console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
-          userObj.uid = 0;
-          userObj.state = 0;
-          userObj.name = '';
-          userObj.avatorUrl = '';
-          userObj.score = 0;
-          userObj.disconnectTime = null;
-          //清空断线重连信息
-          userObj.recover_disconnect_data = [];
+          this.resetUser(userObj);
 
           this.broadCastRoom("MESSAGE",roomObj.deskId, { msg:'玩家'+name+'已掉线'},userObj.uid);
           this.broadCastRoom("SIT_CHANGE",roomObj.deskId,{target:null,posId:userObj.posId},userObj.uid);
@@ -536,6 +663,101 @@ const proto = {
     desk.time_out = 20;
     desk.hadExecuteCallScore = false;
     this.broadCastRoom('CTX_USER_CHANGE', deskId, { ctxPos: game.getContextPosId(), ctxScore: game.getContextScore(), timeout: 20,server_time:getTimeStamp() });
+    this.scheduleRobotTurnIfNeeded(desk);
+  },
+  scheduleRobotTurnIfNeeded:function(desk){
+    this.clearRobotTimer(desk);
+    if(!desk || desk.state != 1){
+      return;
+    }
+    const game = this.gameDatas[desk.deskId];
+    if(!game){
+      return;
+    }
+    var posId = game.getContextPosId();
+    var userObj = this.getPosition(desk,posId);
+    if(!this.isRobotUser(userObj) || userObj.state != 2){
+      return;
+    }
+    var token = ++desk.robot_action_token;
+    var self = this;
+    desk.robot_timer = setTimeout(function(){
+      if(desk.robot_action_token != token || desk.state != 1){
+        return;
+      }
+      self.runRobotAction(desk.deskId,userObj.uid);
+    },commonRobot.getRandomDelayMs());
+  },
+  runRobotAction:function(deskId,uid){
+    var desk = this.getDeskById(deskId);
+    var game = this.gameDatas[deskId];
+    if(!desk || !game || desk.state != 1){
+      return;
+    }
+    var posId = game.getContextPosId();
+    var userObj = this.getPosition(desk,posId);
+    if(!this.isRobotUser(userObj) || userObj.uid != uid){
+      return;
+    }
+    if(game.getStatus() == 1){
+      var score = doudizhuRobot.selectCallScore(game.getContextScore(),game.getCardsByPosId(posId));
+      this.doCallScore(userObj,desk,deskId,game,posId,score);
+    }else if(game.getStatus() == 2){
+      var cards = doudizhuRobot.selectPlayCards(game,posId,desk.islaizi);
+      this.handlePlayCards(desk,userObj,posId,cards,true);
+    }
+  },
+  handlePlayCards:function(desk,userObj,posId,data,isRobotAction){
+    if(!desk || !userObj){
+      return false;
+    }
+    let deskId = desk.deskId;
+    const game = this.gameDatas[deskId];
+    if(!game){
+      return false;
+    }
+    let islaizi = desk.islaizi;
+    data = data || [];
+    const ret = game.canPlayCards(posId, data,islaizi);
+    const isPass = !data.length;
+    const { status } = ret;
+    if (status) {
+      var lastPosId = game.contextPosId;
+      game.next(posId, data,islaizi);
+      posId = lastPosId;
+      if (game.getStatus() === 5) {
+        this.socketEmit(userObj,'PLAY_CARD_ERROR', '游戏出错');
+        return false;
+      }
+
+      desk.time_out = 20;
+      desk.hadExecutePlayCard = false;
+      this.broadCastRoom('CTX_PLAY_CHANGE', deskId, {
+        ctxData: {
+          len: data.length,
+          key: ret.key,
+          type: ret.type,
+          cards: data,
+          posId:posId,
+        },
+        posId: game.getContextPosId(),
+        timeout: 20,
+        server_time:getTimeStamp(),
+        isPass:isPass,
+      });
+      this.socketEmit(userObj,'PLAY_CARD_SUCCESS', data);
+
+      if (game.getStatus() === 3) {
+        this.doGameOver(desk,game);
+      }else{
+        this.scheduleRobotTurnIfNeeded(desk);
+      }
+      return true;
+    }
+    if(!isRobotAction){
+      this.socketEmit(userObj,'PLAY_CARD_ERROR', '你的牌不符合规则');
+    }
+    return false;
   },
   clearRoomByUid:function(uid){
     var deskId = 0;
@@ -568,15 +790,7 @@ const proto = {
     if(desk){
       for (let k = 0; k < desk.positions.length; k++) {
         var userObj = desk.positions[k];
-        userObj.uid = 0;
-        userObj.state = 0;
-        userObj.name = '';
-        userObj.avatorUrl = '';
-        userObj.score = 0;
-        userObj.disconnectTime = null;
-        //清空断线重连信息
-        userObj.recover_disconnect_data = [];
-        userObj.ob_socket_map = {};
+        this.resetUser(userObj);
       }
       desk.name = '';
       desk.state = 0;
@@ -584,6 +798,7 @@ const proto = {
       desk.play_index = 0;
       desk.ready_count = -1;
       desk.ob_socket_map = {};
+      this.clearRobotTimer(desk);
       delete this.gameDatas[deskId];
     }
     return deskId;
@@ -645,6 +860,12 @@ const proto = {
   },
   doCallScore:function(userObj,desk,deskId,game,posId,score){
     console.log("doCallScore")
+    const callCheck = game.canCallScore(posId,score);
+    if(!callCheck.status){
+      this.socketEmit(userObj,'MESSAGE',{msg:'当前不能叫分'});
+      return false;
+    }
+    score = callCheck.score;
     let status = game.next(posId, score).getStatus();
     if (status == 1) {
       
@@ -710,24 +931,26 @@ const proto = {
       this.socketEmit(userObj,'CALL_SCORE_SUCCESS',0);
       this.startGame(deskId,true);
     }
+    this.scheduleRobotTurnIfNeeded(desk);
   },
   doGameOver:function(desk,game){
 
     var deskId = desk.deskId;
+    this.clearRobotTimer(desk);
     var gameResult = game.getResult();
     
     var score = desk.base_score * gameResult.score * gameResult.ratio;
     var score_list = [];
     for (let j = 0; j < gameResult.winner.length; j++) {
       for (let i = 0; i < desk.positions.length; i++) {
-        if(desk.positions[i].posId == gameResult.winner[j]){
+        if(desk.positions[i].posId == gameResult.winner[j] && !this.isRobotUser(desk.positions[i])){
           score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.winner.length,is_win:1,avatorUrl:desk.positions[i].avatarUrl})
         }
       }
     }
     for (let j = 0; j < gameResult.loser.length; j++) {
       for (let i = 0; i < desk.positions.length; i++) {
-        if(desk.positions[i].posId == gameResult.loser[j]){
+        if(desk.positions[i].posId == gameResult.loser[j] && !this.isRobotUser(desk.positions[i])){
           score_list.push({uid:desk.positions[i].uid,name:desk.positions[i].name,score:score/gameResult.loser.length,is_win:0,avatorUrl:desk.positions[i].avatarUrl})
         }
       }
@@ -854,6 +1077,7 @@ const proto = {
                 userObj.avatorUrl = obj.avatorUrl;
                 userObj.score = obj.score;
                 userObj.socket = socket;
+                userObj.isRobot = false;
                 obj.posId = userObj.posId;
                 obj.state = 1;
                 flag = true;
@@ -864,10 +1088,11 @@ const proto = {
             if(flag){// 坐下成功
 
                 self.clients[obj.uid] = socket;
+                self.ensureRobotPlayers(room,obj);
 
                 var playerData = {};
                 for (let i = 0; i < room.positions.length; i++) {
-                  if(room.positions[i].uid > 0){
+                  if(self.hasUser(room.positions[i])){
                     playerData[room.positions[i].posId] = {
                       uid: room.positions[i].uid,
                       state: room.positions[i].state,
@@ -875,6 +1100,7 @@ const proto = {
                       avatorUrl: room.positions[i].avatorUrl,
                       score: room.positions[i].score,
                       posId: room.positions[i].posId,
+                      isRobot: room.positions[i].isRobot === true,
                     };
                   }
                 }
@@ -891,6 +1117,11 @@ const proto = {
                   server_time:getTimeStamp(),
                 });
                 self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
+                if(self.shouldAutoPrepareUser(obj) && userObj.state == 1){
+                  userObj.state = 2;
+                  self.broadCastRoom("PREPARE_SUCCESS",room.deskId,userObj.posId);
+                  self.prepareRobotPlayers(room);
+                }
 
             }else{
               var uids = "";
@@ -926,7 +1157,11 @@ const proto = {
           }
 
           self.broadCastRoom("PREPARE_SUCCESS",desk.deskId,prepare_posId);
-  
+          self.prepareRobotPlayers(desk);
+          if(self.tryStartGame(desk)){
+            return;
+          }
+
           if(isStartGame && desk.state == 0)
           {
             desk.state = 1;//开始游戏
@@ -978,6 +1213,8 @@ const proto = {
         let posId = self.getPosId(socket);
         const desk = self.getDesk(socket);
         if(!desk) return;
+        self.handlePlayCards(desk,self.getUserObj(socket),posId,data,false);
+        return;
         let deskId = desk.deskId;
 
         const game = self.gameDatas[deskId];

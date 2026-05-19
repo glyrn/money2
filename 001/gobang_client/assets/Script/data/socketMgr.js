@@ -34,7 +34,7 @@ const socketMgr = function(){
             protocol = 'ws://';
         }else{
             opts['path'] = '/wzq_socket.io';
-            protocol = 'wss://';
+            protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
         }
         console.log(protocol+defines.serverUrl)
         _socket = window.io.connect(protocol+defines.serverUrl, opts);

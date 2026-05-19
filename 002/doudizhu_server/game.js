@@ -316,6 +316,32 @@ Object.assign(
 
       return { status: false }
     },
+    canPlayCards(posId, cards, islaizi) {
+      const data = cards || [];
+      if (posId !== this.contextPosId) {
+        return {status: false, reason: 'not_turn'};
+      }
+      if (!data.length) {
+        if (this.status !== 2 || this.lastCardInfo.posId === posId || this.lastCardInfo.len === 0) {
+          return {status: false, reason: 'cannot_pass'};
+        }
+        return {status: true, isPass: true};
+      }
+      return this.validate(posId, data, islaizi);
+    },
+    canCallScore(posId, score) {
+      const parsedScore = parseInt(score, 10);
+      if (this.status !== 1) {
+        return {status: false, reason: 'not_calling'};
+      }
+      if (posId !== this.contextPosId) {
+        return {status: false, reason: 'not_turn'};
+      }
+      if (parsedScore !== 0 && this.contextScore.indexOf(parsedScore) === -1) {
+        return {status: false, reason: 'invalid_score'};
+      }
+      return {status: true, score: Number.isFinite(parsedScore) ? parsedScore : 0};
+    },
     //检查牌是否存在，防客户端作弊
     checkExist(cards, posId) {
       for (var i = 0; i < cards.length; i++) {

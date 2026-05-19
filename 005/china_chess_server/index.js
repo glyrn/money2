@@ -3,6 +3,8 @@ const os = require('os');
 const https = require('https');
 const fs = require('fs');
 const _ = require('lodash');
+const commonRobot = require('../../common/robot');
+const chessRobot = require('./robot');
 //本地调试
 var ioParam = {path:'/zgxq_socket.io'};
 var isDebug = false;
@@ -20,7 +22,9 @@ const express = require('express'),
     app = express(),
     http = require('http').Server(app),
     io = require('socket.io')(http,ioParam);
-app.use(express.static(`${__dirname}/../china_chess_client`));
+const chinaChessClientPath = `${__dirname}/../china_chess_client`;
+const chinaChessClientBuildPath = `${chinaChessClientPath}/build/web-mobile`;
+app.use(express.static(fs.existsSync(chinaChessClientBuildPath) ? chinaChessClientBuildPath : chinaChessClientPath));
 // 设置跨域头部
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -74,6 +78,10 @@ const proto = {
         base_score:100,
         play_index:0,
         ob_socket_map:{},
+        robot_timer:null,
+        robot_action_token:0,
+        chess_board:null,
+        selected_chess:{},
       }
       for (let j = 0; j < 2; j++) {
         desk.positions.push({
@@ -84,6 +92,7 @@ const proto = {
           avatorUrl: '',
           score:0,
           socket:null,
+          isRobot:false,
           recover_disconnect_data:[],
         })
       }
@@ -170,6 +179,224 @@ const proto = {
     }
     return findDesk;
   },
+  hasUser:function(userObj){
+    return !!(userObj && userObj.uid !== 0 && userObj.uid !== '0' && userObj.uid !== null && userObj.uid !== undefined && userObj.uid !== '');
+  },
+  isRobotUser:function(userObj){
+    return !!(userObj && userObj.isRobot === true);
+  },
+  clearRobotTimer:function(desk){
+    if(desk && desk.robot_timer){
+      clearTimeout(desk.robot_timer);
+      desk.robot_timer = null;
+    }
+    if(desk){
+      desk.robot_action_token++;
+    }
+  },
+  resetUser:function(userObj){
+    userObj.uid = 0;
+    userObj.state = 0;
+    userObj.name = '';
+    userObj.avatorUrl = '';
+    userObj.score = 0;
+    userObj.socket = null;
+    userObj.disconnectTime = null;
+    userObj.isRobot = false;
+    userObj.recover_disconnect_data = [];
+  },
+  countRobotUsers:function(desk){
+    var count = 0;
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(this.isRobotUser(desk.positions[i]) && this.hasUser(desk.positions[i])){
+        count++;
+      }
+    }
+    return count;
+  },
+  ensureRobotPlayers:function(desk,loginObj){
+    if(!desk || desk.state != 0){
+      return;
+    }
+    var robotCount = commonRobot.normalizeRobotCount(loginObj.robot);
+    if(robotCount <= 0){
+      robotCount = commonRobot.parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
+    }
+    if(robotCount <= 0){
+      return;
+    }
+    var robotIndex = this.countRobotUsers(desk);
+    for (let i = 0; i < desk.positions.length && robotIndex < 1; i++) {
+      var userObj = desk.positions[i];
+      if(this.hasUser(userObj)){
+        continue;
+      }
+      userObj.uid = commonRobot.makeRobotUid(desk,userObj.posId);
+      userObj.state = 1;
+      userObj.name = '机器人' + (robotIndex + 1);
+      userObj.avatorUrl = '';
+      userObj.score = 0;
+      userObj.socket = null;
+      userObj.isRobot = true;
+      userObj.disconnectTime = null;
+      userObj.recover_disconnect_data = [];
+      this.broadCastRoom("SIT_CHANGE",desk.deskId,{target:commonRobot.buildRobotLoginData(userObj)});
+      robotIndex++;
+    }
+  },
+  prepareRobotPlayers:function(desk){
+    for (let i = 0; i < desk.positions.length; i++) {
+      var userObj = desk.positions[i];
+      if(this.isRobotUser(userObj) && this.hasUser(userObj) && userObj.state == 1){
+        userObj.state = 2;
+        this.broadCastRoom("PREPARE_SUCCESS",desk.deskId,userObj.uid);
+      }
+    }
+    this.tryStartGame(desk);
+  },
+  shouldAutoPrepareUser:function(loginObj){
+    if(!loginObj){
+      return false;
+    }
+    if(loginObj.auto_ready == 1 || loginObj.auto_ready === true || loginObj.auto_ready === 'true'){
+      return true;
+    }
+    if(!loginObj.lanuch_url){
+      return false;
+    }
+    try {
+      var parsedUrl = new URL(loginObj.lanuch_url, 'http://localhost');
+      var autoReady = parsedUrl.searchParams.get('auto_ready');
+      return autoReady == 1 || autoReady === 'true';
+    } catch (err) {
+      return false;
+    }
+  },
+  tryStartGame:function(roomObj){
+    if(!roomObj || roomObj.state != 0){
+      return false;
+    }
+    var ready_count = 0;
+    var hasRobot = false;
+    for (let j = 0; j < roomObj.positions.length; j++) {
+      if(roomObj.positions[j].state == 2){
+        ready_count++;
+      }
+      if(this.isRobotUser(roomObj.positions[j]) && this.hasUser(roomObj.positions[j])){
+        hasRobot = true;
+      }
+    }
+    var isStartGame = false;
+    if(hasRobot && ready_count == 2){
+      isStartGame = true;
+    }else if(roomObj.play_mode == 0 && ready_count == 1){
+      isStartGame = true;
+    }else if(roomObj.play_mode == 1 && ready_count == 2){
+      isStartGame = true;
+    }
+    if(!isStartGame){
+      return false;
+    }
+    roomObj.state = 1;
+    roomObj.time_out = 90;
+    roomObj.hadPlayChess = false;
+    roomObj.turn = roomObj.play_index % 2 == 0 ? 0 : 1;
+    roomObj.chess_board = chessRobot.createInitialBoard();
+    roomObj.selected_chess = {};
+    this.broadCastRoom("GAME_START",roomObj.deskId,{posId:roomObj.turn,time_out:getTimeStamp()+roomObj.time_out});
+    roomObj.play_index++;
+    if(roomObj.play_index > roomObj.play_count){
+      roomObj.play_index -= roomObj.play_count;
+    }
+    if(roomObj.play_index == 1){
+      roomObj.score_list = [];
+    }
+    this.scheduleRobotTurnIfNeeded(roomObj);
+    return true;
+  },
+  scheduleRobotTurnIfNeeded:function(desk){
+    this.clearRobotTimer(desk);
+    if(!desk || desk.state != 1){
+      return;
+    }
+    var userObj = desk.positions[desk.turn];
+    if(!this.isRobotUser(userObj) || userObj.state != 2){
+      return;
+    }
+    var token = ++desk.robot_action_token;
+    var self = this;
+    desk.robot_timer = setTimeout(function(){
+      if(desk.robot_action_token != token || desk.state != 1){
+        return;
+      }
+      self.runRobotMove(desk.deskId,userObj.uid);
+    },commonRobot.getRandomDelayMs());
+  },
+  runRobotMove:function(deskId,uid){
+    var desk = this.getDeskById(deskId);
+    if(!desk || desk.state != 1){
+      return;
+    }
+    var userObj = desk.positions[desk.turn];
+    if(!this.isRobotUser(userObj) || userObj.uid != uid){
+      return;
+    }
+    var move = chessRobot.selectRobotMove(desk.chess_board,userObj.posId);
+    if(!move){
+      return;
+    }
+    this.handlePlayChess(desk,userObj.posId,{x:move.from.x,y:move.from.y,move:0},true);
+    this.handlePlayChess(desk,userObj.posId,{x:move.to.x,y:move.to.y,move:desk.chess_board[move.to.y][move.to.x] ? 0 : 1},true);
+  },
+  handlePlayChess:function(desk,posId,data,isRobotAction){
+    if(!desk || !data || desk.state != 1 || desk.turn != posId){
+      return false;
+    }
+    var x = parseInt(data.x,10);
+    var y = parseInt(data.y,10);
+    if(!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x >= chessRobot.WIDTH || y < 0 || y >= chessRobot.HEIGHT){
+      return false;
+    }
+    if(!desk.chess_board){
+      desk.chess_board = chessRobot.createInitialBoard();
+    }
+    if(!desk.selected_chess){
+      desk.selected_chess = {};
+    }
+    var selected = desk.selected_chess[posId];
+    var piece = desk.chess_board[y][x];
+    if(!selected){
+      if(!piece || chessRobot.getPieceSide(piece) !== posId){
+        return false;
+      }
+      desk.selected_chess[posId] = {x:x,y:y};
+      this.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{x:x,y:y,move:0});
+      return true;
+    }
+
+    if(piece && chessRobot.getPieceSide(piece) === posId){
+      desk.selected_chess[posId] = {x:x,y:y};
+      this.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{x:x,y:y,move:0});
+      return true;
+    }
+
+    var to = {x:x,y:y};
+    if(!chessRobot.isLegalMove(desk.chess_board,posId,selected,to)){
+      if(!isRobotAction){
+        desk.selected_chess[posId] = null;
+      }
+      return false;
+    }
+    chessRobot.applyMove(desk.chess_board,selected,to);
+    desk.selected_chess[posId] = null;
+    desk.time_out = 90;
+    desk.hadPlayChess = false;
+    data.time_out = getTimeStamp()+desk.time_out;
+    this.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,data);
+    desk.turn = posId == 0 ? 1 : 0;
+    this.scheduleRobotTurnIfNeeded(desk);
+    return true;
+  },
   socketEmit:function(userObj,event,data){
     var saveData = _.cloneDeep(data);
 
@@ -197,7 +424,10 @@ const proto = {
         let userObjNum = 0;
         for (let j = 0; j < roomObj.positions.length; j++) {
           var userObj = roomObj.positions[j];
-          if(userObj.uid > 0) userObjNum++;
+          if(this.hasUser(userObj)) userObjNum++;
+          if(!this.hasUser(userObj)){
+            continue;
+          }
           if(except){
             if(userObj.uid != except){
               this.socketEmit(userObj,event,data);
@@ -221,6 +451,7 @@ const proto = {
 
     //广播给剩余的观众弃局
     console.log("弃局!!")
+    this.clearRobotTimer(desk);
     this.broadCastRoom("GAME_OVER_DEPRECATE",desk.deskId);
     desk.state = 0;
     desk.deprecate_time = 0;
@@ -231,7 +462,7 @@ const proto = {
     var ycscore_list = [];
     for (let i = 0; i < desk.positions.length; i++) {
       desk.positions[i].state = 1;
-      if(desk.positions[i].uid >0) {
+      if(this.hasUser(desk.positions[i]) && !this.isRobotUser(desk.positions[i])) {
         ycscore_list.push({
           uid: desk.positions[i].uid,
           name: desk.positions[i].name,
@@ -297,14 +528,7 @@ const proto = {
         if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
-          userObj.uid = 0;
-          userObj.state = 0;
-          userObj.name = '';
-          userObj.avatorUrl = '';
-          userObj.score = 0;
-          userObj.disconnectTime = null;
-          //清空断线重连信息
-          userObj.recover_disconnect_data = [];
+          this.resetUser(userObj);
 
           this.broadCastRoom("MESSAGE",this.desks[i].deskId,'玩家'+name+'已掉线',userObj.uid);
           this.broadCastRoom("SIT_CHANGE",this.desks[i].deskId,{target:null},userObj.uid);
@@ -345,17 +569,11 @@ const proto = {
         //房间号不同 要退出原来房间
         if(userObj.uid == uid && roomObj.deskId != curRoomId){
 
+          let name = userObj.name;
           console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
-          userObj.uid = 0;
-          userObj.state = 0;
-          userObj.name = '';
-          userObj.avatorUrl = '';
-          userObj.score = 0;
-          userObj.disconnectTime = null;
-          //清空断线重连信息
-          userObj.recover_disconnect_data = [];
+          this.resetUser(userObj);
 
-          this.broadCastRoom("MESSAGE",roomObj.deskId,'玩家'+userObj.name+'已掉线',userObj.uid);
+          this.broadCastRoom("MESSAGE",roomObj.deskId,'玩家'+name+'已掉线',userObj.uid);
           this.broadCastRoom("SIT_CHANGE",roomObj.deskId,{target:null},userObj.uid);
 
           //检查是否全部掉线 是的话要重置房间
@@ -412,14 +630,7 @@ const proto = {
     if(desk){
       for (let k = 0; k < desk.positions.length; k++) {
         var userObj = desk.positions[k];
-        userObj.uid = 0;
-        userObj.state = 0;
-        userObj.name = '';
-        userObj.avatorUrl = '';
-        userObj.score = 0;
-        userObj.disconnectTime = null;
-        //清空断线重连信息
-        userObj.recover_disconnect_data = [];
+        this.resetUser(userObj);
       }
       desk.name = '';
       desk.state = 0;
@@ -427,6 +638,9 @@ const proto = {
       desk.play_index = 0;
       desk.ready_count = -1;
       desk.ob_socket_map = {};
+      desk.chess_board = null;
+      desk.selected_chess = {};
+      this.clearRobotTimer(desk);
     }
     return deskId;
   },
@@ -575,6 +789,7 @@ const proto = {
                 userObj.avatorUrl = obj.avatorUrl;
                 userObj.score = obj.score;
                 userObj.socket = socket;
+                userObj.isRobot = false;
                 obj.posId = userObj.posId;
                 obj.state = 1;
                 flag = true;
@@ -591,6 +806,7 @@ const proto = {
               room.play_count = obj.play_count;
               room.deprecate_time = 30;
               room.hadDeprecateGame = false;
+              self.ensureRobotPlayers(room,obj);
 
               var target = null;
               if(room.play_mode == 1){ //人人对战
@@ -604,6 +820,7 @@ const proto = {
                       score : room_target.score,
                       posId: room_target.posId,
                       state : room_target.state,
+                      isRobot: room_target.isRobot === true,
                     }
                   }
                 }
@@ -619,6 +836,11 @@ const proto = {
               });
 
               self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj},obj.uid);
+              if(self.shouldAutoPrepareUser(obj) && userObj.state == 1){
+                userObj.state = 2;
+                self.broadCastRoom("PREPARE_SUCCESS",room.deskId,userObj.uid);
+                self.prepareRobotPlayers(room);
+              }
             }else{
               socket.emit("MESSAGE",'房间已满员');
             }
@@ -649,6 +871,10 @@ const proto = {
           }
       
           self.broadCastRoom("PREPARE_SUCCESS",roomObj.deskId,self.getUid(socket));
+          self.prepareRobotPlayers(roomObj);
+          if(self.tryStartGame(roomObj)){
+            return;
+          }
 
           if(isStartGame && roomObj.state == 0)
           {
@@ -657,6 +883,8 @@ const proto = {
             roomObj.hadPlayChess = false;
 
             roomObj.turn = roomObj.play_index %2 == 0 ? 0:1;
+            roomObj.chess_board = chessRobot.createInitialBoard();
+            roomObj.selected_chess = {};
             self.broadCastRoom("GAME_START",roomObj.deskId,{posId:roomObj.turn,time_out:getTimeStamp()+roomObj.time_out});
 
             roomObj.play_index++;
@@ -699,6 +927,9 @@ const proto = {
       socket.on('PLAY_CHESS', function(data){
         var desk = self.getDesk(socket);
         if(desk){
+          var posId = self.getPosId(socket);
+          self.handlePlayChess(desk,posId,data,false);
+          return;
           if(data.move == 1){
             desk.time_out = 90;
             desk.hadPlayChess = false;
@@ -750,8 +981,8 @@ const proto = {
 
       socket.on('REQ_GAME_OVER',function(data){
         var room = self.getDesk(socket);
-        // 防止重复发送结算
-        if(room && room.state != 0){
+        if(room){
+          self.clearRobotTimer(room);
           room.state = 0;
           room.deprecate_time = 30;
           room.hadDeprecateGame = false;
@@ -771,35 +1002,25 @@ const proto = {
               score = 0;
               is_win = 0;
             }
-            score_list.push({
-              uid:room.positions[i].uid,
-              name:room.positions[i].name,
-              avatorUrl:room.positions[i].avatorUrl,
-              score:score,
-              is_win:is_win
-            })
+            if(!self.isRobotUser(room.positions[i])){
+              score_list.push({
+                uid:room.positions[i].uid,
+                name:room.positions[i].name,
+                avatorUrl:room.positions[i].avatorUrl,
+                score:score,
+                is_win:is_win
+              })
+            }
           }
           if(!room.score_list) room.score_list = [];
           room.score_list.push({play_index:room.play_index,score_list:score_list})
           
           if(room.play_index == room.play_count){
-            // 去重
-            let unique_list = [];
-            for (let i = 1; i <= room.play_count; i++) {
-              for (let j = 0; j < room.score_list.length; j++) {
-                const element = room.score_list[j];
-                if(element.play_index == i){
-                  unique_list.push(element);
-                  break;
-                }
-              }             
-            }
-
             //发送给云村数据
             self.sendYcGameOver({
               room_id:room.name,
               game_id:5,
-              score_list:unique_list
+              score_list:room.score_list
             });
           }
         }

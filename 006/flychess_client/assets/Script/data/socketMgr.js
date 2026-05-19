@@ -246,7 +246,7 @@ const socketMgr = function(){
 
         //防止极限操作
         var time_value = _gameMgr.time_out - that.getServerTime();
-        if(time_value <= 1){
+        if(time_value <= 0){
             return false;
         }
 
@@ -258,7 +258,7 @@ const socketMgr = function(){
         if(_gameMgr.isRecover) return false;
         //防止极限操作
         var time_value = _gameMgr.time_out - that.getServerTime();
-        if(time_value <= 1){
+        if(time_value <= 0){
             return false;
         }
         
