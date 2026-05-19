@@ -5,6 +5,32 @@ const path = require('node:path');
 
 const robot = require('../robot');
 
+test('robot helpers parse counts and build local robot login data', () => {
+  assert.equal(robot.normalizeRobotCount(undefined), 0);
+  assert.equal(robot.normalizeRobotCount('2'), 2);
+  assert.equal(robot.normalizeRobotCount(9), 3);
+  assert.equal(robot.parseRobotCountFromLaunchUrl('/index.html?room=a&robot=3#hash'), 3);
+  assert.equal(robot.getRandomDelayMs(() => 0.5), 2000);
+  const uid = robot.makeRobotUid({deskId: 12}, 3);
+  assert.equal(uid, 900000123);
+  assert.deepEqual(robot.buildRobotLoginData({
+    uid,
+    state: 2,
+    name: '机器人1',
+    avatorUrl: '',
+    score: 0,
+    posId: 3,
+  }), {
+    uid,
+    state: 2,
+    name: '机器人1',
+    avatorUrl: '',
+    score: 0,
+    posId: 3,
+    isRobot: true,
+  });
+});
+
 test('selectRobotCard matches top card color before value', () => {
   const hand = [
     {type: 1, value: 5, color: 2},

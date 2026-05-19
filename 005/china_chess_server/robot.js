@@ -1,3 +1,4 @@
+const MAX_ROBOT_COUNT = 3;
 const WIDTH = 9;
 const HEIGHT = 10;
 
@@ -13,6 +14,53 @@ const INITIAL_BOARD = [
   [null, null, null, null, null, null, null, null, null],
   ['c0', 'm0', 'x0', 's0', 'j0', 's1', 'x1', 'm1', 'c1'],
 ];
+
+function normalizeRobotCount(value) {
+  const count = parseInt(value, 10);
+  if (!Number.isFinite(count) || count <= 0) {
+    return 0;
+  }
+  return Math.min(count, MAX_ROBOT_COUNT);
+}
+
+function parseQueryRobotValue(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    return undefined;
+  }
+  const queryStart = rawUrl.indexOf('?');
+  if (queryStart < 0) {
+    return undefined;
+  }
+  const hashStart = rawUrl.indexOf('#', queryStart);
+  const query = rawUrl.slice(queryStart + 1, hashStart >= 0 ? hashStart : undefined);
+  const params = new URLSearchParams(query);
+  return params.get('robot');
+}
+
+function parseRobotCountFromLaunchUrl(rawUrl) {
+  return normalizeRobotCount(parseQueryRobotValue(rawUrl));
+}
+
+function getRandomDelayMs(randomFn) {
+  const rng = typeof randomFn === 'function' ? randomFn : Math.random;
+  return 1000 + Math.floor(rng() * 2001);
+}
+
+function makeRobotUid(desk, posId) {
+  return 900000000 + parseInt(desk.deskId, 10) * 10 + parseInt(posId, 10);
+}
+
+function buildRobotLoginData(userObj) {
+  return {
+    uid: userObj.uid,
+    state: userObj.state,
+    name: userObj.name,
+    avatorUrl: userObj.avatorUrl,
+    score: userObj.score,
+    posId: userObj.posId,
+    isRobot: true,
+  };
+}
 
 function createInitialBoard() {
   return INITIAL_BOARD.map((row) => row.slice());
@@ -186,8 +234,14 @@ function selectRobotMove(board, side, randomFn) {
 module.exports = {
   WIDTH,
   HEIGHT,
+  MAX_ROBOT_COUNT,
+  buildRobotLoginData,
   createInitialBoard,
+  getRandomDelayMs,
   getPieceSide,
+  makeRobotUid,
+  normalizeRobotCount,
+  parseRobotCountFromLaunchUrl,
   isLegalMove,
   applyMove,
   getLegalMoves,

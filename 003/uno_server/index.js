@@ -3,7 +3,6 @@ const os = require('os');
 const https = require('https');
 const fs = require('fs');
 const _ = require('lodash');
-const commonRobot = require('../../common/robot');
 const unoRobot = require('./robot');
 
 //本地调试
@@ -283,9 +282,9 @@ const proto = {
     if(!desk || desk.state != 0){
       return;
     }
-    var robotCount = commonRobot.normalizeRobotCount(loginObj.robot);
+    var robotCount = unoRobot.normalizeRobotCount(loginObj.robot);
     if(robotCount <= 0){
-      robotCount = commonRobot.parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
+      robotCount = unoRobot.parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
     }
     if(robotCount <= 0){
       return;
@@ -300,7 +299,7 @@ const proto = {
       if(this.hasUser(userObj)){
         continue;
       }
-      userObj.uid = commonRobot.makeRobotUid(desk,userObj.posId);
+      userObj.uid = unoRobot.makeRobotUid(desk,userObj.posId);
       userObj.state = 1;
       userObj.name = '机器人' + (robotIndex + 1);
       userObj.avatorUrl = '';
@@ -309,7 +308,7 @@ const proto = {
       userObj.isRobot = true;
       userObj.disconnectTime = null;
       userObj.recover_disconnect_data = [];
-      this.broadCastRoom("SIT_CHANGE",desk.deskId,{target:commonRobot.buildRobotLoginData(userObj),posId:userObj.posId});
+      this.broadCastRoom("SIT_CHANGE",desk.deskId,{target:unoRobot.buildRobotLoginData(userObj),posId:userObj.posId});
       robotIndex++;
     }
   },
@@ -739,7 +738,7 @@ const proto = {
         return;
       }
       self.runRobotAction(desk.deskId,userObj.uid);
-    },commonRobot.getRandomDelayMs());
+    },unoRobot.getRandomDelayMs());
   },
   runRobotAction:function(deskId,uid){
     var desk = this.getDeskById(deskId);

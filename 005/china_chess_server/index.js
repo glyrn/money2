@@ -3,7 +3,6 @@ const os = require('os');
 const https = require('https');
 const fs = require('fs');
 const _ = require('lodash');
-const commonRobot = require('../../common/robot');
 const chessRobot = require('./robot');
 //本地调试
 var ioParam = {path:'/zgxq_socket.io'};
@@ -218,9 +217,9 @@ const proto = {
     if(!desk || desk.state != 0){
       return;
     }
-    var robotCount = commonRobot.normalizeRobotCount(loginObj.robot);
+    var robotCount = chessRobot.normalizeRobotCount(loginObj.robot);
     if(robotCount <= 0){
-      robotCount = commonRobot.parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
+      robotCount = chessRobot.parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
     }
     if(robotCount <= 0){
       return;
@@ -231,7 +230,7 @@ const proto = {
       if(this.hasUser(userObj)){
         continue;
       }
-      userObj.uid = commonRobot.makeRobotUid(desk,userObj.posId);
+      userObj.uid = chessRobot.makeRobotUid(desk,userObj.posId);
       userObj.state = 1;
       userObj.name = '机器人' + (robotIndex + 1);
       userObj.avatorUrl = '';
@@ -240,7 +239,7 @@ const proto = {
       userObj.isRobot = true;
       userObj.disconnectTime = null;
       userObj.recover_disconnect_data = [];
-      this.broadCastRoom("SIT_CHANGE",desk.deskId,{target:commonRobot.buildRobotLoginData(userObj)});
+      this.broadCastRoom("SIT_CHANGE",desk.deskId,{target:chessRobot.buildRobotLoginData(userObj)});
       robotIndex++;
     }
   },
@@ -330,7 +329,7 @@ const proto = {
         return;
       }
       self.runRobotMove(desk.deskId,userObj.uid);
-    },commonRobot.getRandomDelayMs());
+    },chessRobot.getRandomDelayMs());
   },
   runRobotMove:function(deskId,uid){
     var desk = this.getDeskById(deskId);

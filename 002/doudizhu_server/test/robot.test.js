@@ -9,6 +9,32 @@ function setCards(game, posId, cards) {
   game.contextCards.push({id: posId, cards});
 }
 
+test('robot helpers parse counts and build local robot login data', () => {
+  assert.equal(robot.normalizeRobotCount(undefined), 0);
+  assert.equal(robot.normalizeRobotCount('2'), 2);
+  assert.equal(robot.normalizeRobotCount(9), 3);
+  assert.equal(robot.parseRobotCountFromLaunchUrl('/index.html?room=a&robot=2#hash'), 2);
+  assert.equal(robot.getRandomDelayMs(() => 0.5), 2000);
+  const uid = robot.makeRobotUid({deskId: 12}, 2);
+  assert.equal(uid, 900000122);
+  assert.deepEqual(robot.buildRobotLoginData({
+    uid,
+    state: 2,
+    name: '机器人1',
+    avatorUrl: '',
+    score: 0,
+    posId: 2,
+  }), {
+    uid,
+    state: 2,
+    name: '机器人1',
+    avatorUrl: '',
+    score: 0,
+    posId: 2,
+    isRobot: true,
+  });
+});
+
 test('selectCallScore bids within available score options', () => {
   assert.equal(robot.selectCallScore([1, 2, 3], [{value: 16}, {value: 17}]), 3);
   assert.equal(robot.selectCallScore([1, 2], [{value: 3}, {value: 4}]), 1);

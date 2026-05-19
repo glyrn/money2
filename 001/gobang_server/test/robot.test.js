@@ -11,6 +11,32 @@ function place(board, tag, state) {
   board[tag].state = state;
 }
 
+test('robot helpers parse counts and build local robot login data', () => {
+  assert.equal(robot.normalizeRobotCount(undefined), 0);
+  assert.equal(robot.normalizeRobotCount('2'), 2);
+  assert.equal(robot.normalizeRobotCount(9), 3);
+  assert.equal(robot.parseRobotCountFromLaunchUrl('/index.html?room=a&robot=1#hash'), 1);
+  assert.equal(robot.getRandomDelayMs(() => 0.5), 2000);
+  const uid = robot.makeRobotUid({deskId: 12}, 1);
+  assert.equal(uid, 900000121);
+  assert.deepEqual(robot.buildRobotLoginData({
+    uid,
+    state: 2,
+    name: '机器人1',
+    avatorUrl: '',
+    score: 0,
+    posId: 1,
+  }), {
+    uid,
+    state: 2,
+    name: '机器人1',
+    avatorUrl: '',
+    score: 0,
+    posId: 1,
+    isRobot: true,
+  });
+});
+
 test('selectRobotMove returns an empty tag', () => {
   const board = emptyBoard();
   place(board, 112, 0);
