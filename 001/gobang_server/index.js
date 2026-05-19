@@ -613,7 +613,7 @@ const proto = {
         ycscore_list.push({
           uid: desk.positions[i].uid,
           name: desk.positions[i].name,
-          score: desk.positions[i].gain_score,
+          score: desk.positions[i].score,
           is_win: 0,
           avatorUrl:desk.positions[i].avatorUrl,
         })
