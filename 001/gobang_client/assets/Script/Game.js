@@ -1,4 +1,4 @@
-import globalData from "./data/globalData.js"
+import globalData from "./data/globalData"
 import AvatorMini from "../Prefab/AvatorMini"
 import PanelAvators from "../Prefab/PanelAvators"
 cc.Class({

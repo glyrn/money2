@@ -1,6 +1,6 @@
-import globalData from "./data/globalData.js"
-import chessLogic from "./data/chessLogic.js"
-import playLogic from "./data/playLogic.js"
+import globalData from "./data/globalData"
+import chessLogic from "./data/chessLogic"
+import playLogic from "./data/playLogic"
 import AvatorMini from "../Prefab/AvatorMini";
 import PanelAvators from "../Prefab/PanelAvators"
 cc.Class({

@@ -1,4 +1,3 @@
-import globalData from "./globalData.js"
 if(window.io == undefined){
     console.error("找不到socket.io.js库文件");
 }
@@ -27,13 +26,13 @@ const socketMgr = function(){
             'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
+            'path': '/wzq_socket.io',
         }
 
         var protocol = ''
         if(defines.isDebug){
             protocol = 'ws://';
         }else{
-            opts['path'] = '/wzq_socket.io';
             protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
         }
         console.log(protocol+defines.serverUrl)
@@ -216,7 +215,7 @@ const socketMgr = function(){
         if(that.checkIsObserve()) return;
 
         var now_ts = (new Date().getTime() / 1000);
-        var time_value = globalData.gameMgr.time_out - Math.floor(now_ts);
+        var time_value = _gameMgr.time_out - Math.floor(now_ts);
         if(time_value <= 1){
             return;
         }

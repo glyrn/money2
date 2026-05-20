@@ -254,6 +254,9 @@ const proto = {
     userObj.delayPlayCard = null;
     userObj.recover_disconnect_data = [];
   },
+  isActiveGame:function(desk){
+    return desk && desk.state == 1;
+  },
   countRobotUsers:function(desk){
     var count = 0;
     for (let i = 0; i < desk.positions.length; i++) {
@@ -492,6 +495,7 @@ const proto = {
                   server_time:getTimeStamp(),
                   isPass: true,
                 });
+                self.scheduleRobotTurnIfNeeded(desk);
 
             }else {
               //上一手是他自己出的
@@ -518,6 +522,8 @@ const proto = {
                 if (game.getStatus() === 3) {
                   //游戏结束
                   self.doGameOver(desk,game);
+                }else{
+                  self.scheduleRobotTurnIfNeeded(desk);
                 }
               }
             }
@@ -580,6 +586,8 @@ const proto = {
         var userObj = this.desks[i].positions[j];
 
         if(userObj.disconnectTime > 0 && getTimeStamp() - userObj.disconnectTime >= (isDebug ? 180:180)){
+          var desk = this.desks[i];
+          var shouldDeprecateGame = this.isActiveGame(desk);
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           this.resetUser(userObj);
@@ -588,7 +596,6 @@ const proto = {
 
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
-          var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
             if(this.desks[i].positions[k].uid > 0 ){
               isClean = false;
@@ -601,7 +608,9 @@ const proto = {
             desk.ready_count = -1;
           }
 
-          this.deprecateGame(desk);
+          if(shouldDeprecateGame){
+            this.deprecateGame(desk);
+          }
           
           
         }
@@ -617,6 +626,8 @@ const proto = {
         var userObj = roomObj.positions[j];
         //房间号不同 要退出原来房间
         if(userObj.uid == uid && roomObj.deskId != curRoomId){
+          let desk = this.desks[i];
+          var shouldDeprecateGame = this.isActiveGame(desk);
           let name = userObj.name;
           console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
           this.resetUser(userObj);
@@ -638,8 +649,9 @@ const proto = {
             this.desks[i].ready_count = -1;
           }
 
-          let desk = this.desks[i];
-          this.deprecateGame(desk);
+          if(shouldDeprecateGame){
+            this.deprecateGame(desk);
+          }
           
         }
       }
@@ -973,7 +985,7 @@ const proto = {
     this.updatePosStatus(deskId, 2, 1);
     game.init();
     desk.state = 0;
-    desk.deprecate_time = 30;
+    desk.deprecate_time = 0;
     desk.hadDeprecateGame = false;
     console.log("游戏结果：",gameResult);
     this.broadCastRoom('GAME_OVER', deskId, gameResult);

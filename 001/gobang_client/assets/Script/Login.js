@@ -1,5 +1,5 @@
-import globalData from "./data/globalData.js"
-import PanelLoading from '../Prefab/PanelLoading.js'
+import globalData from "./data/globalData"
+import PanelLoading from '../Prefab/PanelLoading'
 cc.Class({
     extends: cc.Component,
 

@@ -1,4 +1,4 @@
-import globalData from "../../globalData.js";
+import globalData from "../../globalData";
 
 let card_map = {
     '14-0':'27',

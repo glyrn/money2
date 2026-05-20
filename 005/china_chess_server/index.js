@@ -204,6 +204,9 @@ const proto = {
     userObj.isRobot = false;
     userObj.recover_disconnect_data = [];
   },
+  isActiveGame:function(desk){
+    return desk && desk.state == 1;
+  },
   countRobotUsers:function(desk){
     var count = 0;
     for (let i = 0; i < desk.positions.length; i++) {
@@ -525,6 +528,8 @@ const proto = {
         var userObj = this.desks[i].positions[j];
 
         if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
+          var desk = this.desks[i];
+          var shouldDeprecateGame = this.isActiveGame(desk);
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
           let name = userObj.name;
           this.resetUser(userObj);
@@ -534,7 +539,6 @@ const proto = {
 
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
-          var desk = this.desks[i];
           var winerPosId = 0;
           for (let k = 0; k < desk.positions.length; k++) {
             if(desk.positions[k].uid > 0){
@@ -552,7 +556,9 @@ const proto = {
             // desk.hadDeprecateGame = false;
           }
             // this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
-            this.deprecateGame(desk);
+            if(shouldDeprecateGame){
+              this.deprecateGame(desk);
+            }
         
           
         }
@@ -567,6 +573,8 @@ const proto = {
         var userObj = roomObj.positions[j];
         //房间号不同 要退出原来房间
         if(userObj.uid == uid && roomObj.deskId != curRoomId){
+          let desk = this.desks[i];
+          var shouldDeprecateGame = this.isActiveGame(desk);
 
           let name = userObj.name;
           console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
@@ -590,8 +598,9 @@ const proto = {
           }
             
             // this.broadCastRoom("MESSAGE",desk.deskId,'中途有人逃跑本局成绩作废');
-            let desk = this.desks[i];
-            this.deprecateGame(desk);
+            if(shouldDeprecateGame){
+              this.deprecateGame(desk);
+            }
 
           
         }
@@ -983,7 +992,7 @@ const proto = {
         if(room){
           self.clearRobotTimer(room);
           room.state = 0;
-          room.deprecate_time = 30;
+          room.deprecate_time = 0;
           room.hadDeprecateGame = false;
           room.time_out = 0;
           room.hadPlayChess = false;

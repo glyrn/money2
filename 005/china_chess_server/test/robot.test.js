@@ -1,7 +1,37 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const robot = require('../robot');
+
+function readIndexSource() {
+  return fs.readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8');
+}
+
+function getIndexSection(startMarker, endMarker) {
+  const source = readIndexSource();
+  const start = source.indexOf(startMarker);
+  assert.notEqual(start, -1);
+  const end = source.indexOf(endMarker, start);
+  assert.notEqual(end, -1);
+  return source.slice(start, end);
+}
+
+function assertCleanupOnlyDeprecatesActiveGame(section) {
+  const captureIndex = section.indexOf('var shouldDeprecateGame = this.isActiveGame(desk);');
+  assert.notEqual(captureIndex, -1);
+  const resetIndex = section.indexOf('this.resetUser(userObj);');
+  assert.notEqual(resetIndex, -1);
+  assert.ok(captureIndex < resetIndex);
+
+  const calls = section.match(/this\.deprecateGame\(desk\);/g) || [];
+  assert.equal(calls.length, 1);
+  assert.match(
+    section.slice(resetIndex),
+    /if\(shouldDeprecateGame\)\{\s*this\.deprecateGame\(desk\);\s*\}/
+  );
+}
 
 test('robot helpers parse counts and build local robot login data', () => {
   assert.equal(robot.normalizeRobotCount(undefined), 0);
@@ -72,4 +102,21 @@ test('selectRobotMove prefers legal captures', () => {
 
   assert.equal(robot.isLegalMove(board, 0, move.from, move.to), true);
   assert.notEqual(board[move.to.y][move.to.x], null);
+});
+
+test('REQ_GAME_OVER disables deprecate countdown after settlement', () => {
+  const source = readIndexSource();
+  const reqGameOverPath = source.slice(source.indexOf("socket.on('REQ_GAME_OVER'"), source.indexOf('http.listen'));
+
+  assert.match(reqGameOverPath, /room\.state\s*=\s*0;/);
+  assert.equal(reqGameOverPath.includes('room.deprecate_time = 30;'), false);
+  assert.match(reqGameOverPath, /room\.deprecate_time\s*=\s*0;/);
+});
+
+test('disconnect and change-room cleanup deprecate only active games', () => {
+  const activeGamePath = getIndexSection('isActiveGame:function', 'countRobotUsers:function');
+  assert.match(activeGamePath, /return\s+desk\s+&&\s+desk\.state\s*==\s*1;/);
+
+  assertCleanupOnlyDeprecatesActiveGame(getIndexSection('checkDisconnect:function', '//切换房间'));
+  assertCleanupOnlyDeprecatesActiveGame(getIndexSection('checkChangeRoom:function', 'clearRoomByUid:function'));
 });

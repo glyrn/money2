@@ -1,8 +1,8 @@
-import globalData from "./data/globalData.js"
-import PlayerNode from '../Prefab/PlayerNode.js'
-import Map from '../Prefab/Map.js'
+import globalData from "./data/globalData"
+import PlayerNode from '../Prefab/PlayerNode'
+import Map from '../Prefab/Map'
 import PanelAvators from "../Prefab/PanelAvators"
-import Dice from "../Prefab/Dice.js"
+import Dice from "../Prefab/Dice"
 cc.Class({
     extends: cc.Component,
 

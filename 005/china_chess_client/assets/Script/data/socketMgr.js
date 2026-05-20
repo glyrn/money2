@@ -1,5 +1,3 @@
-import globalData from "./globalData";
-
 const socketMgr = function(){
     var that = {}
 
@@ -25,6 +23,7 @@ const socketMgr = function(){
             'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
+            'path': '/zgxq_socket.io',
         }
         console.log(defines.serverUrl)
 
@@ -32,7 +31,6 @@ const socketMgr = function(){
         if(defines.isDebug){
             protocol = 'ws://';
         }else{
-            opts['path'] = '/zgxq_socket.io';
             protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
         }
         console.log(protocol+defines.serverUrl)
@@ -131,12 +129,12 @@ const socketMgr = function(){
             //对手逃跑 游戏结束
             if(data.target == null){
                 
-                _eventMgr.fire('GAME_OVER',{invalid:1,score:0,winer:globalData.gameMgr.playerData.self.posId});
+                _eventMgr.fire('GAME_OVER',{invalid:1,score:0,winer:_gameMgr.playerData.self.posId});
             }
         });
         //弃局专用
         _socket.on("GAME_OVER_DEPRECATE",function(){
-            _eventMgr.fire('GAME_OVER',{invalid:1,score:0,winer:globalData.gameMgr.playerData.self.posId});
+            _eventMgr.fire('GAME_OVER',{invalid:1,score:0,winer:_gameMgr.playerData.self.posId});
         });
 
         _socket.on('GAME_START',function(data){
@@ -220,7 +218,7 @@ const socketMgr = function(){
         if(that.checkIsObserve()) return;
 
         var now_ts = (new Date().getTime() / 1000);
-        var time_value = globalData.gameMgr.time_out - Math.floor(now_ts);
+        var time_value = _gameMgr.time_out - Math.floor(now_ts);
         if(time_value <= 1){
             return;
         }

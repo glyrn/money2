@@ -1,7 +1,8 @@
-import playLogic from "./playLogic";
 import gambitall from './gambitall';
-import AI from './AI';
 var chessLogic = chessLogic||{};
+cc.chessLogic = chessLogic;
+var playLogic = cc.playLogic || (cc.playLogic = {});
+var AI = cc.AI || (cc.AI = {});
 
 chessLogic.init = function (){
 

@@ -1,9 +1,9 @@
 /*! 一叶孤舟 | qq:28701884 | 欢迎指教 */
 
-import chessLogic from "./chessLogic";
-import playLogic from "./playLogic";
-
-var AI = AI||{};
+var AI = cc.AI || {};
+cc.AI = AI;
+var chessLogic = cc.chessLogic || (cc.chessLogic = {});
+var playLogic = cc.playLogic || (cc.playLogic = {});
 
 AI.historyTable	=	{};		//历史表
 

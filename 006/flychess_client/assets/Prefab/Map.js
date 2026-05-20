@@ -1,4 +1,4 @@
-import globalData from "../Script/data/globalData.js"
+import globalData from "../Script/data/globalData"
 cc.Class({
     name: "Map",
     extends: cc.Component,

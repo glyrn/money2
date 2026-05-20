@@ -1,5 +1,3 @@
-import globalData from "./globalData";
-
 const socketMgr = function(){
     var that = {}
 
@@ -67,13 +65,13 @@ const socketMgr = function(){
             'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
+            'path': '/fxq_socket.io',
         }
         console.log(defines.serverUrl)
         var protocol = ''
         if(defines.isDebug){
             protocol = 'ws://';
         }else{
-            opts['path'] = '/fxq_socket.io';
             protocol = window.location.protocol == 'https:' ? 'wss://' : 'ws://';
         }
         console.log(protocol+defines.serverUrl)

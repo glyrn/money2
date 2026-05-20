@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const Game = require('../game');
 const robot = require('../robot');
@@ -7,6 +9,34 @@ const robot = require('../robot');
 function setCards(game, posId, cards) {
   game.contextCards = game.contextCards.filter((item) => item.id !== posId);
   game.contextCards.push({id: posId, cards});
+}
+
+function readIndexSource() {
+  return fs.readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8');
+}
+
+function getIndexSection(startMarker, endMarker) {
+  const source = readIndexSource();
+  const start = source.indexOf(startMarker);
+  assert.notEqual(start, -1);
+  const end = source.indexOf(endMarker, start);
+  assert.notEqual(end, -1);
+  return source.slice(start, end);
+}
+
+function assertCleanupOnlyDeprecatesActiveGame(section) {
+  const captureIndex = section.indexOf('var shouldDeprecateGame = this.isActiveGame(desk);');
+  assert.notEqual(captureIndex, -1);
+  const resetIndex = section.indexOf('this.resetUser(userObj);');
+  assert.notEqual(resetIndex, -1);
+  assert.ok(captureIndex < resetIndex);
+
+  const calls = section.match(/this\.deprecateGame\(desk\);/g) || [];
+  assert.equal(calls.length, 1);
+  assert.match(
+    section.slice(resetIndex),
+    /if\(shouldDeprecateGame\)\{\s*this\.deprecateGame\(desk\);\s*\}/
+  );
 }
 
 test('robot helpers parse counts and build local robot login data', () => {
@@ -109,4 +139,44 @@ test('canCallScore rejects out-of-turn and unavailable bids', () => {
   assert.deepEqual(game.canCallScore(2, 1), {status: false, reason: 'invalid_score'});
   assert.deepEqual(game.canCallScore(2, 3), {status: true, score: 3});
   assert.deepEqual(game.canCallScore(2, 0), {status: true, score: 0});
+});
+
+test('normal game over disables deprecate countdown after settlement', () => {
+  const doGameOverPath = getIndexSection('doGameOver:function', '//发送给云村数据');
+
+  assert.match(doGameOverPath, /desk\.state\s*=\s*0;/);
+  assert.equal(doGameOverPath.includes('desk.deprecate_time = 30;'), false);
+  assert.match(doGameOverPath, /desk\.deprecate_time\s*=\s*0;/);
+});
+
+test('disconnect and change-room cleanup deprecate only active games', () => {
+  const activeGamePath = getIndexSection('isActiveGame:function', 'countRobotUsers:function');
+  assert.match(activeGamePath, /return\s+desk\s+&&\s+desk\.state\s*==\s*1;/);
+
+  assertCleanupOnlyDeprecatesActiveGame(getIndexSection('checkDisconnect:function', '//切换房间'));
+  assertCleanupOnlyDeprecatesActiveGame(getIndexSection('checkChangeRoom:function', 'startGame:function'));
+});
+
+test('timeout auto play schedules robot turn after advancing context', () => {
+  const gameSchedulePath = getIndexSection('gameSchedule:function', '//检测弃局');
+
+  const autoPassStart = gameSchedulePath.indexOf('game.next(curUserObj, [], desk.islaizi);');
+  assert.notEqual(autoPassStart, -1);
+  const autoPassEnd = gameSchedulePath.indexOf('}else {', autoPassStart);
+  assert.notEqual(autoPassEnd, -1);
+  const autoPassPath = gameSchedulePath.slice(autoPassStart, autoPassEnd);
+
+  assert.match(
+    autoPassPath,
+    /broadCastRoom\('CTX_PLAY_CHANGE'[\s\S]*isPass:\s*true[\s\S]*\);\s*self\.scheduleRobotTurnIfNeeded\(desk\);/
+  );
+
+  const autoMinCardStart = gameSchedulePath.indexOf('game.next(curUserObj.posId, [minCard], desk.islaizi);');
+  assert.notEqual(autoMinCardStart, -1);
+  const autoMinCardPath = gameSchedulePath.slice(autoMinCardStart);
+
+  assert.match(
+    autoMinCardPath,
+    /broadCastRoom\('CTX_PLAY_CHANGE'[\s\S]*isPass:\s*false[\s\S]*if \(game\.getStatus\(\) === 3\)[\s\S]*self\.doGameOver\(desk,game\);[\s\S]*\}\s*else\s*\{[\s\S]*self\.scheduleRobotTurnIfNeeded\(desk\);/
+  );
 });

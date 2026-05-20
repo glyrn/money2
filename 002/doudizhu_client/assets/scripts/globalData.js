@@ -1,8 +1,8 @@
 
-import gameMgr from "./data/gameMgr.js"
-import socketMgr from "./data/socketMgr.js"
-import eventlister from "./util/event_lister.js"
-import utils from "./data/utils.js"
+import gameMgr from "./data/gameMgr"
+import socketMgr from "./data/socketMgr"
+import eventlister from "./util/event_lister"
+import utils from "./data/utils"
 require('./data/audioMgr')
 
 const globalData = {} || globalData;

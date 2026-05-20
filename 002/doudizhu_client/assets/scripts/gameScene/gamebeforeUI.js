@@ -1,4 +1,4 @@
-import globalData from "../globalData.js"
+import globalData from "../globalData"
 
 cc.Class({
     extends: cc.Component,

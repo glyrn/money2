@@ -1,7 +1,21 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const robot = require('../robot');
+
+function readIndexSource() {
+  return fs.readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8');
+}
+
+function sourceBetween(source, start, end) {
+  const startIndex = source.indexOf(start);
+  assert.notEqual(startIndex, -1);
+  const endIndex = source.indexOf(end, startIndex);
+  assert.notEqual(endIndex, -1);
+  return source.slice(startIndex, endIndex);
+}
 
 function emptyBoard() {
   return Array.from({length: 225}, (_, tag) => ({tag, state: -1, idx: -1}));
@@ -71,4 +85,23 @@ test('selectRobotMove returns null when board is full', () => {
   const board = emptyBoard().map((cell) => Object.assign({}, cell, {state: 0}));
 
   assert.equal(robot.selectRobotMove(board, 1, () => 0), null);
+});
+
+test('normal gameOver does not arm deprecate countdown', () => {
+  const source = readIndexSource();
+  const gameOverPath = sourceBetween(source, 'gameOver:function', 'hasUser:function');
+
+  assert.equal(gameOverPath.includes('desk.deprecate_time = 30'), false);
+  assert.match(gameOverPath, /desk\.deprecate_time = 0/);
+});
+
+test('disconnect and change-room cleanup only deprecate active games', () => {
+  const source = readIndexSource();
+  const disconnectPath = sourceBetween(source, 'checkDisconnect:function', '//切换房间');
+  const changeRoomPath = sourceBetween(source, 'checkChangeRoom:function', 'clearRoomByUid:function');
+
+  assert.match(disconnectPath, /var wasPlaying = desk\.state == 1;/);
+  assert.match(disconnectPath, /if\s*\(wasPlaying\)\s*\{\s*this\.deprecateGame\(desk\);\s*\}/);
+  assert.match(changeRoomPath, /var wasPlaying = roomObj\.state == 1;/);
+  assert.match(changeRoomPath, /if\s*\(wasPlaying\)\s*\{\s*this\.deprecateGame\(roomObj\);\s*\}/);
 });

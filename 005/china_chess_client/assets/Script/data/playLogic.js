@@ -2,7 +2,7 @@ import chessLogic from "./chessLogic";
 import AI from './AI';
 import globalData from "./globalData";
 
-var playLogic = playLogic ||{};
+var playLogic = cc.playLogic || {};
 //debug
 cc.playLogic = playLogic;
 
@@ -22,13 +22,26 @@ playLogic.init = function (depth, map){
     playLogic.isOffensive	=	true;			//是否先手
     playLogic.depth			=	depth;			//搜索深度
     playLogic.isFoul			=	false;			//是否犯规长将
-    chessLogic.pane.isShow		=	false;			//隐藏方块
+    chessLogic.childList = chessLogic.childList || [];
+    if (!chessLogic.dot && chessLogic.class && chessLogic.class.Dot) {
+        chessLogic.dot = new chessLogic.class.Dot();
+        chessLogic.childList.push(chessLogic.dot);
+    }
+    if (!chessLogic.pane && chessLogic.class && chessLogic.class.Pane) {
+        chessLogic.pane = new chessLogic.class.Pane();
+        chessLogic.childList.push(chessLogic.pane);
+    }
+    if (chessLogic.pane) {
+        chessLogic.pane.isShow		=	false;			//隐藏方块
+    }
 
     //清除所有旗子
     playLogic.mans 			=	chessLogic.mans	= {};
 
     for (let i = 0; i < chessLogic.childList.length; i++) {
-        chessLogic.childList[i].isShow = false;
+        if (chessLogic.childList[i]) {
+            chessLogic.childList[i].isShow = false;
+        }
     }
     chessLogic.show();
 
@@ -39,6 +52,10 @@ playLogic.init = function (depth, map){
         for (var n=0; n<playLogic.map[i].length; n++){
             var key = playLogic.map[i][n];
             if (key){
+                if (!chessLogic.mans[key]) {
+                    chessLogic.mans[key] = new chessLogic.class.Man(key);
+                    chessLogic.childList.push(chessLogic.mans[key]);
+                }
                 chessLogic.mans[key].x=n;
                 chessLogic.mans[key].y=i;
                 chessLogic.mans[key].isShow = true;

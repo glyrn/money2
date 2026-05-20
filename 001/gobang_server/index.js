@@ -275,7 +275,7 @@ const proto = {
     const desk = this.getDeskById(roomId);
     this.clearRobotTimer(desk);
     desk.state = 0;
-    desk.deprecate_time = 30;
+    desk.deprecate_time = 0;
     desk.hadDeprecateGame = false;
     desk.time_out = 0;
     desk.hadPlayChess = false;
@@ -672,6 +672,8 @@ const proto = {
 
         if(userObj.disconnectTime > 0 && Math.floor(new Date().getTime() / 1000) - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
+          var desk = this.desks[i];
+          var wasPlaying = desk.state == 1;
           var name = userObj.name;
           this.resetUser(userObj);
 
@@ -682,7 +684,6 @@ const proto = {
           // var winerPosId = 0;
           // var winerUserObj = null;
           
-          var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
              if(this.desks[i].positions[k].uid > 0 ){
                isClean = false;
@@ -703,7 +704,9 @@ const proto = {
             this.desks[i].chequer[k].idx = -1;
           }
 
-          this.deprecateGame(this.desks[i]);
+          if(wasPlaying){
+            this.deprecateGame(desk);
+          }
         }
       }
     }
@@ -718,6 +721,7 @@ const proto = {
         if(userObj.uid == uid && roomObj.deskId != curRoomId){
 
           let name = userObj.name;
+          var wasPlaying = roomObj.state == 1;
           console.log('用户 '+userObj.name+" "+userObj.uid+' 退出原来房间');
           this.resetUser(userObj);
 
@@ -746,7 +750,9 @@ const proto = {
               this.desks[i].chequer[k].idx = -1;
             }
           }
-          this.deprecateGame(this.desks[i]);            
+          if(wasPlaying){
+            this.deprecateGame(roomObj);
+          }
         }
       }
     }

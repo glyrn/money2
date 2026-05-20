@@ -1,5 +1,3 @@
-import globalData from "../globalData";
-
 const socketMgr = function(){
     var that = {}
 
@@ -56,12 +54,12 @@ const socketMgr = function(){
             'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
+            'path': '/uno_socket.io',
         }
         var protocol = ''
         if(defines.isDebug){
             protocol = 'ws://';
         }else{
-            opts['path'] = '/uno_socket.io';
             protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
         }
         console.log("defines.serverUrl:"+defines.serverUrl)
@@ -198,7 +196,7 @@ const socketMgr = function(){
 
         _socket.on('PLAY_CARD_SUCCESS',function(data){
 
-            globalData.gameMgr.playerData.self.target_timer_value = 0;
+            _gameMgr.playerData.self.target_timer_value = 0;
             //剔除
             if(data.posId ==  _gameMgr.playerData.self.posId){
 
@@ -241,7 +239,7 @@ const socketMgr = function(){
         });
         _socket.on('PLUS_CARD',function(data){
 
-            globalData.gameMgr.card_remain = globalData.gameMgr.card_remain - data.plus_num;
+            _gameMgr.card_remain = _gameMgr.card_remain - data.plus_num;
             //无动画
             if(_gameMgr.isRecover){
                 

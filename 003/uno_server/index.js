@@ -411,7 +411,7 @@ const proto = {
             desk.positions[i].state = 1;
           }
           desk.state = 0;
-          desk.deprecate_time = 30;
+          desk.deprecate_time = 0;
           desk.hadDeprecateGame = false;
 
           var winer = 0;
@@ -861,7 +861,7 @@ const proto = {
         desk.positions[i].state = 1;
       }
       desk.state = 0;
-      desk.deprecate_time = 30;
+      desk.deprecate_time = 0;
       desk.hadDeprecateGame = false;
 
       var winer = curPosId;
@@ -947,6 +947,8 @@ const proto = {
 
         if(userObj.disconnectTime > 0 && getTimeStamp() - userObj.disconnectTime >= (isDebug ? 180:180)){
           console.log('用户 '+userObj.name+" "+userObj.uid+' 已确认断线，清除数据');
+          var desk = this.desks[i];
+          var wasPlaying = desk.state == 1;
           let name = userObj.name;
           this.resetUser(userObj);
 
@@ -955,7 +957,6 @@ const proto = {
 
           //检查是否全部掉线 是的话要重置房间
           var isClean = true;
-          var desk = this.desks[i];
           for (let k = 0; k < this.desks[i].positions.length; k++) {
             if(this.desks[i].positions[k].uid > 0 ){
               isClean = false;
@@ -968,7 +969,9 @@ const proto = {
             desk.ready_count = -1;
           }
 
-          this.deprecateGame(desk);
+          if(wasPlaying){
+            this.deprecateGame(desk);
+          }
         }
       }
     }
@@ -982,6 +985,7 @@ const proto = {
         //房间号不同 要退出原来房间
         if(userObj.uid == uid && roomObj.deskId != curRoomId){
           let name = userObj.name;
+          var wasPlaying = roomObj.state == 1;
           console.log('用户 '+name+" "+userObj.uid+' 退出原来房间');
           this.resetUser(userObj);
 
@@ -1002,7 +1006,9 @@ const proto = {
           }
 
           let desk = this.desks[i];
-          this.deprecateGame(desk);
+          if(wasPlaying){
+            this.deprecateGame(desk);
+          }
 
         }
       }
@@ -1365,7 +1371,7 @@ const proto = {
                 desk.positions[i].state = 1;
               }
               desk.state = 0;
-              desk.deprecate_time = 30;
+              desk.deprecate_time = 0;
               desk.hadDeprecateGame = false;
 
               var winer = curPosId;

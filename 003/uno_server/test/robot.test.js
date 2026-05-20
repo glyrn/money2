@@ -5,6 +5,18 @@ const path = require('node:path');
 
 const robot = require('../robot');
 
+function readIndexSource() {
+  return fs.readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8');
+}
+
+function sourceBetween(source, start, end) {
+  const startIndex = source.indexOf(start);
+  assert.notEqual(startIndex, -1);
+  const endIndex = source.indexOf(end, startIndex);
+  assert.notEqual(endIndex, -1);
+  return source.slice(startIndex, endIndex);
+}
+
 test('robot helpers parse counts and build local robot login data', () => {
   assert.equal(robot.normalizeRobotCount(undefined), 0);
   assert.equal(robot.normalizeRobotCount('2'), 2);
@@ -96,4 +108,27 @@ test('timeout game-over path does not reference undefined settlement variables',
   const timeoutPath = source.slice(source.indexOf('checkTimeGameOver:function'), source.indexOf('broadCastRoom:function'));
   assert.equal(timeoutPath.includes('is_quit:is_over_specific_score'), false);
   assert.equal(timeoutPath.includes('score_list:desk.score_list'), false);
+});
+
+test('normal game-over paths do not arm deprecate countdown', () => {
+  const source = readIndexSource();
+  const timeoutPath = sourceBetween(source, 'checkTimeGameOver:function', 'broadCastRoom:function');
+  const robotPlayPath = sourceBetween(source, 'handlePlayCard:function', 'checkDisconnect:function');
+  const socketPlayPath = sourceBetween(source, 'socket.on("PLAY_CARD"', 'socket.on("PLAY_PASS"');
+
+  for (const normalGameOverPath of [timeoutPath, robotPlayPath, socketPlayPath]) {
+    assert.equal(normalGameOverPath.includes('desk.deprecate_time = 30'), false);
+    assert.match(normalGameOverPath, /desk\.deprecate_time = 0/);
+  }
+});
+
+test('disconnect and change-room cleanup only deprecate active games', () => {
+  const source = readIndexSource();
+  const disconnectPath = sourceBetween(source, 'checkDisconnect:function', '//切换房间');
+  const changeRoomPath = sourceBetween(source, 'checkChangeRoom:function', 'clearRoomByUid:function');
+
+  assert.match(disconnectPath, /var wasPlaying = desk\.state == 1;/);
+  assert.match(disconnectPath, /if\s*\(wasPlaying\)\s*\{\s*this\.deprecateGame\(desk\);\s*\}/);
+  assert.match(changeRoomPath, /var wasPlaying = roomObj\.state == 1;/);
+  assert.match(changeRoomPath, /if\s*\(wasPlaying\)\s*\{\s*this\.deprecateGame\(desk\);\s*\}/);
 });

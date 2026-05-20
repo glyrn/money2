@@ -56,12 +56,12 @@ const socketMgr = function(){
             'maxReconnectionAttempts': 100,
             'force new connection': true,
             'transports': ['websocket', 'polling'],
+            'path': '/hlddz_socket.io',
         }
         var protocol = ''
         if(defines.isDebug){
             protocol = 'ws://';
         }else{
-            opts['path'] = '/hlddz_socket.io';
             protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
         }
         console.log(protocol+defines.serverUrl)
