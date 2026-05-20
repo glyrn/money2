@@ -8,7 +8,6 @@ const gobangRobot = require('./robot');
 var ioParam = {path:'/wzq_socket.io'};
 var isDebug = false;
 if(getCurrentIP().indexOf("192.168") != -1){
-  ioParam = null;
   isDebug = true;
 }
 

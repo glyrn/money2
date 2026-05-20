@@ -75,6 +75,20 @@ test('selectRobotMove blocks opponent immediate five', () => {
   assert.equal(robot.selectRobotMove(board, 1, () => 0.5), 90);
 });
 
+test('selectRobotMove blocks opponent open three before it becomes four', () => {
+  const board = emptyBoard();
+  [31, 32, 33].forEach((tag) => place(board, tag, 1));
+
+  assert.equal(robot.selectRobotMove(board, 1, () => 0.5), 34);
+});
+
+test('selectRobotMove extends robot open three before quiet moves', () => {
+  const board = emptyBoard();
+  [31, 32, 33].forEach((tag) => place(board, tag, 0));
+
+  assert.equal(robot.selectRobotMove(board, 1, () => 0.5), 34);
+});
+
 test('selectRobotMove chooses center-ish random empty cell without urgent lines', () => {
   const board = emptyBoard();
 

@@ -83,6 +83,10 @@ function countLine(board, x, y, dx, dy, state) {
   return count;
 }
 
+function isEmpty(board, x, y) {
+  return getState(board, x, y) === -1;
+}
+
 function wouldCompleteFive(board, tag, state) {
   const x = tag % BOARD_SIZE;
   const y = Math.floor(tag / BOARD_SIZE);
@@ -92,6 +96,37 @@ function wouldCompleteFive(board, tag, state) {
       + countLine(board, x, y, -dx, -dy, state);
     return count >= 5;
   });
+}
+
+function evaluateDirection(board, x, y, dx, dy, state) {
+  const forward = countLine(board, x, y, dx, dy, state);
+  const backward = countLine(board, x, y, -dx, -dy, state);
+  const total = 1 + forward + backward;
+  const forwardOpen = isEmpty(board, x + dx * (forward + 1), y + dy * (forward + 1));
+  const backwardOpen = isEmpty(board, x - dx * (backward + 1), y - dy * (backward + 1));
+  const openEnds = (forwardOpen ? 1 : 0) + (backwardOpen ? 1 : 0);
+
+  if (total >= 5) {
+    return 1000000;
+  }
+  if (total === 4) {
+    return openEnds === 2 ? 220000 : (openEnds === 1 ? 140000 : 0);
+  }
+  if (total === 3) {
+    return openEnds === 2 ? 60000 : (openEnds === 1 ? 25000 : 0);
+  }
+  if (total === 2) {
+    return openEnds === 2 ? 8000 : (openEnds === 1 ? 1500 : 0);
+  }
+  return openEnds === 2 ? 300 : 30;
+}
+
+function scoreMoveForState(board, tag, state) {
+  const x = tag % BOARD_SIZE;
+  const y = Math.floor(tag / BOARD_SIZE);
+  return DIRECTIONS.reduce((score, [dx, dy]) => (
+    score + evaluateDirection(board, x, y, dx, dy, state)
+  ), 0);
 }
 
 function getEmptyTags(board) {
@@ -130,6 +165,21 @@ function selectRobotMove(board, posId, randomFn) {
   const blocking = ordered.find((tag) => wouldCompleteFive(board, tag, opponentState));
   if (blocking !== undefined) {
     return blocking;
+  }
+
+  let bestTag = ordered[0];
+  let bestScore = -1;
+  for (const tag of ordered) {
+    const attackScore = scoreMoveForState(board, tag, robotState);
+    const defenseScore = scoreMoveForState(board, tag, opponentState);
+    const score = attackScore + defenseScore * 1.2;
+    if (score > bestScore) {
+      bestScore = score;
+      bestTag = tag;
+    }
+  }
+  if (bestScore > 0) {
+    return bestTag;
   }
 
   const rng = typeof randomFn === 'function' ? randomFn : Math.random;

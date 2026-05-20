@@ -8,7 +8,6 @@ const doudizhuRobot = require('./robot');
 var isDebug = false;
 var ioParam = {path:'/hlddz_socket.io'};
 if(getCurrentIP().indexOf("192.168") != -1){
-  ioParam = null;
   isDebug = true;
 }
 const gameCfg = JSON.parse(fs.readFileSync('gameCfg.json', 'utf8'));

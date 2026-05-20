@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const DEFINES_FILE = '002/doudizhu_client/assets/scripts/defines.js';
+const SERVER_FILE = '002/doudizhu_server/index.js';
 const GAME_PORT = 9002;
 
 function loadDefines(href, host, port) {
@@ -29,4 +30,15 @@ test('doudizhu direct game port enables force login mode', () => {
 
   assert.equal(defines.serverUrl, host);
   assert.equal(defines.isForce, true);
+});
+
+test('doudizhu local debug keeps custom socket path', () => {
+  const source = fs.readFileSync(path.join(ROOT, SERVER_FILE), 'utf8');
+  const localDebugBlock = source.slice(
+    source.indexOf('if(getCurrentIP().indexOf("192.168") != -1)'),
+    source.indexOf('const gameCfg'),
+  );
+
+  assert.match(source, /var ioParam = \{path:'\/hlddz_socket\.io'\};/);
+  assert.equal(localDebugBlock.includes('ioParam = null'), false);
 });

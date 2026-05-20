@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const DEFINES_FILE = '001/gobang_client/assets/Script/data/defines.js';
+const SERVER_FILE = '001/gobang_server/index.js';
 const GAME_PORT = 9001;
 
 function loadDefines(href, host, port) {
@@ -40,4 +41,15 @@ test('gobang signed production domain still uses platform auth mode', () => {
 
   assert.equal(defines.serverUrl, 'game.example.com');
   assert.notEqual(defines.isForce, true);
+});
+
+test('gobang local debug keeps custom socket path', () => {
+  const source = fs.readFileSync(path.join(ROOT, SERVER_FILE), 'utf8');
+  const localDebugBlock = source.slice(
+    source.indexOf('if(getCurrentIP().indexOf("192.168") != -1)'),
+    source.indexOf('const gameCfg'),
+  );
+
+  assert.match(source, /var ioParam = \{path:'\/wzq_socket\.io'\};/);
+  assert.equal(localDebugBlock.includes('ioParam = null'), false);
 });
