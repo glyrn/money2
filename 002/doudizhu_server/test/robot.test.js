@@ -71,15 +71,52 @@ test('selectCallScore bids within available score options', () => {
   assert.equal(robot.selectCallScore([], [{value: 16}]), 0);
 });
 
-test('selectPlayCards starts with the lowest legal single', () => {
+test('selectPlayCards starts with system-style straight recommendation when possible', () => {
   const game = new Game();
   game.init();
   game.status = 2;
   game.contextPosId = 0;
   game.lastCardInfo = {posId: 0, len: 0, key: '', type: ''};
-  setCards(game, 0, [{value: 9, type: 0}, {value: 3, type: 1}]);
+  setCards(game, 0, [
+    {value: 9, type: 0},
+    {value: 7, type: 0},
+    {value: 6, type: 0},
+    {value: 5, type: 0},
+    {value: 4, type: 0},
+    {value: 3, type: 1},
+  ]);
 
-  assert.deepEqual(robot.selectPlayCards(game, 0, 0), [{value: 3, type: 1}]);
+  assert.deepEqual(robot.selectPlayCards(game, 0, 0), [
+    {value: 3, type: 1},
+    {value: 4, type: 0},
+    {value: 5, type: 0},
+    {value: 6, type: 0},
+    {value: 7, type: 0},
+  ]);
+});
+
+test('selectPlayCards starts with triple-with-pair before a quiet single', () => {
+  const game = new Game();
+  game.init();
+  game.status = 2;
+  game.contextPosId = 0;
+  game.lastCardInfo = {posId: 0, len: 0, key: '', type: ''};
+  setCards(game, 0, [
+    {value: 9, type: 0},
+    {value: 9, type: 1},
+    {value: 9, type: 2},
+    {value: 4, type: 0},
+    {value: 4, type: 1},
+    {value: 3, type: 1},
+  ]);
+
+  assert.deepEqual(robot.selectPlayCards(game, 0, 0), [
+    {value: 9, type: 0},
+    {value: 9, type: 1},
+    {value: 9, type: 2},
+    {value: 4, type: 0},
+    {value: 4, type: 1},
+  ]);
 });
 
 test('selectPlayCards beats the previous single through Game.validate', () => {
@@ -91,6 +128,55 @@ test('selectPlayCards beats the previous single through Game.validate', () => {
   setCards(game, 1, [{value: 7, type: 0}, {value: 9, type: 1}, {value: 10, type: 2}]);
 
   assert.deepEqual(robot.selectPlayCards(game, 1, 0), [{value: 9, type: 1}]);
+});
+
+test('selectPlayCards follows system-style straight response', () => {
+  const game = new Game();
+  game.init();
+  game.status = 2;
+  game.contextPosId = 1;
+  game.lastCardInfo = {posId: 0, len: 5, key: 7, type: 'ABCDE', is_normal: true};
+  setCards(game, 1, [
+    {value: 12, type: 0},
+    {value: 11, type: 1},
+    {value: 10, type: 2},
+    {value: 9, type: 3},
+    {value: 8, type: 0},
+    {value: 3, type: 1},
+  ]);
+
+  assert.deepEqual(robot.selectPlayCards(game, 1, 0), [
+    {value: 8, type: 0},
+    {value: 9, type: 3},
+    {value: 10, type: 2},
+    {value: 11, type: 1},
+    {value: 12, type: 0},
+  ]);
+});
+
+test('selectPlayCards uses triple-with-single response before bomb fallback', () => {
+  const game = new Game();
+  game.init();
+  game.status = 2;
+  game.contextPosId = 1;
+  game.lastCardInfo = {posId: 0, len: 4, key: 6, type: 'AAAB', is_normal: true};
+  setCards(game, 1, [
+    {value: 8, type: 0},
+    {value: 8, type: 1},
+    {value: 8, type: 2},
+    {value: 3, type: 0},
+    {value: 14, type: 0},
+    {value: 14, type: 1},
+    {value: 14, type: 2},
+    {value: 14, type: 3},
+  ]);
+
+  assert.deepEqual(robot.selectPlayCards(game, 1, 0), [
+    {value: 8, type: 0},
+    {value: 8, type: 1},
+    {value: 8, type: 2},
+    {value: 3, type: 0},
+  ]);
 });
 
 test('selectPlayCards returns empty pass when no legal response exists', () => {
