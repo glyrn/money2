@@ -37,6 +37,97 @@ function parseRobotCountFromLaunchUrl(rawUrl) {
   return normalizeRobotCount(parseQueryRobotValue(rawUrl));
 }
 
+function tryParseRobotProfilesText(value) {
+  if (!value || typeof value !== 'string') {
+    return [];
+  }
+
+  const variants = [value.trim()];
+  try {
+    const decoded = decodeURIComponent(value).trim();
+    if (decoded && decoded !== variants[0]) {
+      variants.push(decoded);
+    }
+  } catch (err) {
+  }
+
+  for (const raw of variants) {
+    if (!raw) {
+      continue;
+    }
+    try {
+      return JSON.parse(raw);
+    } catch (err) {
+    }
+
+    try {
+      const normalized = raw
+        .replace(/([{,]\s*)(id|uid|name|nickname|avatar|avatorUrl|score)\s*:/g, '$1"$2":')
+        .replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, function(match, inner) {
+          return JSON.stringify(inner.replace(/\\'/g, "'"));
+        });
+      return JSON.parse(normalized);
+    } catch (err) {
+    }
+  }
+
+  return [];
+}
+
+function parseRobotProfiles(value) {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (value && typeof value === 'object') {
+    return [value];
+  }
+  return tryParseRobotProfilesText(value);
+}
+
+function firstFilledValue(values) {
+  for (const value of values) {
+    if (value !== undefined && value !== null && value !== '') {
+      return value;
+    }
+  }
+  return '';
+}
+
+function normalizeRobotProfile(profile, index) {
+  if (!profile || typeof profile !== 'object') {
+    return null;
+  }
+
+  const score = parseInt(profile.score, 10);
+  return {
+    uid: String(firstFilledValue([profile.id, profile.uid])),
+    name: String(firstFilledValue([profile.name, profile.nickname]) || ('机器人' + (index + 1))),
+    avatorUrl: String(firstFilledValue([profile.avatar, profile.avatorUrl])),
+    score: Number.isFinite(score) ? score : 0,
+  };
+}
+
+function getSupplementalRobotProfiles(loginObj) {
+  if (!loginObj) {
+    return [];
+  }
+
+  let rawProfiles = parseRobotProfiles(loginObj.robots);
+  if (!Array.isArray(rawProfiles) || rawProfiles.length === 0) {
+    rawProfiles = parseRobotProfiles(parseQueryValue(loginObj.lanuch_url, 'robots'));
+  }
+  if (!Array.isArray(rawProfiles) || rawProfiles.length === 0) {
+    return [];
+  }
+
+  const currentUid = loginObj.uid === undefined || loginObj.uid === null ? '' : String(loginObj.uid);
+  return rawProfiles
+    .slice(0, MAX_ROBOT_COUNT)
+    .map(normalizeRobotProfile)
+    .filter(Boolean)
+    .filter((profile) => !currentUid || String(profile.uid) !== currentUid);
+}
+
 function isTrueLike(value) {
   if (value === true || value === 1) {
     return true;
@@ -70,7 +161,14 @@ function shouldAutoPrepareLogin(loginObj) {
 }
 
 function getSupplementalRobotCount(loginObj) {
-  if (!loginObj || isSignedRobotLogin(loginObj)) {
+  if (!loginObj) {
+    return 0;
+  }
+  const robotProfiles = getSupplementalRobotProfiles(loginObj);
+  if (robotProfiles.length > 0) {
+    return robotProfiles.length;
+  }
+  if (isSignedRobotLogin(loginObj)) {
     return 0;
   }
   const robotCount = normalizeRobotCount(loginObj.robot);
@@ -348,6 +446,7 @@ module.exports = {
   getPlaceInfo,
   getMovableChessIndexes,
   getRandomDelayMs,
+  getSupplementalRobotProfiles,
   getSupplementalRobotCount,
   isSignedRobotLogin,
   normalizeRobotCount,

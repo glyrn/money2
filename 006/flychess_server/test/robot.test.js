@@ -37,6 +37,37 @@ test('plain robot count links still request generic robot seats and auto_ready s
   assert.equal(robot.shouldAutoPrepareLogin({lanuch_url: 'https://game.test/fxq?robot=3&auto_ready=1'}), true);
 });
 
+test('robot profile lists can be read from JSON payloads or launch urls', () => {
+  const robots = [
+    {id: 'r1', name: 'root1', avatar: 'https://cdn.test/a.jpg'},
+    {uid: 'r2', name: 'root2', avatorUrl: 'https://cdn.test/b.jpg', score: 8},
+  ];
+
+  assert.deepEqual(robot.getSupplementalRobotProfiles({robots: JSON.stringify(robots)}), [
+    {uid: 'r1', name: 'root1', avatorUrl: 'https://cdn.test/a.jpg', score: 0},
+    {uid: 'r2', name: 'root2', avatorUrl: 'https://cdn.test/b.jpg', score: 8},
+  ]);
+
+  const launchUrl = 'https://game.test/fxq?robot=2&robots=' + encodeURIComponent("[{id:'r3',name:'root3',avatar:'https://cdn.test/c.jpg'},{id:'r4',name:'root4',avatar:''}]");
+  assert.deepEqual(robot.getSupplementalRobotProfiles({lanuch_url: launchUrl}), [
+    {uid: 'r3', name: 'root3', avatorUrl: 'https://cdn.test/c.jpg', score: 0},
+    {uid: 'r4', name: 'root4', avatorUrl: '', score: 0},
+  ]);
+});
+
+test('robot profile lists take priority over generic robot counts', () => {
+  const loginObj = {
+    robot: 3,
+    robots: JSON.stringify([
+      {id: 'r1', name: 'root1', avatar: 'https://cdn.test/a.jpg'},
+      {id: 'r2', name: 'root2', avatar: 'https://cdn.test/b.jpg'},
+    ]),
+  };
+
+  assert.equal(robot.getSupplementalRobotCount(loginObj), 2);
+  assert.equal(robot.getSupplementalRobotProfiles(loginObj).length, 2);
+});
+
 test('canTakeoff follows flychess play mode rules', () => {
   assert.equal(robot.canTakeoff(0, 6), true);
   assert.equal(robot.canTakeoff(0, 4), false);

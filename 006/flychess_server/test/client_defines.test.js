@@ -37,4 +37,5 @@ test('flychess client forwards robot link flags during login', () => {
 
   assert.match(source, /isRobot\s*:\s*cc\.args\['isRobot'\]/);
   assert.match(source, /robot\s*:\s*cc\.args\['robot'\]/);
+  assert.match(source, /robots\s*:\s*cc\.args\['robots'\]/);
 });

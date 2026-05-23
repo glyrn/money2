@@ -324,32 +324,37 @@ const proto = {
       return;
     }
 
+    var robotProfiles = robotLogic.getSupplementalRobotProfiles(loginObj);
     var robotCount = robotLogic.getSupplementalRobotCount(loginObj);
     if(robotCount <= 0){
       return;
     }
 
-    var targetRobotCount = Math.min(robotCount, Math.max(0, desk.ready_count - 1));
+    var hasRobotProfiles = robotProfiles.length > 0;
+    var targetRobotCount = hasRobotProfiles ? robotCount : Math.min(robotCount, Math.max(0, desk.ready_count - 1));
     var robotIndex = this.countRobotUsers(desk);
+    var profileIndex = 0;
     for (let i = 0; i < desk.positions.length; i++) {
-      if(robotIndex >= targetRobotCount || this.countOccupiedUsers(desk) >= desk.ready_count){
+      if((hasRobotProfiles && profileIndex >= targetRobotCount) || (!hasRobotProfiles && robotIndex >= targetRobotCount) || this.countOccupiedUsers(desk) >= desk.ready_count){
         break;
       }
       var userObj = desk.positions[i];
       if(userObj.uid != 0){
         continue;
       }
-      userObj.uid = this.makeRobotUid(desk,userObj.posId);
+      var profile = hasRobotProfiles ? robotProfiles[profileIndex] : null;
+      userObj.uid = profile && profile.uid ? profile.uid : this.makeRobotUid(desk,userObj.posId);
       userObj.state = 1;
-      userObj.name = "机器人" + (robotIndex + 1);
-      userObj.avatorUrl = '';
-      userObj.score = 0;
+      userObj.name = profile && profile.name ? profile.name : "机器人" + (robotIndex + 1);
+      userObj.avatorUrl = profile && profile.avatorUrl ? profile.avatorUrl : '';
+      userObj.score = profile && profile.score !== undefined ? profile.score : 0;
       userObj.socket = null;
       userObj.isRobot = true;
       userObj.disconnectTime = null;
       userObj.recover_disconnect_data = [];
       this.resetChessState(userObj);
       this.broadCastRoom("SIT_CHANGE",desk.deskId,{target:this.buildRobotLoginData(userObj),posId:userObj.posId});
+      profileIndex++;
       robotIndex++;
     }
 
