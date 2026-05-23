@@ -11,6 +11,32 @@ test('parseRobotCountFromLaunchUrl reads and clamps robot query values', () => {
   assert.equal(robot.parseRobotCountFromLaunchUrl('not a url?robot=1'), 1);
 });
 
+test('detects signed robot identity links from payload or launch url', () => {
+  assert.equal(robot.parseRobotIdentityFromLaunchUrl('https://game.test/fxq?isRobot=true&robot=3'), true);
+  assert.equal(robot.parseRobotIdentityFromLaunchUrl('https://game.test/fxq?isRobot=1'), true);
+  assert.equal(robot.parseRobotIdentityFromLaunchUrl('https://game.test/fxq?isRobot=false&robot=3'), false);
+  assert.equal(robot.isSignedRobotLogin({isRobot: 'true'}), true);
+  assert.equal(robot.isSignedRobotLogin({lanuch_url: 'https://game.test/fxq?isRobot=true&robot=3'}), true);
+});
+
+test('signed robot links use their own identity instead of creating generic robot seats', () => {
+  const loginObj = {
+    isRobot: 'true',
+    robot: 3,
+    lanuch_url: 'https://game.test/fxq?isRobot=true&robot=3',
+  };
+
+  assert.equal(robot.getSupplementalRobotCount(loginObj), 0);
+  assert.equal(robot.shouldAutoPrepareLogin(loginObj), true);
+});
+
+test('plain robot count links still request generic robot seats and auto_ready stays opt-in', () => {
+  assert.equal(robot.getSupplementalRobotCount({robot: 2}), 2);
+  assert.equal(robot.getSupplementalRobotCount({lanuch_url: 'https://game.test/fxq?robot=3'}), 3);
+  assert.equal(robot.shouldAutoPrepareLogin({lanuch_url: 'https://game.test/fxq?robot=3'}), false);
+  assert.equal(robot.shouldAutoPrepareLogin({lanuch_url: 'https://game.test/fxq?robot=3&auto_ready=1'}), true);
+});
+
 test('canTakeoff follows flychess play mode rules', () => {
   assert.equal(robot.canTakeoff(0, 6), true);
   assert.equal(robot.canTakeoff(0, 4), false);

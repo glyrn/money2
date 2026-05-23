@@ -306,22 +306,7 @@ const proto = {
     return count;
   },
   shouldAutoPrepareUser:function(loginObj){
-    if(!loginObj){
-      return false;
-    }
-    if(loginObj.auto_ready == 1 || loginObj.auto_ready === true || loginObj.auto_ready === 'true'){
-      return true;
-    }
-    if(!loginObj.lanuch_url){
-      return false;
-    }
-    try {
-      var parsedUrl = new URL(loginObj.lanuch_url, 'http://localhost');
-      var autoReady = parsedUrl.searchParams.get('auto_ready');
-      return autoReady == 1 || autoReady === 'true';
-    } catch (err) {
-      return false;
-    }
+    return robotLogic.shouldAutoPrepareLogin(loginObj);
   },
   buildRobotLoginData:function(userObj){
     return {
@@ -339,10 +324,7 @@ const proto = {
       return;
     }
 
-    var robotCount = robotLogic.normalizeRobotCount(loginObj.robot);
-    if(robotCount <= 0){
-      robotCount = robotLogic.parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
-    }
+    var robotCount = robotLogic.getSupplementalRobotCount(loginObj);
     if(robotCount <= 0){
       return;
     }
@@ -1101,6 +1083,7 @@ const proto = {
             room.play_count = obj.play_count;
             room.deprecate_time = 30;
             room.hadDeprecateGame = false;
+            var isRobotLogin = robotLogic.isSignedRobotLogin(obj);
 
             for (let i = 0; i < room.positions.length; i++) {
               userObj = room.positions[i];
@@ -1111,10 +1094,11 @@ const proto = {
 	                userObj.avatorUrl = obj.avatorUrl;
 	                userObj.score = obj.score;
 	                userObj.socket = socket;
-	                userObj.isRobot = false;
+	                userObj.isRobot = isRobotLogin;
 	                self.resetChessState(userObj);
 	                obj.posId = userObj.posId;
 	                obj.state = 1;
+	                obj.isRobot = isRobotLogin;
 	                flag = true;
                 break;
               }

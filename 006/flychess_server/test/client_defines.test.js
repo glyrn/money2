@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const DEFINES_FILE = '006/flychess_client/assets/Script/data/defines.js';
+const SOCKET_MGR_FILE = '006/flychess_client/assets/Script/data/socketMgr.js';
 const GAME_PORT = 9006;
 
 function loadDefines(href, host, port) {
@@ -29,4 +30,11 @@ test('flychess direct game port enables force login mode', () => {
 
   assert.equal(defines.serverUrl, host);
   assert.equal(defines.isForce, true);
+});
+
+test('flychess client forwards robot link flags during login', () => {
+  const source = fs.readFileSync(path.join(ROOT, SOCKET_MGR_FILE), 'utf8');
+
+  assert.match(source, /isRobot\s*:\s*cc\.args\['isRobot'\]/);
+  assert.match(source, /robot\s*:\s*cc\.args\['robot'\]/);
 });

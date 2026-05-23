@@ -15,7 +15,7 @@ function normalizeRobotCount(value) {
   return Math.min(count, MAX_ROBOT_COUNT);
 }
 
-function parseQueryRobotValue(rawUrl) {
+function parseQueryValue(rawUrl, name) {
   if (!rawUrl || typeof rawUrl !== 'string') {
     return undefined;
   }
@@ -26,11 +26,58 @@ function parseQueryRobotValue(rawUrl) {
   const hashStart = rawUrl.indexOf('#', queryStart);
   const query = rawUrl.slice(queryStart + 1, hashStart >= 0 ? hashStart : undefined);
   const params = new URLSearchParams(query);
-  return params.get('robot');
+  return params.get(name);
+}
+
+function parseQueryRobotValue(rawUrl) {
+  return parseQueryValue(rawUrl, 'robot');
 }
 
 function parseRobotCountFromLaunchUrl(rawUrl) {
   return normalizeRobotCount(parseQueryRobotValue(rawUrl));
+}
+
+function isTrueLike(value) {
+  if (value === true || value === 1) {
+    return true;
+  }
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const normalized = value.trim().toLowerCase();
+  return normalized === 'true' || normalized === '1';
+}
+
+function parseRobotIdentityFromLaunchUrl(rawUrl) {
+  return isTrueLike(parseQueryValue(rawUrl, 'isRobot'));
+}
+
+function isSignedRobotLogin(loginObj) {
+  if (!loginObj) {
+    return false;
+  }
+  return isTrueLike(loginObj.isRobot) || parseRobotIdentityFromLaunchUrl(loginObj.lanuch_url);
+}
+
+function shouldAutoPrepareLogin(loginObj) {
+  if (!loginObj) {
+    return false;
+  }
+  if (isSignedRobotLogin(loginObj) || isTrueLike(loginObj.auto_ready)) {
+    return true;
+  }
+  return isTrueLike(parseQueryValue(loginObj.lanuch_url, 'auto_ready'));
+}
+
+function getSupplementalRobotCount(loginObj) {
+  if (!loginObj || isSignedRobotLogin(loginObj)) {
+    return 0;
+  }
+  const robotCount = normalizeRobotCount(loginObj.robot);
+  if (robotCount > 0) {
+    return robotCount;
+  }
+  return parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
 }
 
 function createRobotState(overrides) {
@@ -301,9 +348,13 @@ module.exports = {
   getPlaceInfo,
   getMovableChessIndexes,
   getRandomDelayMs,
+  getSupplementalRobotCount,
+  isSignedRobotLogin,
   normalizeRobotCount,
+  parseRobotIdentityFromLaunchUrl,
   parseRobotCountFromLaunchUrl,
   resolveActiveMoveOutcome,
   resolveMoveTargetStep,
   selectRobotMove,
+  shouldAutoPrepareLogin,
 };
