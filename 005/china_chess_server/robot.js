@@ -219,16 +219,86 @@ function getLegalMoves(board, side) {
   return moves;
 }
 
+function getInitialPosition(piece) {
+  for (let y = 0; y < HEIGHT; y++) {
+    for (let x = 0; x < WIDTH; x++) {
+      if (INITIAL_BOARD[y][x] === piece) {
+        return {x, y};
+      }
+    }
+  }
+  return null;
+}
+
+function getDevelopedPieces(board, side) {
+  const pieces = [];
+  for (let y = 0; y < HEIGHT; y++) {
+    for (let x = 0; x < WIDTH; x++) {
+      const piece = board[y][x];
+      if (!piece || getPieceSide(piece) !== side) {
+        continue;
+      }
+      const initial = getInitialPosition(piece);
+      if (!initial || initial.x !== x || initial.y !== y) {
+        pieces.push({piece, x, y});
+      }
+    }
+  }
+  return pieces;
+}
+
+function getMovePieceType(board, move) {
+  return getPieceType(board[move.from.y][move.from.x]);
+}
+
+function getCaptureMoves(board, moves) {
+  return moves.filter((move) => board[move.to.y][move.to.x]);
+}
+
+function chooseRandom(candidates, randomFn) {
+  const rng = typeof randomFn === 'function' ? randomFn : Math.random;
+  const index = Math.floor(rng() * candidates.length);
+  return candidates[Math.max(0, Math.min(index, candidates.length - 1))];
+}
+
+function getOpeningDevelopmentMoves(board, side, moves) {
+  const developedPieces = getDevelopedPieces(board, side);
+  if (developedPieces.length > 2) {
+    return [];
+  }
+
+  const nonCannonMoves = moves.filter((move) => getMovePieceType(board, move) !== 'p');
+  if (nonCannonMoves.length === 0) {
+    return [];
+  }
+
+  const nonCannonCaptures = getCaptureMoves(board, nonCannonMoves);
+  if (nonCannonCaptures.length > 0) {
+    return nonCannonCaptures;
+  }
+
+  const developedCannonCount = developedPieces
+    .filter((item) => getPieceType(item.piece) === 'p')
+    .length;
+  if (developedPieces.length === 0 || developedCannonCount > 0) {
+    return nonCannonMoves;
+  }
+
+  return [];
+}
+
 function selectRobotMove(board, side, randomFn) {
   const moves = getLegalMoves(board, side);
   if (moves.length === 0) {
     return null;
   }
-  const captures = moves.filter((move) => board[move.to.y][move.to.x]);
-  const candidates = captures.length > 0 ? captures : moves;
-  const rng = typeof randomFn === 'function' ? randomFn : Math.random;
-  const index = Math.floor(rng() * candidates.length);
-  return candidates[Math.max(0, Math.min(index, candidates.length - 1))];
+  const openingMoves = getOpeningDevelopmentMoves(board, side, moves);
+  if (openingMoves.length > 0) {
+    return chooseRandom(openingMoves, randomFn);
+  }
+
+  const captures = getCaptureMoves(board, moves);
+  return chooseRandom(captures.length > 0 ? captures : moves, randomFn);
 }
 
 module.exports = {

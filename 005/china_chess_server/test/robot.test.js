@@ -104,6 +104,18 @@ test('selectRobotMove prefers legal captures', () => {
   assert.notEqual(board[move.to.y][move.to.x], null);
 });
 
+test('selectRobotMove avoids opening cannon captures from the initial setup', () => {
+  const board = robot.createInitialBoard();
+
+  [0, 0.5, 0.99].forEach((randomValue) => {
+    const move = robot.selectRobotMove(board, 0, () => randomValue);
+    const piece = board[move.from.y][move.from.x];
+
+    assert.equal(robot.isLegalMove(board, 0, move.from, move.to), true);
+    assert.notEqual(piece[0].toLowerCase(), 'p');
+  });
+});
+
 test('REQ_GAME_OVER disables deprecate countdown after settlement', () => {
   const source = readIndexSource();
   const reqGameOverPath = source.slice(source.indexOf("socket.on('REQ_GAME_OVER'"), source.indexOf('http.listen'));
