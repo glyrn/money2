@@ -282,15 +282,14 @@ const proto = {
     if(!desk || desk.state != 0){
       return;
     }
-    var robotCount = unoRobot.normalizeRobotCount(loginObj.robot);
-    if(robotCount <= 0){
-      robotCount = unoRobot.parseRobotCountFromLaunchUrl(loginObj.lanuch_url);
-    }
+    var robotProfiles = unoRobot.getSupplementalRobotProfiles(loginObj);
+    var robotCount = unoRobot.getSupplementalRobotCount(loginObj);
     if(robotCount <= 0){
       return;
     }
     var targetRobotCount = Math.min(robotCount, Math.max(0, desk.ready_count - 1));
     var robotIndex = this.countRobotUsers(desk);
+    var profileIndex = 0;
     for (let i = 0; i < desk.positions.length; i++) {
       if(robotIndex >= targetRobotCount || this.countOccupiedUsers(desk) >= desk.ready_count){
         break;
@@ -299,16 +298,18 @@ const proto = {
       if(this.hasUser(userObj)){
         continue;
       }
-      userObj.uid = unoRobot.makeRobotUid(desk,userObj.posId);
+      var profile = robotProfiles.length > 0 ? robotProfiles[profileIndex] : null;
+      userObj.uid = profile && profile.uid ? profile.uid : unoRobot.makeRobotUid(desk,userObj.posId);
       userObj.state = 1;
-      userObj.name = '机器人' + (robotIndex + 1);
-      userObj.avatorUrl = '';
-      userObj.score = 0;
+      userObj.name = profile && profile.name ? profile.name : '机器人' + (robotIndex + 1);
+      userObj.avatorUrl = profile && profile.avatorUrl ? profile.avatorUrl : '';
+      userObj.score = profile && profile.score !== undefined ? profile.score : 0;
       userObj.socket = null;
       userObj.isRobot = true;
       userObj.disconnectTime = null;
       userObj.recover_disconnect_data = [];
       this.broadCastRoom("SIT_CHANGE",desk.deskId,{target:unoRobot.buildRobotLoginData(userObj),posId:userObj.posId});
+      profileIndex++;
       robotIndex++;
     }
   },

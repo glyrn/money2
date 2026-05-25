@@ -395,7 +395,7 @@ const socketMgr = function(){
 
     that.login = function(uid,name,avatorUrl,score,ob_uid,room,base_score,play_count,play_mode,cbFunc){
         _socket.emit('LOGIN', {uid:uid,name:name,avatorUrl:avatorUrl,score:score,ob_uid:ob_uid,room:room,
-            score:score,base_score:base_score,play_count:play_count,play_mode:play_mode,lanuch_url:cc.args['lanuch_url']});
+            score:score,base_score:base_score,play_count:play_count,play_mode:play_mode,lanuch_url:cc.args['lanuch_url'],robot:cc.args['robot'],robots:cc.args['robots']});
         _cbLogin = cbFunc;
 
         //是否旁观

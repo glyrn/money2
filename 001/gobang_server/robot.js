@@ -1,6 +1,7 @@
 const MAX_ROBOT_COUNT = 3;
 const BOARD_SIZE = 15;
 const CENTER_TAG = 112;
+const robotProfiles = require('../../common/robot_profiles');
 const DIRECTIONS = [
   [1, 0],
   [0, 1],
@@ -32,6 +33,14 @@ function parseQueryRobotValue(rawUrl) {
 
 function parseRobotCountFromLaunchUrl(rawUrl) {
   return normalizeRobotCount(parseQueryRobotValue(rawUrl));
+}
+
+function getSupplementalRobotProfiles(loginObj) {
+  return robotProfiles.getSupplementalRobotProfiles(loginObj, MAX_ROBOT_COUNT);
+}
+
+function getSupplementalRobotCount(loginObj) {
+  return robotProfiles.getSupplementalRobotCount(loginObj, MAX_ROBOT_COUNT);
 }
 
 function getRandomDelayMs(randomFn) {
@@ -192,6 +201,8 @@ module.exports = {
   MAX_ROBOT_COUNT,
   buildRobotLoginData,
   getRandomDelayMs,
+  getSupplementalRobotCount,
+  getSupplementalRobotProfiles,
   makeRobotUid,
   normalizeRobotCount,
   parseRobotCountFromLaunchUrl,

@@ -1,6 +1,7 @@
 const MAX_ROBOT_COUNT = 3;
 const WIDTH = 9;
 const HEIGHT = 10;
+const robotProfiles = require('../../common/robot_profiles');
 
 const INITIAL_BOARD = [
   ['C0', 'M0', 'X0', 'S0', 'J0', 'S1', 'X1', 'M1', 'C1'],
@@ -39,6 +40,14 @@ function parseQueryRobotValue(rawUrl) {
 
 function parseRobotCountFromLaunchUrl(rawUrl) {
   return normalizeRobotCount(parseQueryRobotValue(rawUrl));
+}
+
+function getSupplementalRobotProfiles(loginObj) {
+  return robotProfiles.getSupplementalRobotProfiles(loginObj, MAX_ROBOT_COUNT);
+}
+
+function getSupplementalRobotCount(loginObj) {
+  return robotProfiles.getSupplementalRobotCount(loginObj, MAX_ROBOT_COUNT);
 }
 
 function getRandomDelayMs(randomFn) {
@@ -186,7 +195,12 @@ function isLegalMove(board, side, from, to) {
   if (target && isOwnPiece(target, side)) {
     return false;
   }
-  return isLegalPieceMove(board, side, from, to);
+  if (!isLegalPieceMove(board, side, from, to)) {
+    return false;
+  }
+  const nextBoard = cloneBoard(board);
+  applyMove(nextBoard, from, to);
+  return !isSideInCheck(nextBoard, side);
 }
 
 function applyMove(board, from, to) {
@@ -195,6 +209,58 @@ function applyMove(board, from, to) {
   board[to.y][to.x] = piece;
   board[from.y][from.x] = null;
   return {piece, captured};
+}
+
+function cloneBoard(board) {
+  return (board || []).map((row) => row.slice());
+}
+
+function getKingPosition(board, side) {
+  for (let y = 0; y < HEIGHT; y++) {
+    for (let x = 0; x < WIDTH; x++) {
+      const piece = board[y][x];
+      if (piece && getPieceSide(piece) === side && getPieceType(piece) === 'j') {
+        return {x, y};
+      }
+    }
+  }
+  return null;
+}
+
+function areKingsFacing(board) {
+  const redKing = getKingPosition(board, 0);
+  const blackKing = getKingPosition(board, 1);
+  if (!redKing || !blackKing || redKing.x !== blackKing.x) {
+    return false;
+  }
+  return countBetween(board, redKing, blackKing) === 0;
+}
+
+function isSideInCheck(board, side) {
+  if (!board) {
+    return false;
+  }
+  const king = getKingPosition(board, side);
+  if (!king) {
+    return true;
+  }
+  if (areKingsFacing(board)) {
+    return true;
+  }
+
+  const opponent = side === 0 ? 1 : 0;
+  for (let y = 0; y < HEIGHT; y++) {
+    for (let x = 0; x < WIDTH; x++) {
+      const piece = board[y][x];
+      if (!piece || getPieceSide(piece) !== opponent) {
+        continue;
+      }
+      if (isLegalPieceMove(board, opponent, {x, y}, king)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function getLegalMoves(board, side) {
@@ -308,7 +374,10 @@ module.exports = {
   buildRobotLoginData,
   createInitialBoard,
   getRandomDelayMs,
+  getSupplementalRobotCount,
+  getSupplementalRobotProfiles,
   getPieceSide,
+  isSideInCheck,
   makeRobotUid,
   normalizeRobotCount,
   parseRobotCountFromLaunchUrl,

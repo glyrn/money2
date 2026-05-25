@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const DEFINES_FILE = '002/doudizhu_client/assets/scripts/defines.js';
+const SOCKET_MGR_FILE = '002/doudizhu_client/assets/scripts/data/socketMgr.js';
 const SERVER_FILE = '002/doudizhu_server/index.js';
 const GAME_PORT = 9002;
 
@@ -41,4 +42,11 @@ test('doudizhu local debug keeps custom socket path', () => {
 
   assert.match(source, /var ioParam = \{path:'\/hlddz_socket\.io'\};/);
   assert.equal(localDebugBlock.includes('ioParam = null'), false);
+});
+
+test('doudizhu client forwards robot profile list during login', () => {
+  const source = fs.readFileSync(path.join(ROOT, SOCKET_MGR_FILE), 'utf8');
+
+  assert.match(source, /robot\s*:\s*cc\.args\['robot'\]/);
+  assert.match(source, /robots\s*:\s*cc\.args\['robots'\]/);
 });

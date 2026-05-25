@@ -300,7 +300,7 @@ const socketMgr = function(){
 
     that.login = function(uid,name,avatorUrl,score,room,ready_count,game_time,specific_score,ob_uid,cbFunc){
         _socket.emit('LOGIN', {uid:uid,room:room,name:name,avatorUrl:avatorUrl,score:score,ready_count:ready_count,
-            game_time:game_time,specific_score:specific_score,ob_uid:ob_uid,lanuch_url:cc.args['lanuch_url']});
+            game_time:game_time,specific_score:specific_score,ob_uid:ob_uid,lanuch_url:cc.args['lanuch_url'],robot:cc.args['robot'],robots:cc.args['robots']});
         _cbLogin = cbFunc;
         //是否旁观
         _gameMgr.is_ob = cc.args['ob_uid'] !== undefined;

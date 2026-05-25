@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const DEFINES_FILE = '003/uno_client/assets/scripts/defines.js';
+const SOCKET_MGR_FILE = '003/uno_client/assets/scripts/data/socketMgr.js';
 const GAME_PORT = 9003;
 
 function loadDefines(href, host, port) {
@@ -29,4 +30,11 @@ test('uno direct game port enables force login mode', () => {
 
   assert.equal(defines.serverUrl, host);
   assert.equal(defines.isForce, true);
+});
+
+test('uno client forwards robot profile list during login', () => {
+  const source = fs.readFileSync(path.join(ROOT, SOCKET_MGR_FILE), 'utf8');
+
+  assert.match(source, /robot\s*:\s*cc\.args\['robot'\]/);
+  assert.match(source, /robots\s*:\s*cc\.args\['robots'\]/);
 });

@@ -1,4 +1,5 @@
 const MAX_ROBOT_COUNT = 3;
+const robotProfiles = require('../../common/robot_profiles');
 
 function normalizeRobotCount(value) {
   const count = parseInt(value, 10);
@@ -24,6 +25,14 @@ function parseQueryRobotValue(rawUrl) {
 
 function parseRobotCountFromLaunchUrl(rawUrl) {
   return normalizeRobotCount(parseQueryRobotValue(rawUrl));
+}
+
+function getSupplementalRobotProfiles(loginObj) {
+  return robotProfiles.getSupplementalRobotProfiles(loginObj, MAX_ROBOT_COUNT);
+}
+
+function getSupplementalRobotCount(loginObj) {
+  return robotProfiles.getSupplementalRobotCount(loginObj, MAX_ROBOT_COUNT);
 }
 
 function getRandomDelayMs(randomFn) {
@@ -245,8 +254,29 @@ function addKingBombCandidate(candidates, seen, groups) {
   }
 }
 
-function addSimpleCandidates(candidates, seen, groups, count, minValue) {
-  valuesByCount(groups, count).filter((value) => value > (minValue || 0)).forEach((value) => {
+function shouldAvoidBreakingSimpleGroup(groups, value, count) {
+  const groupSize = groups[value] ? groups[value].length : 0;
+  if (groupSize >= 4) {
+    return true;
+  }
+  if (count < 3 && groupSize >= 3) {
+    return true;
+  }
+  if (count === 1 && groupSize >= 2) {
+    return true;
+  }
+  if (count === 3 && groupSize > 3) {
+    return true;
+  }
+  return false;
+}
+
+function addSimpleCandidates(candidates, seen, groups, count, minValue, options) {
+  let values = valuesByCount(groups, count).filter((value) => value > (minValue || 0));
+  if (options && options.protectCombinations) {
+    values = values.filter((value) => !shouldAvoidBreakingSimpleGroup(groups, value, count));
+  }
+  values.forEach((value) => {
     pushCandidate(candidates, seen, takeCardsByValue(groups, value, count));
   });
 }
@@ -265,7 +295,7 @@ function buildOpeningRecommendationCandidates(cards) {
   addTripleAttachCandidates(candidates, seen, groups, cards, 0, false);
   addSimpleCandidates(candidates, seen, groups, 2, 0);
   addSimpleCandidates(candidates, seen, groups, 3, 0);
-  addSimpleCandidates(candidates, seen, groups, 1, 0);
+  addSimpleCandidates(candidates, seen, groups, 1, 0, {protectCombinations: true});
   addBombCandidates(candidates, seen, groups, 0);
   addKingBombCandidate(candidates, seen, groups);
   return candidates;
@@ -277,13 +307,14 @@ function buildResponseRecommendationCandidates(cards, lastInfo) {
   const seen = {};
   const key = parseInt(lastInfo.key, 10) || 0;
   const len = parseInt(lastInfo.len, 10) || 0;
+  const protectedSimple = {protectCombinations: true};
 
   if (lastInfo.type === 'A') {
-    addSimpleCandidates(candidates, seen, groups, 1, key);
+    addSimpleCandidates(candidates, seen, groups, 1, key, protectedSimple);
   } else if (lastInfo.type === 'AA') {
-    addSimpleCandidates(candidates, seen, groups, 2, key);
+    addSimpleCandidates(candidates, seen, groups, 2, key, protectedSimple);
   } else if (lastInfo.type === 'AAA') {
-    addSimpleCandidates(candidates, seen, groups, 3, key);
+    addSimpleCandidates(candidates, seen, groups, 3, key, protectedSimple);
   } else if (lastInfo.type === 'AAAB' && len === 4) {
     addTripleAttachCandidates(candidates, seen, groups, cards, key, false);
   } else if (lastInfo.type === 'AAABB' && len === 5) {
@@ -324,6 +355,59 @@ function pickFirstValidCandidate(game, posId, islaizi, candidates) {
   return null;
 }
 
+function getLaiziValues(game, islaizi) {
+  if (parseInt(islaizi, 10) <= 0 || !game || !Array.isArray(game.contextLaiziCards)) {
+    return [];
+  }
+  return game.contextLaiziCards
+    .map((card) => parseInt(card.value, 10))
+    .filter((value) => Number.isFinite(value));
+}
+
+function isLaiziCard(game, card, islaizi) {
+  return !!(card && getLaiziValues(game, islaizi).indexOf(parseInt(card.value, 10)) !== -1);
+}
+
+function shouldAvoidLeadingSingleLaizi(game, cards, candidate, islaizi) {
+  if (!candidate || candidate.length !== 1 || (cards || []).length <= 6) {
+    return false;
+  }
+  if (!isLaiziCard(game, candidate[0], islaizi)) {
+    return false;
+  }
+  return sortCards(cards).some((card) => !isLaiziCard(game, card, islaizi));
+}
+
+function pickLowestNonLaiziSingle(game, cards, islaizi) {
+  return sortCards(cards).find((card) => !isLaiziCard(game, card, islaizi)) || null;
+}
+
+function isSamePeasantTeam(game, posId, otherPosId) {
+  if (!game || typeof game.getMaxScoreInfo !== 'function' || posId === otherPosId) {
+    return false;
+  }
+  const landlordInfo = game.getMaxScoreInfo();
+  if (!landlordInfo || parseInt(landlordInfo.score, 10) <= 0) {
+    return false;
+  }
+  const landlord = parseInt(landlordInfo.posId, 10);
+  return parseInt(posId, 10) !== landlord && parseInt(otherPosId, 10) !== landlord;
+}
+
+function shouldYieldToTeammateHighCard(game, posId) {
+  const lastInfo = game && game.lastCardInfo ? game.lastCardInfo : {};
+  const key = parseInt(lastInfo.key, 10);
+  const len = parseInt(lastInfo.len, 10);
+  if (!Number.isFinite(key) || key < 14 || !Number.isFinite(len) || len > 2) {
+    return false;
+  }
+  return isSamePeasantTeam(game, posId, lastInfo.posId);
+}
+
+function isProtectedSimpleResponse(lastInfo) {
+  return !!(lastInfo && (lastInfo.type === 'A' || lastInfo.type === 'AA' || lastInfo.type === 'AAA'));
+}
+
 function selectRecommendedPlayCards(game, posId, islaizi) {
   const cards = game.getCardsByPosId(posId) || [];
   const lastInfo = game.lastCardInfo || {};
@@ -362,13 +446,26 @@ function selectPlayCards(game, posId, islaizi) {
   if (cards.length === 0) {
     return [];
   }
+  const lastInfo = game.lastCardInfo || {};
+  if (shouldYieldToTeammateHighCard(game, posId)) {
+    return [];
+  }
   const recommended = selectRecommendedPlayCards(game, posId, islaizi);
   if (recommended && recommended.length > 0) {
+    if ((lastInfo.posId === posId || !lastInfo.len) && shouldAvoidLeadingSingleLaizi(game, cards, recommended, islaizi)) {
+      const nonLaiziSingle = pickLowestNonLaiziSingle(game, cards, islaizi);
+      if (nonLaiziSingle) {
+        return [nonLaiziSingle];
+      }
+    }
     return recommended;
   }
-  const lastInfo = game.lastCardInfo || {};
   if (lastInfo.posId === posId || !lastInfo.len) {
-    return [sortCards(cards)[0]];
+    const nonLaiziSingle = pickLowestNonLaiziSingle(game, cards, islaizi);
+    return [nonLaiziSingle || sortCards(cards)[0]];
+  }
+  if (isProtectedSimpleResponse(lastInfo)) {
+    return [];
   }
 
   const candidates = buildCandidatePlays(cards);
@@ -389,6 +486,8 @@ module.exports = {
   MAX_ROBOT_COUNT,
   buildRobotLoginData,
   getRandomDelayMs,
+  getSupplementalRobotCount,
+  getSupplementalRobotProfiles,
   makeRobotUid,
   normalizeRobotCount,
   parseRobotCountFromLaunchUrl,

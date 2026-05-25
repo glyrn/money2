@@ -6,6 +6,7 @@ const STRAIGHT_MID_STEP = 52;
 const START_OFFSETS = [0, 13, 26, 39];
 const JUMP_STEPS = [4, 17, 30, 43];
 const NO_JUMP_STEPS = [10, 23, 36, 49];
+const robotProfileParser = require('../../common/robot_profiles');
 
 function normalizeRobotCount(value) {
   const count = parseInt(value, 10);
@@ -16,17 +17,7 @@ function normalizeRobotCount(value) {
 }
 
 function parseQueryValue(rawUrl, name) {
-  if (!rawUrl || typeof rawUrl !== 'string') {
-    return undefined;
-  }
-  const queryStart = rawUrl.indexOf('?');
-  if (queryStart < 0) {
-    return undefined;
-  }
-  const hashStart = rawUrl.indexOf('#', queryStart);
-  const query = rawUrl.slice(queryStart + 1, hashStart >= 0 ? hashStart : undefined);
-  const params = new URLSearchParams(query);
-  return params.get(name);
+  return robotProfileParser.parseQueryValue(rawUrl, name);
 }
 
 function parseQueryRobotValue(rawUrl) {
@@ -108,24 +99,7 @@ function normalizeRobotProfile(profile, index) {
 }
 
 function getSupplementalRobotProfiles(loginObj) {
-  if (!loginObj) {
-    return [];
-  }
-
-  let rawProfiles = parseRobotProfiles(loginObj.robots);
-  if (!Array.isArray(rawProfiles) || rawProfiles.length === 0) {
-    rawProfiles = parseRobotProfiles(parseQueryValue(loginObj.lanuch_url, 'robots'));
-  }
-  if (!Array.isArray(rawProfiles) || rawProfiles.length === 0) {
-    return [];
-  }
-
-  const currentUid = loginObj.uid === undefined || loginObj.uid === null ? '' : String(loginObj.uid);
-  return rawProfiles
-    .slice(0, MAX_ROBOT_COUNT)
-    .map(normalizeRobotProfile)
-    .filter(Boolean)
-    .filter((profile) => !currentUid || String(profile.uid) !== currentUid);
+  return robotProfileParser.getSupplementalRobotProfiles(loginObj, MAX_ROBOT_COUNT);
 }
 
 function isTrueLike(value) {

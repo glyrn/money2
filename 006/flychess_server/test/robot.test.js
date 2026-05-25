@@ -55,6 +55,16 @@ test('robot profile lists can be read from JSON payloads or launch urls', () => 
   ]);
 });
 
+test('robot profile lists accept client-provided unquoted Chinese names and avatar urls', () => {
+  const text = "[{id: 9876425344, name: 呆呆嘿😘, avatar: https://cdn.test/avatar_1405.jpg}, {id: 9964265128, name: 你悲的蜂, avatar: https://cdn.test/avatar_49.jpg}]";
+  const launchUrl = 'https://game.test/fxq?robot=2&robots=' + encodeURIComponent(text);
+
+  assert.deepEqual(robot.getSupplementalRobotProfiles({lanuch_url: launchUrl}), [
+    {uid: '9876425344', name: '呆呆嘿😘', avatorUrl: 'https://cdn.test/avatar_1405.jpg', score: 0},
+    {uid: '9964265128', name: '你悲的蜂', avatorUrl: 'https://cdn.test/avatar_49.jpg', score: 0},
+  ]);
+});
+
 test('robot profile lists take priority over generic robot counts', () => {
   const loginObj = {
     robot: 3,

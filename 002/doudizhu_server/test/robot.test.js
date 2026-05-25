@@ -39,6 +39,11 @@ function assertCleanupOnlyDeprecatesActiveGame(section) {
   );
 }
 
+function robotProfilesLaunchUrl() {
+  const text = "[{id: 9876425344, name: 呆呆嘿😘, avatar: https://cdn.test/avatar_1405.jpg}, {id: 9964265128, name: 你悲的蜂, avatar: https://cdn.test/avatar_49.jpg}]";
+  return 'https://game.test/ddz?robot=2&robots=' + encodeURIComponent(text);
+}
+
 test('robot helpers parse counts and build local robot login data', () => {
   assert.equal(robot.normalizeRobotCount(undefined), 0);
   assert.equal(robot.normalizeRobotCount('2'), 2);
@@ -63,6 +68,26 @@ test('robot helpers parse counts and build local robot login data', () => {
     posId: 2,
     isRobot: true,
   });
+});
+
+test('robot helpers parse robot identity profiles from launch urls', () => {
+  const profiles = robot.getSupplementalRobotProfiles({lanuch_url: robotProfilesLaunchUrl()});
+
+  assert.deepEqual(profiles, [
+    {
+      uid: '9876425344',
+      name: '呆呆嘿😘',
+      avatorUrl: 'https://cdn.test/avatar_1405.jpg',
+      score: 0,
+    },
+    {
+      uid: '9964265128',
+      name: '你悲的蜂',
+      avatorUrl: 'https://cdn.test/avatar_49.jpg',
+      score: 0,
+    },
+  ]);
+  assert.equal(robot.getSupplementalRobotCount({robot: 2, lanuch_url: robotProfilesLaunchUrl()}), 2);
 });
 
 test('selectCallScore bids within available score options', () => {
@@ -128,6 +153,71 @@ test('selectPlayCards beats the previous single through Game.validate', () => {
   setCards(game, 1, [{value: 7, type: 0}, {value: 9, type: 1}, {value: 10, type: 2}]);
 
   assert.deepEqual(robot.selectPlayCards(game, 1, 0), [{value: 9, type: 1}]);
+});
+
+test('selectPlayCards keeps triples intact when answering a single', () => {
+  const game = new Game();
+  game.init();
+  game.status = 2;
+  game.contextPosId = 1;
+  game.lastCardInfo = {posId: 0, len: 1, key: 8, type: 'A', is_normal: true};
+  setCards(game, 1, [
+    {value: 9, type: 0},
+    {value: 9, type: 1},
+    {value: 9, type: 2},
+    {value: 10, type: 0},
+    {value: 4, type: 0},
+  ]);
+
+  assert.deepEqual(robot.selectPlayCards(game, 1, 0), [{value: 10, type: 0}]);
+});
+
+test('selectPlayCards passes instead of splitting the only triple for a single', () => {
+  const game = new Game();
+  game.init();
+  game.status = 2;
+  game.contextPosId = 1;
+  game.lastCardInfo = {posId: 0, len: 1, key: 8, type: 'A', is_normal: true};
+  setCards(game, 1, [
+    {value: 9, type: 0},
+    {value: 9, type: 1},
+    {value: 9, type: 2},
+    {value: 4, type: 0},
+  ]);
+
+  assert.deepEqual(robot.selectPlayCards(game, 1, 0), []);
+});
+
+test('selectPlayCards passes instead of casually beating a teammate high single', () => {
+  const game = new Game();
+  game.init();
+  game.status = 2;
+  game.contextPosId = 2;
+  game.userScore = {0: 3, 1: 0, 2: 0};
+  game.lastCardInfo = {posId: 1, len: 1, key: 14, type: 'A', is_normal: true};
+  setCards(game, 2, [{value: 15, type: 0}, {value: 6, type: 1}]);
+
+  assert.deepEqual(robot.selectPlayCards(game, 2, 0), []);
+});
+
+test('selectPlayCards avoids leading a single laizi while the hand is still large', () => {
+  const game = new Game();
+  game.init();
+  game.status = 2;
+  game.contextPosId = 0;
+  game.contextLaiziCards = [{value: 3, type: 1}];
+  game.lastCardInfo = {posId: 0, len: 0, key: '', type: ''};
+  setCards(game, 0, [
+    {value: 3, type: 1},
+    {value: 4, type: 0},
+    {value: 6, type: 0},
+    {value: 8, type: 0},
+    {value: 10, type: 0},
+    {value: 12, type: 0},
+    {value: 14, type: 0},
+  ]);
+
+  assert.deepEqual(robot.selectPlayCards(game, 0, 1), [{value: 4, type: 0}]);
 });
 
 test('selectPlayCards follows system-style straight response', () => {

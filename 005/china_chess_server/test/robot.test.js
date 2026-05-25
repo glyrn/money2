@@ -33,6 +33,11 @@ function assertCleanupOnlyDeprecatesActiveGame(section) {
   );
 }
 
+function robotProfilesLaunchUrl() {
+  const text = "[{id: 9876425344, name: 呆呆嘿😘, avatar: https://cdn.test/avatar_1405.jpg}, {id: 9964265128, name: 你悲的蜂, avatar: https://cdn.test/avatar_49.jpg}]";
+  return 'https://game.test/zgxq?robot=2&robots=' + encodeURIComponent(text);
+}
+
 test('robot helpers parse counts and build local robot login data', () => {
   assert.equal(robot.normalizeRobotCount(undefined), 0);
   assert.equal(robot.normalizeRobotCount('2'), 2);
@@ -59,6 +64,26 @@ test('robot helpers parse counts and build local robot login data', () => {
   });
 });
 
+test('robot helpers parse robot identity profiles from launch urls', () => {
+  const profiles = robot.getSupplementalRobotProfiles({lanuch_url: robotProfilesLaunchUrl()});
+
+  assert.deepEqual(profiles, [
+    {
+      uid: '9876425344',
+      name: '呆呆嘿😘',
+      avatorUrl: 'https://cdn.test/avatar_1405.jpg',
+      score: 0,
+    },
+    {
+      uid: '9964265128',
+      name: '你悲的蜂',
+      avatorUrl: 'https://cdn.test/avatar_49.jpg',
+      score: 0,
+    },
+  ]);
+  assert.equal(robot.getSupplementalRobotCount({robot: 2, lanuch_url: robotProfilesLaunchUrl()}), 2);
+});
+
 test('createInitialBoard places both sides in client-compatible coordinates', () => {
   const board = robot.createInitialBoard();
 
@@ -81,6 +106,30 @@ test('isLegalMove validates horse legs', () => {
 
   assert.equal(robot.isLegalMove(board, 0, {x: 1, y: 9}, {x: 2, y: 7}), true);
   assert.equal(robot.isLegalMove(board, 0, {x: 1, y: 9}, {x: 3, y: 8}), false);
+});
+
+test('isLegalMove rejects moves that expose own king', () => {
+  const board = Array.from({length: robot.HEIGHT}, () => Array(robot.WIDTH).fill(null));
+  board[0][4] = 'J0';
+  board[9][4] = 'j0';
+  board[5][4] = 'c0';
+
+  assert.equal(robot.isLegalMove(board, 0, {x: 4, y: 5}, {x: 3, y: 5}), false);
+});
+
+test('selectRobotMove escapes check before quiet development moves', () => {
+  const board = Array.from({length: robot.HEIGHT}, () => Array(robot.WIDTH).fill(null));
+  board[0][4] = 'J0';
+  board[1][4] = 'Z0';
+  board[2][4] = 'p0';
+  board[0][0] = 'C0';
+
+  assert.equal(robot.isSideInCheck(board, 1), true);
+  const move = robot.selectRobotMove(board, 1, () => 0);
+  const nextBoard = board.map((row) => row.slice());
+  robot.applyMove(nextBoard, move.from, move.to);
+
+  assert.equal(robot.isSideInCheck(nextBoard, 1), false);
 });
 
 test('applyMove moves pieces and reports captures', () => {

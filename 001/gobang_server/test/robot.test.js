@@ -25,6 +25,11 @@ function place(board, tag, state) {
   board[tag].state = state;
 }
 
+function robotProfilesLaunchUrl() {
+  const text = "[{id: 9876425344, name: 呆呆嘿😘, avatar: https://cdn.test/avatar_1405.jpg}, {id: 9964265128, name: 你悲的蜂, avatar: https://cdn.test/avatar_49.jpg}]";
+  return 'https://game.test/wzq?robot=2&robots=' + encodeURIComponent(text);
+}
+
 test('robot helpers parse counts and build local robot login data', () => {
   assert.equal(robot.normalizeRobotCount(undefined), 0);
   assert.equal(robot.normalizeRobotCount('2'), 2);
@@ -49,6 +54,26 @@ test('robot helpers parse counts and build local robot login data', () => {
     posId: 1,
     isRobot: true,
   });
+});
+
+test('robot helpers parse robot identity profiles from launch urls', () => {
+  const profiles = robot.getSupplementalRobotProfiles({lanuch_url: robotProfilesLaunchUrl()});
+
+  assert.deepEqual(profiles, [
+    {
+      uid: '9876425344',
+      name: '呆呆嘿😘',
+      avatorUrl: 'https://cdn.test/avatar_1405.jpg',
+      score: 0,
+    },
+    {
+      uid: '9964265128',
+      name: '你悲的蜂',
+      avatorUrl: 'https://cdn.test/avatar_49.jpg',
+      score: 0,
+    },
+  ]);
+  assert.equal(robot.getSupplementalRobotCount({robot: 2, lanuch_url: robotProfilesLaunchUrl()}), 2);
 });
 
 test('selectRobotMove returns an empty tag', () => {

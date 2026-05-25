@@ -1,4 +1,5 @@
 const MAX_ROBOT_COUNT = 3;
+const robotProfiles = require('../../common/robot_profiles');
 
 function normalizeRobotCount(value) {
   const count = parseInt(value, 10);
@@ -24,6 +25,14 @@ function parseQueryRobotValue(rawUrl) {
 
 function parseRobotCountFromLaunchUrl(rawUrl) {
   return normalizeRobotCount(parseQueryRobotValue(rawUrl));
+}
+
+function getSupplementalRobotProfiles(loginObj) {
+  return robotProfiles.getSupplementalRobotProfiles(loginObj, MAX_ROBOT_COUNT);
+}
+
+function getSupplementalRobotCount(loginObj) {
+  return robotProfiles.getSupplementalRobotCount(loginObj, MAX_ROBOT_COUNT);
 }
 
 function getRandomDelayMs(randomFn) {
@@ -136,6 +145,8 @@ module.exports = {
   canActOnTurn,
   chooseWildColor,
   getRandomDelayMs,
+  getSupplementalRobotCount,
+  getSupplementalRobotProfiles,
   isPlayable,
   makeRobotUid,
   normalizeRobotCount,
