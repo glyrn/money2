@@ -1,7 +1,7 @@
 const MAX_ROBOT_COUNT = 3;
 const BOARD_SIZE = 15;
 const CENTER_TAG = 112;
-const robotProfiles = require('../../common/robot_profiles');
+const robotProfiles = require('./robot_profiles');
 const DIRECTIONS = [
   [1, 0],
   [0, 1],
