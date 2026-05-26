@@ -6,7 +6,7 @@ const STRAIGHT_MID_STEP = 52;
 const START_OFFSETS = [0, 13, 26, 39];
 const JUMP_STEPS = [4, 17, 30, 43];
 const NO_JUMP_STEPS = [10, 23, 36, 49];
-const robotProfileParser = require('../../common/robot_profiles');
+const robotProfileParser = require('./robot_profiles');
 
 function normalizeRobotCount(value) {
   const count = parseInt(value, 10);

@@ -1,7 +1,7 @@
 const MAX_ROBOT_COUNT = 3;
 const WIDTH = 9;
 const HEIGHT = 10;
-const robotProfiles = require('../../common/robot_profiles');
+const robotProfiles = require('./robot_profiles');
 
 const INITIAL_BOARD = [
   ['C0', 'M0', 'X0', 'S0', 'J0', 'S1', 'X1', 'M1', 'C1'],
