@@ -1,5 +1,5 @@
 const MAX_ROBOT_COUNT = 3;
-const robotProfiles = require('../../common/robot_profiles');
+const robotProfiles = require('./robot_profiles');
 
 function normalizeRobotCount(value) {
   const count = parseInt(value, 10);
