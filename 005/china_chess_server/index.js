@@ -321,6 +321,11 @@ const proto = {
     if(!desk || desk.state != 1){
       return;
     }
+
+    if(desk.play_mode == 0){
+      return;
+    }
+
     var userObj = desk.positions[desk.turn];
     if(!this.isRobotUser(userObj) || userObj.state != 2){
       return;
@@ -372,13 +377,13 @@ const proto = {
         return false;
       }
       desk.selected_chess[posId] = {x:x,y:y};
-      this.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{x:x,y:y,move:0});
+      this.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{x:x,y:y,move:0,posId:posId});
       return true;
     }
 
     if(piece && chessRobot.getPieceSide(piece) === posId){
       desk.selected_chess[posId] = {x:x,y:y};
-      this.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{x:x,y:y,move:0});
+      this.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,{x:x,y:y,move:0,posId:posId});
       return true;
     }
 
@@ -393,6 +398,7 @@ const proto = {
     desk.selected_chess[posId] = null;
     desk.time_out = 90;
     desk.hadPlayChess = false;
+    data.posId = posId;
     data.time_out = getTimeStamp()+desk.time_out;
     this.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,data);
     desk.turn = posId == 0 ? 1 : 0;
@@ -941,6 +947,7 @@ const proto = {
           if(data.move == 1){
             desk.time_out = 90;
             desk.hadPlayChess = false;
+            data.posId = posId;
             data.time_out = getTimeStamp()+desk.time_out;
           }
           self.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,data);

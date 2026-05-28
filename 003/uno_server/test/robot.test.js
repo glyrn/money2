@@ -116,6 +116,26 @@ test('selectRobotCard returns null when no card is playable', () => {
   assert.equal(robot.selectRobotCard(hand, outCards), null);
 });
 
+test('drawCards recycles discard pile without consuming the top card', () => {
+  const desk = {
+    cards: [],
+    out_cards: [
+      {type: 1, value: 5, color: 1},
+      {type: 2, value: 'plus2', color: 2, mark: true},
+      {type: 1, value: 9, color: 4},
+    ],
+  };
+
+  const cards = robot.drawCards(desk, 2, () => 0);
+
+  assert.deepEqual(cards, [
+    {type: 1, value: 5, color: 1},
+    {type: 2, value: 'plus2', color: 2},
+  ]);
+  assert.deepEqual(desk.out_cards, [{type: 1, value: 9, color: 4}]);
+  assert.equal(desk.cards.length, 0);
+});
+
 test('canActOnTurn rejects actions from non-current players', () => {
   assert.equal(robot.canActOnTurn({state: 1, cur_posId: 2}, 2), true);
   assert.equal(robot.canActOnTurn({state: 1, cur_posId: 2}, 1), false);
@@ -133,6 +153,13 @@ test('timeout game-over path does not reference undefined settlement variables',
   const timeoutPath = source.slice(source.indexOf('checkTimeGameOver:function'), source.indexOf('broadCastRoom:function'));
   assert.equal(timeoutPath.includes('is_quit:is_over_specific_score'), false);
   assert.equal(timeoutPath.includes('score_list:desk.score_list'), false);
+});
+
+test('timeout game-over path does not settle simply because the draw pile is empty', () => {
+  const source = readIndexSource();
+  const timeoutPath = sourceBetween(source, 'checkTimeGameOver:function', 'broadCastRoom:function');
+
+  assert.equal(timeoutPath.includes('desk.cards.length <= 0'), false);
 });
 
 test('normal game-over paths do not arm deprecate countdown', () => {

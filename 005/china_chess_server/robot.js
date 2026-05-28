@@ -343,6 +343,34 @@ function getOpeningDevelopmentMoves(board, side, moves) {
     return nonCannonCaptures;
   }
 
+  // Black side (side=0) should prioritize defensive opening:
+  // move knight (m) or elephant (x) to protect the center pawn
+  if (side === 0) {
+    const defensiveMoves = nonCannonMoves.filter((move) => {
+      const type = getMovePieceType(board, move);
+      if (type === 'm') {
+        // Prefer knight moves that protect the center pawn (z2 at position 4,6)
+        // m0 at (1,9) -> (2,7) or m1 at (7,9) -> (6,7)
+        if (move.to.x === 2 && move.to.y === 7) return true;
+        if (move.to.x === 6 && move.to.y === 7) return true;
+        return false;
+      }
+      if (type === 'x') {
+        // Elephant moves to connect defense
+        return true;
+      }
+      return false;
+    });
+    if (defensiveMoves.length > 0) {
+      return defensiveMoves;
+    }
+    // Fallback: prefer any knight move over other non-cannon moves
+    const knightMoves = nonCannonMoves.filter((move) => getMovePieceType(board, move) === 'm');
+    if (knightMoves.length > 0) {
+      return knightMoves;
+    }
+  }
+
   const developedCannonCount = developedPieces
     .filter((item) => getPieceType(item.piece) === 'p')
     .length;

@@ -165,6 +165,25 @@ test('selectRobotMove avoids opening cannon captures from the initial setup', ()
   });
 });
 
+test('black robot opens with a central defense instead of random development', () => {
+  const board = robot.createInitialBoard();
+
+  [0, 0.5, 0.99].forEach((randomValue) => {
+    const move = robot.selectRobotMove(board, 0, () => randomValue);
+    assert.equal(robot.isLegalMove(board, 0, move.from, move.to), true);
+    const piece = board[move.from.y][move.from.x];
+    const type = piece ? piece[0].toLowerCase() : null;
+    assert.ok(type === 'm' || type === 'x', 'Black should open with knight or elephant, got: ' + type);
+  });
+});
+
+test('PLAY_CHESS_SUCCESS payloads carry actor position for client turn cleanup', () => {
+  const source = readIndexSource();
+  const selectPath = getIndexSection('handlePlayChess:function', 'broadCastRoom:function');
+
+  assert.match(selectPath, /PLAY_CHESS_SUCCESS"[\s\S]*posId:posId/);
+});
+
 test('REQ_GAME_OVER disables deprecate countdown after settlement', () => {
   const source = readIndexSource();
   const reqGameOverPath = source.slice(source.indexOf("socket.on('REQ_GAME_OVER'"), source.indexOf('http.listen'));

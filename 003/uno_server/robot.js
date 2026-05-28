@@ -139,11 +139,45 @@ function canActOnTurn(desk, posId) {
   return parseInt(desk.cur_posId, 10) === parseInt(posId, 10);
 }
 
+function drawCards(desk, count, randomFn) {
+  const drawn = [];
+  const rng = typeof randomFn === 'function' ? randomFn : Math.random;
+
+  for (let i = 0; i < count; i++) {
+    if (!desk.cards || desk.cards.length === 0) {
+      if (!desk.out_cards || desk.out_cards.length <= 1) {
+        break;
+      }
+      const topCard = desk.out_cards.pop();
+      // Clean mark properties from cards being reshuffled
+      const cards = desk.out_cards.splice(0, desk.out_cards.length).map(function(card) {
+        const cleaned = Object.assign({}, card);
+        delete cleaned.mark;
+        return cleaned;
+      });
+      desk.out_cards.push(topCard);
+      // Shuffle using same algorithm as createCards
+      const shuffled = [];
+      while (cards.length > 0) {
+        const idx = Math.floor(rng() * cards.length);
+        shuffled.push(cards[idx]);
+        cards.splice(idx, 1);
+      }
+      desk.cards = shuffled;
+    }
+    const card = desk.cards.shift();
+    if (!card) break;
+    drawn.push(card);
+  }
+  return drawn;
+}
+
 module.exports = {
   MAX_ROBOT_COUNT,
   buildRobotLoginData,
   canActOnTurn,
   chooseWildColor,
+  drawCards,
   getRandomDelayMs,
   getSupplementalRobotCount,
   getSupplementalRobotProfiles,

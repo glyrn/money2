@@ -359,6 +359,14 @@ playLogic.showWin = function (my){
 
 }
 
+playLogic.clearSelection = function(){
+    playLogic.nowManKey = false;
+    chessLogic.dot.dots = [];
+    chessLogic.dot.isShowChoice = false;
+    chessLogic.dot.isShow = false;
+    chessLogic.show();
+};
+
 playLogic.reset = function(){
     playLogic.map =	chessLogic.arr2Clone ( chessLogic.initMap );
     playLogic.pace = [];

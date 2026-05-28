@@ -154,8 +154,8 @@ cc.Class({
                         if(key == false){
                             globalData.socketMgr.playChess(x,y,1);
                         }else{
-                            if((chessLogic.mans[key].my === 1 && globalData.gameMgr.playerData.self.posId == 0) ||
-                                (chessLogic.mans[key].my === -1 && globalData.gameMgr.playerData.self.posId == 1) || 
+                            if((chessLogic.mans[key].my === 1 && globalData.gameMgr.playerData.self.posId == 1) ||
+                                (chessLogic.mans[key].my === -1 && globalData.gameMgr.playerData.self.posId == 0) ||
                                 playLogic.nowManKey){
 
                                 
@@ -220,13 +220,10 @@ cc.Class({
             }
         });
         globalData.eventlister.on('PLAY_CHESS_SUCCESS',function(data){
-            // that.choice_icon.active = false;
+            if(data.posId !== undefined && data.posId !== globalData.gameMgr.playerData.self.posId){
+                playLogic.clearSelection();
+            }
             playLogic.clickCanvas(data.x,data.y);
-            
-            // if(playLogic.nowManKey){
-            //     that.choice_icon.active = true;
-            //     // that.choice_icon.position = pos;
-            // }
         })
         globalData.eventlister.on('CHECK_END',function(){
             var winer = playLogic.AICheckRedEnd();

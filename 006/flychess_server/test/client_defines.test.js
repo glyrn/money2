@@ -7,6 +7,7 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const DEFINES_FILE = '006/flychess_client/assets/Script/data/defines.js';
 const SOCKET_MGR_FILE = '006/flychess_client/assets/Script/data/socketMgr.js';
+const SERVER_FILE = '006/flychess_server/index.js';
 const GAME_PORT = 9006;
 
 function loadDefines(href, host, port) {
@@ -30,6 +31,17 @@ test('flychess direct game port enables force login mode', () => {
 
   assert.equal(defines.serverUrl, host);
   assert.equal(defines.isForce, true);
+});
+
+test('flychess local debug keeps custom socket path', () => {
+  const source = fs.readFileSync(path.join(ROOT, SERVER_FILE), 'utf8');
+  const localDebugBlock = source.slice(
+    source.indexOf('if(getCurrentIP().indexOf("192.168") != -1)'),
+    source.indexOf('const gameCfg'),
+  );
+
+  assert.match(source, /var ioParam = \{path:'\/fxq_socket\.io'\};/);
+  assert.equal(localDebugBlock.includes('ioParam = null'), false);
 });
 
 test('flychess client forwards robot link flags during login', () => {

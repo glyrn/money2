@@ -9,7 +9,6 @@ const unoRobot = require('./robot');
 var isDebug = false;
 var ioParam = {path:'/uno_socket.io'};
 if(getCurrentIP().indexOf("192.168") != -1){
-  ioParam = null;
   isDebug = true;
 }
 const gameCfg = JSON.parse(fs.readFileSync('gameCfg.json', 'utf8'));
@@ -66,6 +65,33 @@ const proto = {
     return Math.round(Math.random() * num);
   },
   //创建牌
+
+	  drawCardFromDeck:function(desk){
+	    if(!desk || !desk.cards){
+	      return null;
+	    }
+	    if(desk.cards.length > 0){
+	      return desk.cards.shift();
+	    }
+	    if(!desk.out_cards || desk.out_cards.length <= 1){
+	      return null;
+	    }
+	    var topCard = desk.out_cards.pop();
+	    var cards = desk.out_cards.splice(0, desk.out_cards.length);
+	    desk.out_cards.push(topCard);
+	    var shuffleFn = function (arr) {
+	      var result = [], random;
+	      while(arr.length > 0){
+	        random = Math.floor(Math.random() * arr.length);
+	        result.push(arr[random]);
+	        arr.splice(random, 1);
+	      }
+	      return result;
+	    };
+	    desk.cards = shuffleFn(cards);
+	    return desk.cards.shift() || null;
+	  },
+
   createCards:function(){
     const shuffle = function (arr) {
       var result = [], random;
@@ -406,7 +432,7 @@ const proto = {
       var desk = this.desks[_i];
       if(desk.state == 1) {
         // 时间到或者没牌了
-        if (getTimeStamp() - desk.start_time > desk.game_time * 60 || desk.cards.length <= 0) {
+        if (getTimeStamp() - desk.start_time > desk.game_time * 60 || false) {
           //重置状态
           for (let i = 0; i < desk.positions.length; i++) {
             desk.positions[i].state = 1;
@@ -659,7 +685,7 @@ const proto = {
     desk.cur_posId = nextPosId;
     var plus_cards = [];
     for (let i = 0; i < plusNum; i++) {
-      var card = desk.cards.shift();
+      var card = this.drawCardFromDeck(desk);
       if(!card) return; // 没有牌了 要退出
       plus_cards.push(card);
       console.log(userObj.name,"[[增加手牌]]",card)
@@ -716,7 +742,7 @@ const proto = {
       const userObj = desk.positions[i];
       userObj.cards = [];
       for (let k = 0; k < 7; k++) {
-        userObj.cards.push(desk.cards.shift());
+        userObj.cards.push(this.drawCardFromDeck(desk));
       }
       this.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
     }
@@ -771,7 +797,7 @@ const proto = {
     var isOk = false;
 
     if(desk.positions[curPosId].cards.length == 1 && obj.type == 2){
-      var card = desk.cards.shift();
+      var card = this.drawCardFromDeck(desk);
       if(!card) return false;
       desk.positions[curPosId].cards.push(card);
       this.broadCastRoom("PLUS_CARD_ONLY",desk.deskId,{plus_num:1,card:card,posId:curPosId});
@@ -1274,7 +1300,7 @@ const proto = {
 
           if(desk.positions[curPosId].cards.length == 1 && obj.type == 2){  //最后一张不能出功能牌
             //补摸一张
-            var card = desk.cards.shift();
+            var card = self.drawCardFromDeck(desk);
             console.log("补摸ing",card);
             desk.positions[curPosId].cards.push(card);
             // console.log(desk.positions[curPosId].name,"手牌：", desk.positions[curPosId].cards, desk.positions[curPosId].cards.length);
@@ -1526,7 +1552,7 @@ const proto = {
                 //debug
                 // for (let k = 0; k < 3; k++) {
                 for (let k = 0; k < 7; k++) {
-                  userObj.cards.push(desk.cards.shift());
+                  userObj.cards.push(self.drawCardFromDeck(desk));
                 }
               self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
             }
