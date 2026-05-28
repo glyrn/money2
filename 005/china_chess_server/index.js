@@ -816,7 +816,7 @@ const proto = {
 
               self.clients[obj.uid] = socket;
 
-              room.play_mode = obj.play_mode;
+              room.play_mode = (obj.play_mode !== undefined && obj.play_mode !== null && obj.play_mode !== '') ? obj.play_mode : (chessRobot.getSupplementalRobotCount(obj) > 0 ? 0 : 1);
               room.play_count = obj.play_count;
               room.deprecate_time = 30;
               room.hadDeprecateGame = false;
@@ -850,7 +850,7 @@ const proto = {
               });
 
               self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj},obj.uid);
-              if(self.shouldAutoPrepareUser(obj) && userObj.state == 1){
+              if((self.shouldAutoPrepareUser(obj) || chessRobot.getSupplementalRobotCount(obj) > 0) && userObj.state == 1){
                 userObj.state = 2;
                 self.broadCastRoom("PREPARE_SUCCESS",room.deskId,userObj.uid);
                 self.prepareRobotPlayers(room);

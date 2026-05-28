@@ -1136,7 +1136,7 @@ const proto = {
                 server_time:getTimeStamp(),
               });
               self.broadCastRoom("SIT_CHANGE",room.deskId,{target:obj,posId:obj.posId},obj.uid)
-              if(self.shouldAutoPrepareUser(obj) && userObj.state == 1){
+              if((self.shouldAutoPrepareUser(obj) || robotLogic.getSupplementalRobotCount(obj) > 0) && userObj.state == 1){
                 userObj.state = 2;
                 self.broadCastRoom("PREPARE_SUCCESS",room.deskId,userObj.posId);
                 self.prepareRobotPlayers(room);
