@@ -1,5 +1,6 @@
 import globalData from "./data/globalData"
 import PanelLoading from "./data/PanelLoading"
+import launchArgs from "./data/launchArgs"
 
 cc.Class({
     extends: cc.Component,
@@ -18,23 +19,28 @@ cc.Class({
 
         console.log("启动参数："+window.location.href);
 
-        var url = decodeURI(window.location.href);
-        if(url.split('?').length > 1){
-            var params = url.split('?')[1].split('&');
-            var field = {};
-            for (const paramsKey in params) {
-                var obj = params[paramsKey].split('=');
-                field[obj[0]] = obj[1];
+        var field = launchArgs.parse(window.location.href);
+        if(!launchArgs.hasRequiredLoginArgs(field)){
+            if(defines.isDebug || defines.isForce){
+                field = launchArgs.createDebugFallbackArgs();
+                console.warn("启动参数缺失，使用本地游客参数", field);
+            }else{
+                console.error("启动参数缺失，无法进入游戏", window.location.href);
+                window.parent.postMessage({'event_loading':{type:"error",message:"missing_launch_args"}}, "*");
+                if(this.panel_loading && this.panel_loading.node){
+                    this.panel_loading.node.active = false;
+                }
+                return;
             }
-            var that = this;
-            
-            cc.args = field;
-            cc.args['lanuch_url'] = window.location.href;
-
-            that.panel_loading.showLoading(function(){
-                globalData.socketMgr.initSocket();
-            })
         }
+        var that = this;
+
+        cc.args = field;
+        cc.args['lanuch_url'] = window.location.href;
+
+        that.panel_loading.showLoading(function(){
+            globalData.socketMgr.initSocket();
+        })
     },
 
 });

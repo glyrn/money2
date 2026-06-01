@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const DEFINES_FILE = '006/flychess_client/assets/Script/data/defines.js';
+const LAUNCH_ARGS_FILE = '006/flychess_client/assets/Script/data/launchArgs.js';
 const SOCKET_MGR_FILE = '006/flychess_client/assets/Script/data/socketMgr.js';
 const SERVER_FILE = '006/flychess_server/index.js';
 const GAME_PORT = 9006;
@@ -23,6 +24,24 @@ function loadDefines(href, host, port) {
     filename: DEFINES_FILE,
   });
   return sandbox.window.defines;
+}
+
+function loadLaunchArgs() {
+  const fullPath = path.join(ROOT, LAUNCH_ARGS_FILE);
+  assert.equal(fs.existsSync(fullPath), true, `${LAUNCH_ARGS_FILE} should exist`);
+  const source = fs
+    .readFileSync(fullPath, 'utf8')
+    .replace(/export\s+default\s+launchArgs\s*;?/, 'module.exports = launchArgs;');
+  const sandbox = {
+    module: { exports: {} },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(source, sandbox, { filename: LAUNCH_ARGS_FILE });
+  return sandbox.module.exports;
+}
+
+function plain(value) {
+  return JSON.parse(JSON.stringify(value));
 }
 
 test('flychess direct game port enables force login mode', () => {
@@ -50,4 +69,39 @@ test('flychess client forwards robot link flags during login', () => {
   assert.match(source, /isRobot\s*:\s*cc\.args\['isRobot'\]/);
   assert.match(source, /robot\s*:\s*cc\.args\['robot'\]/);
   assert.match(source, /robots\s*:\s*cc\.args\['robots'\]/);
+  assert.match(source, /auto_ready\s*:\s*cc\.args\['auto_ready'\]/);
+});
+
+test('flychess launch args parse query variants and provide direct-play fallback', () => {
+  const launchArgs = loadLaunchArgs();
+
+  assert.deepEqual(
+    plain(launchArgs.parse('https://game.test/fxq?uid=60001&name=%E6%B5%8B%E8%AF%95+1&room=qa&ready_count=2&sign=a%3Db#ready')),
+    {
+      uid: '60001',
+      name: '测试 1',
+      room: 'qa',
+      ready_count: '2',
+      sign: 'a=b',
+    },
+  );
+  assert.deepEqual(
+    plain(launchArgs.parse('https://game.test/fxq#/play?uid=60002&room=qa_hash&play_count=1')),
+    {
+      uid: '60002',
+      room: 'qa_hash',
+      play_count: '1',
+    },
+  );
+
+  const args = launchArgs.createDebugFallbackArgs(12345);
+  assert.equal(args.uid, 'guest_12345');
+  assert.equal(args.room, 'guest_12345');
+  assert.equal(args.play_mode, '1');
+  assert.equal(args.ready_count, '2');
+  assert.equal(args.play_count, '1');
+  assert.equal(args.robot, '1');
+  assert.equal(args.auto_ready, '1');
+  assert.equal(launchArgs.hasRequiredLoginArgs(args), true);
+  assert.equal(launchArgs.hasRequiredLoginArgs({ uid: 'u1' }), false);
 });

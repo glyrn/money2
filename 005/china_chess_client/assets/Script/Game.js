@@ -154,8 +154,8 @@ cc.Class({
                         if(key == false){
                             globalData.socketMgr.playChess(x,y,1);
                         }else{
-                            if((chessLogic.mans[key].my === 1 && globalData.gameMgr.playerData.self.posId == 1) ||
-                                (chessLogic.mans[key].my === -1 && globalData.gameMgr.playerData.self.posId == 0) ||
+                            if((chessLogic.mans[key].my === 1 && globalData.gameMgr.playerData.self.posId == 0) ||
+                                (chessLogic.mans[key].my === -1 && globalData.gameMgr.playerData.self.posId == 1) ||
                                 playLogic.nowManKey){
 
                                 
@@ -220,7 +220,9 @@ cc.Class({
             }
         });
         globalData.eventlister.on('PLAY_CHESS_SUCCESS',function(data){
-            if(data.posId !== undefined && data.posId !== globalData.gameMgr.playerData.self.posId){
+            if(data.posId !== undefined &&
+                data.posId !== globalData.gameMgr.playerData.self.posId &&
+                data.time_out === undefined){
                 playLogic.clearSelection();
             }
             playLogic.clickCanvas(data.x,data.y);

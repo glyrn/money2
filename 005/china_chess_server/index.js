@@ -206,6 +206,18 @@ const proto = {
   isActiveGame:function(desk){
     return desk && desk.state == 1;
   },
+  countSeatedUsers:function(desk){
+    var count = 0;
+    if(!desk || !desk.positions){
+      return count;
+    }
+    for (let i = 0; i < desk.positions.length; i++) {
+      if(this.hasUser(desk.positions[i])){
+        count++;
+      }
+    }
+    return count;
+  },
   countRobotUsers:function(desk){
     var count = 0;
     for (let i = 0; i < desk.positions.length; i++) {
@@ -496,6 +508,9 @@ const proto = {
       var desk = this.desks[i];
       //检测弃局
       if(desk.state == 0 && desk.deprecate_time > 0){
+        if(desk.play_mode == 1 && this.countSeatedUsers(desk) < 2){
+          continue;
+        }
 
         desk.deprecate_time--;
         if(desk.deprecate_time > 0){
@@ -854,6 +869,9 @@ const proto = {
                 userObj.state = 2;
                 self.broadCastRoom("PREPARE_SUCCESS",room.deskId,userObj.uid);
                 self.prepareRobotPlayers(room);
+                if(self.tryStartGame(room)){
+                  return;
+                }
               }
             }else{
               socket.emit("MESSAGE",'房间已满员');
