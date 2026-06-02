@@ -230,8 +230,8 @@ playLogic.AICheckRedEnd = function(){
     playLogic.my = 1;
     var ret = AI.init(playLogic.pace.join(""));
     if(!ret){
-        console.log("将军！游戏结束!"+(isRed?"黑方":"红方")+"胜利！");
-        return isRed;
+        console.log("将军检查无可用应招，游戏继续");
+        return -1;
     }else{
         var key=playLogic.map[ret[3]][ret[2]];
         if(key == 'J0'){
@@ -248,8 +248,8 @@ playLogic.AICheckBlackEnd = function(){
     playLogic.my = -1;
     var ret = AI.init(playLogic.pace.join(""));
     if(!ret){
-        console.log("将军！游戏结束!"+(isBlack?"黑方":"红方")+"胜利！");
-        return isBlack;
+        console.log("将军检查无可用应招，游戏继续");
+        return -1;
     }else{
         var key=playLogic.map[ret[3]][ret[2]];
         if(key == 'j0'){

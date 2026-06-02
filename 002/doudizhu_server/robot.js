@@ -394,11 +394,10 @@ function isSamePeasantTeam(game, posId, otherPosId) {
   return parseInt(posId, 10) !== landlord && parseInt(otherPosId, 10) !== landlord;
 }
 
-function shouldYieldToTeammateHighCard(game, posId) {
+function shouldYieldToTeammatePlay(game, posId) {
   const lastInfo = game && game.lastCardInfo ? game.lastCardInfo : {};
-  const key = parseInt(lastInfo.key, 10);
   const len = parseInt(lastInfo.len, 10);
-  if (!Number.isFinite(key) || key < 14 || !Number.isFinite(len) || len > 2) {
+  if (!Number.isFinite(len) || len <= 0) {
     return false;
   }
   return isSamePeasantTeam(game, posId, lastInfo.posId);
@@ -447,7 +446,7 @@ function selectPlayCards(game, posId, islaizi) {
     return [];
   }
   const lastInfo = game.lastCardInfo || {};
-  if (shouldYieldToTeammateHighCard(game, posId)) {
+  if (shouldYieldToTeammatePlay(game, posId)) {
     return [];
   }
   const recommended = selectRecommendedPlayCards(game, posId, islaizi);

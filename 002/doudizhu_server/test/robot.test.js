@@ -200,6 +200,18 @@ test('selectPlayCards passes instead of casually beating a teammate high single'
   assert.deepEqual(robot.selectPlayCards(game, 2, 0), []);
 });
 
+test('selectPlayCards passes instead of beating a teammate ordinary single', () => {
+  const game = new Game();
+  game.init();
+  game.status = 2;
+  game.contextPosId = 2;
+  game.userScore = {0: 3, 1: 0, 2: 0};
+  game.lastCardInfo = {posId: 1, len: 1, key: 8, type: 'A', is_normal: true};
+  setCards(game, 2, [{value: 9, type: 0}, {value: 12, type: 1}]);
+
+  assert.deepEqual(robot.selectPlayCards(game, 2, 0), []);
+});
+
 test('selectPlayCards avoids leading a single laizi while the hand is still large', () => {
   const game = new Game();
   game.init();
