@@ -1,5 +1,5 @@
 import AvatorReady from "./AvatorReady";
-import globalData from "../Script/data/globalData";
+import globalData from "../scripts/globalData";
 
 function hasPlayerUid(playerData) {
     return playerData && playerData.uid !== 0 && playerData.uid !== '0' && playerData.uid !== null && playerData.uid !== undefined && playerData.uid !== '';

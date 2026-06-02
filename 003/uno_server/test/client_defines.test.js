@@ -11,6 +11,7 @@ const SOCKET_MGR_FILE = '003/uno_client/assets/scripts/data/socketMgr.js';
 const GAME_VIEW_FILE = '003/uno_client/assets/scripts/Game/Game.js';
 const PLAYER_PREFAB_FILE = '003/uno_client/assets/scripts/Game/prefabs/Player.js';
 const PANEL_AVATORS_FILE = '003/uno_client/assets/Prefab/PanelAvators.js';
+const AVATOR_READY_FILE = '003/uno_client/assets/Prefab/AvatorReady.js';
 const SERVER_FILE = '003/uno_server/index.js';
 const GAME_PORT = 9003;
 
@@ -82,6 +83,15 @@ test('uno client treats non-empty string uid as a seated player', () => {
   for (const source of [gameSource, playerSource, panelAvatorsSource]) {
     assert.equal(source.includes('uid > 0'), false);
     assert.match(source, /uid !== 0 && .*uid !== '0'/);
+  }
+});
+
+test('uno ready avatar prefabs import globalData with the correct path case', () => {
+  for (const file of [PANEL_AVATORS_FILE, AVATOR_READY_FILE]) {
+    const source = fs.readFileSync(path.join(ROOT, file), 'utf8');
+
+    assert.equal(source.includes('../Script/data/globalData'), false);
+    assert.match(source, /from "\.\.\/scripts\/globalData"/);
   }
 });
 
