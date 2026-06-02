@@ -184,3 +184,16 @@ test('disconnect and change-room cleanup only deprecate active games', () => {
   assert.match(changeRoomPath, /var wasPlaying = roomObj\.state == 1;/);
   assert.match(changeRoomPath, /if\s*\(wasPlaying\)\s*\{\s*this\.deprecateGame\(desk\);\s*\}/);
 });
+
+test('start game deals and rotates through actual ready users', () => {
+  const source = readIndexSource();
+  const startPath = sourceBetween(source, 'tryStartGame:function', 'scheduleRobotTurnIfNeeded:function');
+  const nextPosPath = sourceBetween(source, 'getNextPosId:function', 'getDeskByName:function');
+
+  assert.match(source, /getReadyUsers:function/);
+  assert.match(startPath, /var readyUsers = this\.getReadyUsers\(desk\);/);
+  assert.match(startPath, /desk\.cur_posId = readyUsers\[this\.getRandomNumForRange\(ready_count-1\)\]\.posId;/);
+  assert.equal(startPath.includes('const userObj = desk.positions[i];'), false);
+  assert.match(nextPosPath, /var readyUsers = this\.getReadyUsers\(desk\);/);
+  assert.equal(nextPosPath.includes('curPosId + 1 >= desk.ready_count'), false);
+});

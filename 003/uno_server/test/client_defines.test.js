@@ -8,6 +8,8 @@ const ROOT = path.resolve(__dirname, '..', '..', '..');
 const DEFINES_FILE = '003/uno_client/assets/scripts/defines.js';
 const LAUNCH_ARGS_FILE = '003/uno_client/assets/scripts/data/launchArgs.js';
 const SOCKET_MGR_FILE = '003/uno_client/assets/scripts/data/socketMgr.js';
+const GAME_VIEW_FILE = '003/uno_client/assets/scripts/Game/Game.js';
+const PLAYER_PREFAB_FILE = '003/uno_client/assets/scripts/Game/prefabs/Player.js';
 const SERVER_FILE = '003/uno_server/index.js';
 const GAME_PORT = 9003;
 
@@ -69,6 +71,16 @@ test('uno client forwards robot profile list during login', () => {
   assert.match(source, /robot\s*:\s*cc\.args\['robot'\]/);
   assert.match(source, /robots\s*:\s*cc\.args\['robots'\]/);
   assert.match(source, /auto_ready\s*:\s*cc\.args\['auto_ready'\]/);
+});
+
+test('uno client treats non-empty string uid as a seated player', () => {
+  const gameSource = fs.readFileSync(path.join(ROOT, GAME_VIEW_FILE), 'utf8');
+  const playerSource = fs.readFileSync(path.join(ROOT, PLAYER_PREFAB_FILE), 'utf8');
+
+  for (const source of [gameSource, playerSource]) {
+    assert.equal(source.includes('uid > 0'), false);
+    assert.match(source, /uid !== 0 && .*uid !== '0'/);
+  }
 });
 
 test('uno launch args parse query variants and provide direct-play fallback', () => {

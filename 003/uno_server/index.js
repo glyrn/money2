@@ -304,6 +304,19 @@ const proto = {
     }
     return count;
   },
+  getReadyUsers:function(desk){
+    var users = [];
+    if(!desk || !desk.positions){
+      return users;
+    }
+    for (let i = 0; i < desk.positions.length; i++) {
+      var userObj = desk.positions[i];
+      if(this.hasUser(userObj) && userObj.state == 2){
+        users.push(userObj);
+      }
+    }
+    return users;
+  },
   ensureRobotPlayers:function(desk,loginObj){
     if(!desk || desk.state != 0){
       return;
@@ -368,21 +381,26 @@ const proto = {
     }
   },
   getNextPosId:function(desk,curPosId){
-    var nextPosId;
-    if(desk.direct == 1){ //顺时针方向
-      if(curPosId + 1 >= desk.ready_count){
-        nextPosId = 0;
-      }else{
-        nextPosId = curPosId + 1;
-      }
-    }else if(desk.direct == 0){ //逆时针
-      if(curPosId - 1 >= 0){
-        nextPosId = curPosId - 1;
-      }else{
-        nextPosId = desk.ready_count - 1;
+    var readyUsers = this.getReadyUsers(desk);
+    if(readyUsers.length <= 0){
+      return curPosId;
+    }
+    var curIndex = -1;
+    for (let i = 0; i < readyUsers.length; i++) {
+      if(parseInt(readyUsers[i].posId,10) == parseInt(curPosId,10)){
+        curIndex = i;
+        break;
       }
     }
-    return nextPosId;
+    if(curIndex < 0){
+      return readyUsers[0].posId;
+    }
+    if(desk.direct == 1){
+      return readyUsers[(curIndex + 1) % readyUsers.length].posId;
+    }else if(desk.direct == 0){
+      return readyUsers[(curIndex - 1 + readyUsers.length) % readyUsers.length].posId;
+    }
+    return readyUsers[curIndex].posId;
   },
   getDeskByName:function(deskName) {
     let findDesk;
@@ -705,12 +723,8 @@ const proto = {
     if(!desk || desk.state != 0){
       return false;
     }
-    var ready_count = 0;
-    for (let j = 0; j < desk.positions.length; j++) {
-      if(desk.positions[j].state == 2){
-        ready_count++;
-      }
-    }
+    var readyUsers = this.getReadyUsers(desk);
+    var ready_count = readyUsers.length;
     if(!(desk.ready_count == 2 && ready_count == 2 ||
         desk.ready_count == 3 && ready_count == 3 ||
         desk.ready_count == 4 && ready_count == 4)){
@@ -721,7 +735,7 @@ const proto = {
     desk.state = 1;
     desk.direct = 1;
     desk.cards = this.createCards();
-    desk.cur_posId = this.getRandomNumForRange(ready_count-1);
+    desk.cur_posId = readyUsers[this.getRandomNumForRange(ready_count-1)].posId;
     desk.out_cards = [];
     desk.time_out = 30;
     desk.hadExecutePlayCard = false;
@@ -734,12 +748,12 @@ const proto = {
     }
 
     var score_list = {};
-    for (let i = 0; i < ready_count; i++) {
-      const userObj = desk.positions[i];
+    for (let i = 0; i < readyUsers.length; i++) {
+      const userObj = readyUsers[i];
       score_list[userObj.posId] = userObj.score;
     }
-    for (let i = 0; i < ready_count; i++) {
-      const userObj = desk.positions[i];
+    for (let i = 0; i < readyUsers.length; i++) {
+      const userObj = readyUsers[i];
       userObj.cards = [];
       for (let k = 0; k < 7; k++) {
         userObj.cards.push(this.drawCardFromDeck(desk));
@@ -1505,10 +1519,9 @@ const proto = {
             if(userObj.state == 1 && userObj.socket && userObj.socket.id == socket.id){
               desk.positions[j].state = 2;
             }
-            if(desk.positions[j].state == 2){
-              ready_count++;
-            }
           }
+          var readyUsers = self.getReadyUsers(desk);
+          ready_count = readyUsers.length;
 
           if(desk.ready_count == 2 && ready_count == 2 ||
               desk.ready_count == 3 && ready_count == 3 ||
@@ -1528,7 +1541,7 @@ const proto = {
             desk.state = 1;//开始游戏
             desk.direct = 1;//顺时针方向
             desk.cards = self.createCards();
-            desk.cur_posId = self.getRandomNumForRange(ready_count-1);
+            desk.cur_posId = readyUsers[self.getRandomNumForRange(ready_count-1)].posId;
             desk.out_cards = [];
             desk.time_out = 30;
             desk.hadExecutePlayCard = false;
@@ -1542,12 +1555,12 @@ const proto = {
             
             //分数初始化
             var score_list = {};
-            for (let i = 0; i < ready_count; i++) {
-              const userObj = desk.positions[i];
+            for (let i = 0; i < readyUsers.length; i++) {
+              const userObj = readyUsers[i];
               score_list[userObj.posId] = userObj.score;
             }
-            for (let i = 0; i < ready_count; i++) {
-                const userObj = desk.positions[i];
+            for (let i = 0; i < readyUsers.length; i++) {
+                const userObj = readyUsers[i];
                 userObj.cards = [];
                 //debug
                 // for (let k = 0; k < 3; k++) {

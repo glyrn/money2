@@ -35,7 +35,7 @@ cc.Class({
 
         this.tips_index = 0;
 
-        if(data && data.uid > 0) {
+        if(data && data.uid !== 0 && data.uid !== '0' && data.uid !== null && data.uid !== undefined && data.uid !== '') {
 
             this.node.active = true;
             this._data = data;

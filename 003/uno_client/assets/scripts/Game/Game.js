@@ -601,7 +601,7 @@ cc.Class({
             var tmp_list = [];
             for (const posId in globalData.gameMgr.score_list) {
                 var playerData = globalData.gameMgr.getPlayerData(posId);
-                if(playerData.uid > 0){
+                if(playerData.uid !== 0 && playerData.uid !== '0' && playerData.uid !== null && playerData.uid !== undefined && playerData.uid !== ''){
                     tmp_list.push({posId:posId,score:globalData.gameMgr.score_list[posId]});
                 }
             }
