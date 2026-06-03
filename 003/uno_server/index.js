@@ -928,16 +928,12 @@ const proto = {
           cards_list[i] = desk.positions[i].cards;
           score_total += score;
           cur_score_offset[i] = -score;
-          if(!this.isRobotUser(desk.positions[i])){
-            ycscore_list.push({uid:desk.positions[i].uid,posId:i,name:desk.positions[i].name,score:-score,is_win:0,avatorUrl:desk.positions[i].avatorUrl});
-          }
+          ycscore_list.push({uid:desk.positions[i].uid,posId:i,name:desk.positions[i].name,score:-score,is_win:0,avatorUrl:desk.positions[i].avatorUrl});
         }
       }
 
       cur_score_offset[winer] = score_total;
-      if(!this.isRobotUser(desk.positions[winer])){
-        ycscore_list.push({uid:desk.positions[winer].uid,posId:winer,name:desk.positions[winer].name,score:score_total,is_win:1,avatorUrl:desk.positions[winer].avatorUrl});
-      }
+      ycscore_list.push({uid:desk.positions[winer].uid,posId:winer,name:desk.positions[winer].name,score:score_total,is_win:1,avatorUrl:desk.positions[winer].avatorUrl});
       ycscore_list.sort((a, b) => {
         return b.score - a.score;
       });

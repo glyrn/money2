@@ -174,6 +174,16 @@ test('normal game-over paths do not arm deprecate countdown', () => {
   }
 });
 
+test('normal round scoring keeps robot winners and losers in the score rows', () => {
+  const source = readIndexSource();
+  const robotPlayPath = sourceBetween(source, 'handlePlayCard:function', 'checkDisconnect:function');
+
+  assert.equal(robotPlayPath.includes('if(!this.isRobotUser(desk.positions[i]))'), false);
+  assert.equal(robotPlayPath.includes('if(!this.isRobotUser(desk.positions[winer]))'), false);
+  assert.match(robotPlayPath, /ycscore_list\.push\(\{uid:desk\.positions\[i\]\.uid/);
+  assert.match(robotPlayPath, /ycscore_list\.push\(\{uid:desk\.positions\[winer\]\.uid/);
+});
+
 test('disconnect and change-room cleanup only deprecate active games', () => {
   const source = readIndexSource();
   const disconnectPath = sourceBetween(source, 'checkDisconnect:function', '//切换房间');
