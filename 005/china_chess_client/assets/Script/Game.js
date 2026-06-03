@@ -321,6 +321,9 @@ cc.Class({
     },
     gameOver:function(data){
 
+        if(globalData.gameMgr.roomState.state == 2){
+            return;
+        }
         globalData.gameMgr.roomState.state = 2; //结束
         globalData.gameMgr.server_time = Math.floor(new Date().getTime() / 1000);
         globalData.gameMgr.score_list.push(data);
@@ -362,7 +365,9 @@ cc.Class({
         var isQuit = globalData.gameMgr.play_index >= globalData.gameMgr.play_count ;
         this.btn_quit.active = false;
 
-        globalData.socketMgr.reqGameOver(data);
+        if(!data.from_server){
+            globalData.socketMgr.reqGameOver(data);
+        }
 
         //发送退出游戏事件
         // if(isQuit){

@@ -285,6 +285,10 @@ function getLegalMoves(board, side) {
   return moves;
 }
 
+function isSideCheckmated(board, side) {
+  return isSideInCheck(board, side) && getLegalMoves(board, side).length === 0;
+}
+
 function getInitialPosition(piece) {
   for (let y = 0; y < HEIGHT; y++) {
     for (let x = 0; x < WIDTH; x++) {
@@ -406,6 +410,7 @@ module.exports = {
   getSupplementalRobotProfiles,
   getPieceSide,
   isSideInCheck,
+  isSideCheckmated,
   makeRobotUid,
   normalizeRobotCount,
   parseRobotCountFromLaunchUrl,

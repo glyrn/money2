@@ -6,6 +6,9 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 const GAME_FILE = '005/china_chess_client/assets/Script/Game.js';
 const PLAY_LOGIC_FILE = '005/china_chess_client/assets/Script/data/playLogic.js';
+const SOCKET_MGR_FILE = '005/china_chess_client/assets/Script/data/socketMgr.js';
+const READY_TIMER_FILE = '005/china_chess_client/assets/Script/data/ready_timer.js';
+const CONTINUE_TIMER_FILE = '005/china_chess_client/assets/Script/data/continue_timer.js';
 
 function sourceBetween(source, startMarker, endMarker) {
   const start = source.indexOf(startMarker);
@@ -46,4 +49,26 @@ test('client check-end does not settle when AI search has no response move', () 
   assert.match(blackCheck, /if\(!ret\)\{\s*console\.log[\s\S]*return\s+-1;\s*\}/);
   assert.doesNotMatch(redCheck, /return\s+isRed;/);
   assert.doesNotMatch(blackCheck, /return\s+isBlack;/);
+});
+
+test('client consumes authoritative server game over without echoing settlement', () => {
+  const socketSource = fs.readFileSync(path.join(ROOT, SOCKET_MGR_FILE), 'utf8');
+  const gameSource = fs.readFileSync(path.join(ROOT, GAME_FILE), 'utf8');
+  const serverGameOver = sourceBetween(socketSource, '_socket.on("GAME_OVER"', '_socket.on("RETRACK_CHESS_REQ"');
+  const gameOver = sourceBetween(gameSource, 'gameOver:function(data){', 'renderScorePanel(){');
+
+  assert.match(serverGameOver, /_gameMgr\.is_quit\s*=\s*_gameMgr\.play_index\s*>=\s*_gameMgr\.play_count/);
+  assert.match(serverGameOver, /_eventMgr\.fire\("GAME_OVER",\s*data\)/);
+  assert.match(gameOver, /if\(globalData\.gameMgr\.roomState\.state\s*==\s*2\)\{\s*return;\s*\}/);
+  assert.match(gameOver, /if\(!data\.from_server\)\{\s*globalData\.socketMgr\.reqGameOver\(data\);\s*\}/);
+});
+
+test('client post-round countdown timers use ten seconds', () => {
+  const readyTimer = fs.readFileSync(path.join(ROOT, READY_TIMER_FILE), 'utf8');
+  const continueTimer = fs.readFileSync(path.join(ROOT, CONTINUE_TIMER_FILE), 'utf8');
+
+  assert.match(readyTimer, /server_time\s*\+\s*10\s*-\s*now/);
+  assert.match(continueTimer, /this\._target_time\s*=\s*now\s*\+\s*10/);
+  assert.equal(readyTimer.includes('+ 5 - now'), false);
+  assert.equal(continueTimer.includes('now + 5'), false);
 });

@@ -132,6 +132,19 @@ test('selectRobotMove escapes check before quiet development moves', () => {
   assert.equal(robot.isSideInCheck(nextBoard, 1), false);
 });
 
+test('isSideCheckmated detects checked king with no legal escape', () => {
+  const board = Array.from({length: robot.HEIGHT}, () => Array(robot.WIDTH).fill(null));
+  board[0][4] = 'J0';
+  board[2][4] = 'c0';
+  board[2][3] = 'c1';
+  board[2][5] = 'c2';
+
+  assert.equal(robot.isSideInCheck(board, 1), true);
+  assert.equal(robot.getLegalMoves(board, 1).length, 0);
+  assert.equal(typeof robot.isSideCheckmated, 'function');
+  assert.equal(robot.isSideCheckmated(board, 1), true);
+});
+
 test('applyMove moves pieces and reports captures', () => {
   const board = robot.createInitialBoard();
   board[8][0] = 'Z9';
@@ -184,13 +197,28 @@ test('PLAY_CHESS_SUCCESS payloads carry actor position for client turn cleanup',
   assert.match(selectPath, /PLAY_CHESS_SUCCESS"[\s\S]*posId:posId/);
 });
 
-test('REQ_GAME_OVER disables deprecate countdown after settlement', () => {
-  const source = readIndexSource();
-  const reqGameOverPath = source.slice(source.indexOf("socket.on('REQ_GAME_OVER'"), source.indexOf('http.listen'));
+test('server finalizes natural checkmate after a legal move', () => {
+  const handlePlayChessPath = getIndexSection('handlePlayChess:function', 'socketEmit:function');
 
-  assert.match(reqGameOverPath, /room\.state\s*=\s*0;/);
-  assert.equal(reqGameOverPath.includes('room.deprecate_time = 30;'), false);
-  assert.match(reqGameOverPath, /room\.deprecate_time\s*=\s*0;/);
+  assert.match(handlePlayChessPath, /var\s+nextTurn\s*=\s*posId\s*==\s*0\s*\?\s*1\s*:\s*0/);
+  assert.match(handlePlayChessPath, /chessRobot\.isSideCheckmated\(desk\.chess_board,\s*nextTurn\)/);
+  assert.match(handlePlayChessPath, /this\.finishGame\(desk,\s*\{winer:posId,\s*score:100\},\s*\{broadcast:true\}\)/);
+});
+
+test('REQ_GAME_OVER uses idempotent settlement finalizer', () => {
+  const reqGameOverPath = readIndexSource().slice(readIndexSource().indexOf("socket.on('REQ_GAME_OVER'"), readIndexSource().indexOf('http.listen'));
+  const finishGamePath = getIndexSection('finishGame:function', 'deprecateGame:function');
+
+  assert.match(reqGameOverPath, /self\.finishGame\(room,\s*data,\s*\{broadcast:false\}\)/);
+  assert.match(finishGamePath, /room\.state\s*!=\s*1/);
+});
+
+test('REQ_GAME_OVER disables deprecate countdown after settlement', () => {
+  const finishGamePath = getIndexSection('finishGame:function', 'deprecateGame:function');
+
+  assert.match(finishGamePath, /room\.state\s*=\s*0;/);
+  assert.equal(finishGamePath.includes('room.deprecate_time = 30;'), false);
+  assert.match(finishGamePath, /room\.deprecate_time\s*=\s*0;/);
 });
 
 test('disconnect and change-room cleanup deprecate only active games', () => {

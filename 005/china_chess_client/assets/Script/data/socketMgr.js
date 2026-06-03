@@ -159,6 +159,10 @@ const socketMgr = function(){
             _eventMgr.fire("GAME_START");
             _eventMgr.fire('CHANGE_TURN');
         })
+        _socket.on("GAME_OVER",function(data){
+            _gameMgr.is_quit = _gameMgr.play_index >= _gameMgr.play_count;
+            _eventMgr.fire("GAME_OVER", data);
+        });
 
         _socket.on("RETRACK_CHESS_REQ",function(data){
             _eventMgr.fire('RETRACK_CHESS_REQ',data);

@@ -413,7 +413,12 @@ const proto = {
     data.posId = posId;
     data.time_out = getTimeStamp()+desk.time_out;
     this.broadCastRoom("PLAY_CHESS_SUCCESS",desk.deskId,data);
-    desk.turn = posId == 0 ? 1 : 0;
+    var nextTurn = posId == 0 ? 1 : 0;
+    if(chessRobot.isSideCheckmated(desk.chess_board, nextTurn)){
+      this.finishGame(desk,{winer:posId,score:100},{broadcast:true});
+      return true;
+    }
+    desk.turn = nextTurn;
     this.scheduleRobotTurnIfNeeded(desk);
     return true;
   },
@@ -466,6 +471,59 @@ const proto = {
         }
       }
     }
+  },
+  finishGame:function(room,data,option){
+    var options = option || {};
+    if(!room || room.state != 1){
+      return false;
+    }
+    data = data || {};
+    this.clearRobotTimer(room);
+    room.state = 0;
+    room.deprecate_time = 0;
+    room.hadDeprecateGame = false;
+    room.time_out = 0;
+    room.hadPlayChess = false;
+
+    var winer = data.winer;
+    var clientScore = parseInt(data.score,10);
+    if(!Number.isFinite(clientScore)){
+      clientScore = 100;
+    }
+    var score_list = [];
+    for (let i = 0; i < room.positions.length; i++) {
+      room.positions[i].state = 1;
+      var score = 0;
+      var is_win = 0;
+      if(winer == room.positions[i].posId){
+        score = 10;
+        is_win = 1;
+      }
+      if(this.hasUser(room.positions[i]) && !this.isRobotUser(room.positions[i])){
+        score_list.push({
+          uid:room.positions[i].uid,
+          name:room.positions[i].name,
+          avatorUrl:room.positions[i].avatorUrl,
+          score:score,
+          is_win:is_win
+        })
+      }
+    }
+    if(!room.score_list) room.score_list = [];
+    room.score_list.push({play_index:room.play_index,score_list:score_list});
+
+    if(room.play_index == room.play_count){
+      this.sendYcGameOver({
+        room_id:room.name,
+        game_id:5,
+        score_list:room.score_list
+      });
+    }
+
+    if(options.broadcast){
+      this.broadCastRoom("GAME_OVER",room.deskId,{score:clientScore,winer:winer,from_server:1});
+    }
+    return true;
   },
   deprecateGame:function(desk){
 
@@ -1015,47 +1073,7 @@ const proto = {
       socket.on('REQ_GAME_OVER',function(data){
         var room = self.getDesk(socket);
         if(room){
-          self.clearRobotTimer(room);
-          room.state = 0;
-          room.deprecate_time = 0;
-          room.hadDeprecateGame = false;
-          room.time_out = 0;
-          room.hadPlayChess = false;
-          
-          var score_list = [];
-          for (let i = 0; i < room.positions.length; i++) {
-            room.positions[i].state = 1;
-            var score = 0;
-            var is_win = 0;
-            //胜利得10分
-            if(data.winer == room.positions[i].posId){
-              score = 10;
-              is_win = 1;
-            }else{
-              score = 0;
-              is_win = 0;
-            }
-            if(!self.isRobotUser(room.positions[i])){
-              score_list.push({
-                uid:room.positions[i].uid,
-                name:room.positions[i].name,
-                avatorUrl:room.positions[i].avatorUrl,
-                score:score,
-                is_win:is_win
-              })
-            }
-          }
-          if(!room.score_list) room.score_list = [];
-          room.score_list.push({play_index:room.play_index,score_list:score_list})
-          
-          if(room.play_index == room.play_count){
-            //发送给云村数据
-            self.sendYcGameOver({
-              room_id:room.name,
-              game_id:5,
-              score_list:room.score_list
-            });
-          }
+          self.finishGame(room,data,{broadcast:false});
         }
       })
 
