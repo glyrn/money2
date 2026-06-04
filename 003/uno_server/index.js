@@ -66,31 +66,35 @@ const proto = {
   },
   //创建牌
 
-	  drawCardFromDeck:function(desk){
-	    if(!desk || !desk.cards){
-	      return null;
-	    }
-	    if(desk.cards.length > 0){
-	      return desk.cards.shift();
-	    }
-	    if(!desk.out_cards || desk.out_cards.length <= 1){
-	      return null;
-	    }
-	    var topCard = desk.out_cards.pop();
-	    var cards = desk.out_cards.splice(0, desk.out_cards.length);
-	    desk.out_cards.push(topCard);
-	    var shuffleFn = function (arr) {
-	      var result = [], random;
-	      while(arr.length > 0){
-	        random = Math.floor(Math.random() * arr.length);
-	        result.push(arr[random]);
-	        arr.splice(random, 1);
-	      }
-	      return result;
-	    };
-	    desk.cards = shuffleFn(cards);
-	    return desk.cards.shift() || null;
-	  },
+  drawCardFromDeck:function(desk){
+    if(!desk || !desk.cards){
+      return null;
+    }
+    if(desk.cards.length > 0){
+      return desk.cards.shift();
+    }
+    if(!desk.out_cards || desk.out_cards.length <= 1){
+      return null;
+    }
+    var topCard = desk.out_cards.pop();
+    var cards = desk.out_cards.splice(0, desk.out_cards.length).map(function(card) {
+      var cleaned = Object.assign({}, card);
+      delete cleaned.mark;
+      return cleaned;
+    });
+    desk.out_cards.push(topCard);
+    var shuffleFn = function (arr) {
+      var result = [], random;
+      while(arr.length > 0){
+        random = Math.floor(Math.random() * arr.length);
+        result.push(arr[random]);
+        arr.splice(random, 1);
+      }
+      return result;
+    };
+    desk.cards = shuffleFn(cards);
+    return desk.cards.shift() || null;
+  },
 
   createCards:function(){
     const shuffle = function (arr) {
@@ -702,9 +706,10 @@ const proto = {
     var nextPosId = this.getNextPosId(desk,curPosId);
     desk.cur_posId = nextPosId;
     var plus_cards = [];
-    for (let i = 0; i < plusNum; i++) {
+    var drawCount = plusNum > 0 ? plusNum : 1;
+    for (let i = 0; i < drawCount; i++) {
       var card = this.drawCardFromDeck(desk);
-      if(!card) return; // 没有牌了 要退出
+      if(!card) break;
       plus_cards.push(card);
       console.log(userObj.name,"[[增加手牌]]",card)
       userObj.cards.push(card);
@@ -715,7 +720,7 @@ const proto = {
     this.socketEmit(userObj,"PLAY_PASS_SUCCESS",{plus_cards:plus_cards});
     desk.hadExecutePlayCard = false;
     desk.time_out = 30;
-    this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plusNum,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp()});
+    this.broadCastRoom("PLUS_CARD",desk.deskId,{plus_num:plus_cards.length,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp(),card_remain:desk.cards.length});
     this.scheduleRobotTurnIfNeeded(desk);
 
   },
@@ -758,7 +763,10 @@ const proto = {
       for (let k = 0; k < 7; k++) {
         userObj.cards.push(this.drawCardFromDeck(desk));
       }
-      this.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
+    }
+    for (let i = 0; i < readyUsers.length; i++) {
+      const userObj = readyUsers[i];
+      this.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time,card_remain:desk.cards.length});
     }
     this.scheduleRobotTurnIfNeeded(desk);
     return true;
@@ -814,7 +822,7 @@ const proto = {
       var card = this.drawCardFromDeck(desk);
       if(!card) return false;
       desk.positions[curPosId].cards.push(card);
-      this.broadCastRoom("PLUS_CARD_ONLY",desk.deskId,{plus_num:1,card:card,posId:curPosId});
+      this.broadCastRoom("PLUS_CARD_ONLY",desk.deskId,{plus_num:1,card:card,posId:curPosId,card_remain:desk.cards.length});
       isOk = true;
     }else {
       if (last_card.type == 1) {
@@ -891,7 +899,7 @@ const proto = {
     }
     desk.positions[curPosId].cards = new_cards;
 
-    this.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp(),plus_num:this._getPlusPrepareNum(desk),skipPosId:skipPosId});
+    this.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp(),plus_num:this._getPlusPrepareNum(desk),skipPosId:skipPosId,card_remain:desk.cards.length});
     desk.hadExecutePlayCard = false;
     desk.time_out = 30;
 
@@ -1311,10 +1319,11 @@ const proto = {
           if(desk.positions[curPosId].cards.length == 1 && obj.type == 2){  //最后一张不能出功能牌
             //补摸一张
             var card = self.drawCardFromDeck(desk);
+            if(!card) return;
             console.log("补摸ing",card);
             desk.positions[curPosId].cards.push(card);
             // console.log(desk.positions[curPosId].name,"手牌：", desk.positions[curPosId].cards, desk.positions[curPosId].cards.length);
-            self.broadCastRoom("PLUS_CARD_ONLY",desk.deskId,{plus_num:1,card:card,posId:curPosId});
+            self.broadCastRoom("PLUS_CARD_ONLY",desk.deskId,{plus_num:1,card:card,posId:curPosId,card_remain:desk.cards.length});
             isOk = true;
           }else {
             //数字牌
@@ -1393,7 +1402,7 @@ const proto = {
             }
             desk.positions[curPosId].cards = new_cards;
             
-            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp(),plus_num:self._getPlusPrepareNum(desk),skipPosId:skipPosId})
+            self.broadCastRoom("PLAY_CARD_SUCCESS",desk.deskId,{card:obj,posId:curPosId,nextPosId:nextPosId,server_time:getTimeStamp(),plus_num:self._getPlusPrepareNum(desk),skipPosId:skipPosId,card_remain:desk.cards.length})
             desk.hadExecutePlayCard = false;
             desk.time_out = 30;
             console.log("已经游玩了："+(getTimeStamp() - desk.start_time) +"秒");
@@ -1563,7 +1572,10 @@ const proto = {
                 for (let k = 0; k < 7; k++) {
                   userObj.cards.push(self.drawCardFromDeck(desk));
                 }
-              self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time});
+            }
+            for (let i = 0; i < readyUsers.length; i++) {
+              const userObj = readyUsers[i];
+              self.socketEmit(userObj,'GAME_START',{score_list:score_list,cards:userObj.cards,top:top,turn:desk.cur_posId,server_time:desk.start_time,card_remain:desk.cards.length});
             }
           }
         }

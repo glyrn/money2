@@ -128,3 +128,24 @@ test('uno launch args parse query variants and provide direct-play fallback', ()
   assert.equal(launchArgs.hasRequiredLoginArgs(args), true);
   assert.equal(launchArgs.hasRequiredLoginArgs({ uid: 'u1' }), false);
 });
+
+test('uno deck counter is driven by server card_remain instead of client-side guesses', () => {
+  const serverSource = fs.readFileSync(path.join(ROOT, SERVER_FILE), 'utf8');
+  const socketSource = fs.readFileSync(path.join(ROOT, SOCKET_MGR_FILE), 'utf8');
+  const gameSource = fs.readFileSync(path.join(ROOT, GAME_VIEW_FILE), 'utf8');
+
+  assert.match(serverSource, /GAME_START[\s\S]*card_remain\s*:\s*desk\.cards\.length/);
+  assert.match(serverSource, /PLUS_CARD[\s\S]*card_remain\s*:\s*desk\.cards\.length/);
+  assert.match(socketSource, /data\.card_remain[\s\S]*_gameMgr\.card_remain\s*=\s*data\.card_remain/);
+  assert.equal(socketSource.includes('_gameMgr.card_remain = _gameMgr.card_remain - data.plus_num'), false);
+  assert.equal(gameSource.includes('globalData.gameMgr.card_remain--'), false);
+});
+
+test('uno ordinary pass draws one card and reports the actual drawn count', () => {
+  const source = fs.readFileSync(path.join(ROOT, SERVER_FILE), 'utf8');
+  const makePassPath = source.slice(source.indexOf('makePass:function'), source.indexOf('tryStartGame:function'));
+
+  assert.match(makePassPath, /var drawCount = plusNum > 0 \? plusNum : 1;/);
+  assert.match(makePassPath, /for \(let i = 0; i < drawCount; i\+\+\)/);
+  assert.match(makePassPath, /plus_num:plus_cards\.length/);
+});

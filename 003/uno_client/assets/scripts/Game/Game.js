@@ -374,7 +374,6 @@ cc.Class({
                 node.runAction(cc.sequence(actions));
             }
 
-            globalData.gameMgr.card_remain--;
             this.renderRemainCard();
 
         }else{
@@ -438,8 +437,6 @@ cc.Class({
         var plus_nodes = [];
 
         for (let i = 0; i < data.plus_num; i++) {
-            globalData.gameMgr.card_remain--;
-
             //无动画
             if(globalData.gameMgr.isRecover){
                 if(i == data.plus_num - 1)

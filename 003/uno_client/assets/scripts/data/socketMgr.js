@@ -149,7 +149,7 @@ const socketMgr = function(){
             _gameMgr.getPlayerData(data.turn).target_timer_value = parseInt(data.server_time) + _gameMgr.roomState.timeout;
             _gameMgr.server_time = parseInt(data.server_time);
             _gameMgr.playerData.turn = data.turn;
-            _gameMgr.card_remain = 108;
+            _gameMgr.card_remain = data.card_remain !== undefined ? data.card_remain : 108;
             _gameMgr.roomState.gametime_remain = parseInt(data.server_time) + parseInt(cc.args['game_time'] ?? 4) * 60;
             
             //更新分数
@@ -195,6 +195,9 @@ const socketMgr = function(){
         });
 
         _socket.on('PLAY_CARD_SUCCESS',function(data){
+            if(data.card_remain !== undefined){
+                _gameMgr.card_remain = data.card_remain;
+            }
 
             _gameMgr.playerData.self.target_timer_value = 0;
             //剔除
@@ -239,7 +242,9 @@ const socketMgr = function(){
         });
         _socket.on('PLUS_CARD',function(data){
 
-            _gameMgr.card_remain = _gameMgr.card_remain - data.plus_num;
+            if(data.card_remain !== undefined){
+                _gameMgr.card_remain = data.card_remain;
+            }
             //无动画
             if(_gameMgr.isRecover){
                 
@@ -274,6 +279,9 @@ const socketMgr = function(){
         });
 
         _socket.on("PLUS_CARD_ONLY",function(data){
+            if(data.card_remain !== undefined){
+                _gameMgr.card_remain = data.card_remain;
+            }
             _gameMgr.getPlayerData(data.posId).cards.push(data.card);
             _eventMgr.fire('PLUS_CARD',data);
         })
